@@ -1,4 +1,4 @@
-# Patch Provider
+# Azure DevOps Provider
 
 This is a [Krateo](https://krateoplatformops.github.io/) Provider that handle [Azure DevOps services](https://azure.microsoft.com/en-us/products/devops).
 
