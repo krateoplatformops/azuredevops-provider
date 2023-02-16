@@ -48,8 +48,16 @@ spec:
               apiUrl:
                 description: 'ApiUrl: the baseUrl for the REST API provider.'
                 type: string
+              capabilities:
+                additionalProperties:
+                  additionalProperties:
+                    type: string
+                  type: object
+                description: 'Capabilities: set of capabilities this project has (such
+                  as process template & version control).'
+                type: object
               credentials:
-                description: Credentials required to authenticate ReST API git server.
+                description: Credentials required to authenticate ReST API server.
                 properties:
                   env:
                     description: Env is a reference to an environment variable that
@@ -89,15 +97,18 @@ spec:
                 - Orphan
                 - Delete
                 type: string
+              description:
+                description: 'Description: the project''s description (if any).'
+                type: string
               name:
-                description: 'Name: the name of the repository.'
+                description: 'Name: the name of the project.'
                 type: string
               org:
                 description: 'Org: the organization name.'
                 type: string
               private:
-                description: 'Private: whether the repository is private (default:
-                  true).'
+                description: 'Private: the project is only visible to users with explicit
+                  access. (default: true).'
                 type: boolean
               verbose:
                 description: Verbose is true dumps your client requests and responses.

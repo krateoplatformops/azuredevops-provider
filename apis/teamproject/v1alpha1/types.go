@@ -10,11 +10,10 @@ type TeamProjectSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
 
 	// ApiUrl: the baseUrl for the REST API provider.
-	// +optional
 	// +immutable
 	ApiUrl string `json:"apiUrl,omitempty"`
 
-	// Credentials required to authenticate ReST API git server.
+	// Credentials required to authenticate ReST API server.
 	Credentials *rtv1.CredentialSelectors `json:"credentials"`
 
 	// Verbose is true dumps your client requests and responses.
@@ -25,13 +24,22 @@ type TeamProjectSpec struct {
 	// +immutable
 	Org string `json:"org"`
 
-	// Name: the name of the repository.
+	// Name: the name of the project.
 	// +immutable
 	Name string `json:"name"`
 
-	// Private: whether the repository is private (default: true).
+	// Description: the project's description (if any).
+	// +optional
+	Description string `json:"description,omitempty"`
+
+	// Private: the project is only visible to users with explicit access. (default: true).
 	// +optional
 	Private bool `json:"private,omitempty"`
+
+	// Capabilities: set of capabilities this project has
+	// (such as process template & version control).
+	// +optional
+	Capabilities map[string]map[string]string `json:"capabilities,omitempty"`
 }
 
 // TeamProjectStatus defines the observed state of Repo
