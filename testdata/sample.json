@@ -1,0 +1,1027 @@
+{
+    "count":100,
+    "value":[
+       {
+          "id":"090be76f-bef7-4e40-9a3f-86d20b17303d",
+          "name":"Created by Go nr.122",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/090be76f-bef7-4e40-9a3f-86d20b17303d",
+          "state":"wellFormed",
+          "revision":1079,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:09:01.947Z"
+       },
+       {
+          "id":"cd0835a7-09d6-4863-9148-793604fc5b5f",
+          "name":"Created by Go nr.0",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/cd0835a7-09d6-4863-9148-793604fc5b5f",
+          "state":"wellFormed",
+          "revision":147,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:40.897Z"
+       },
+       {
+          "id":"de69b1ba-ce86-4275-8d2c-653e4b354a7b",
+          "name":"ProjectCreatedViaRestApi",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/de69b1ba-ce86-4275-8d2c-653e4b354a7b",
+          "state":"wellFormed",
+          "revision":35,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-15
+ T16:44:10.107Z"
+       },
+       {
+          "id":"16ba0954-dcc8-489e-97c7-f4a493aa9b61",
+          "name":"Created by Go nr.19",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/16ba0954-dcc8-489e-97c7-f4a493aa9b61",
+          "state":"wellFormed",
+          "revision":211,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:48.693Z"
+       },
+       {
+          "id":"daff838a-8225-4a95-a449-d144084b7398",
+          "name":"Created by Go nr.25",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/daff838a-8225-4a95-a449-d144084b7398",
+          "state":"wellFormed",
+          "revision":242,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:52.7Z"
+       },
+       {
+          "id":"e96a4028-b793-4623-8c9b-aa626b2b5a8e",
+          "name":"Created by Go nr.31",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/e96a4028-b793-4623-8c9b-aa626b2b5a8e",
+          "state":"wellFormed",
+          "revision":369,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:04.13
+ 7Z"
+       },
+       {
+          "id":"9cc8970a-1e7b-4240-883e-57b64aed0f40",
+          "name":"Created by Go nr.84",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/9cc8970a-1e7b-4240-883e-57b64aed0f40",
+          "state":"wellFormed",
+          "revision":812,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:42.487Z"
+       },
+       {
+          "id":"401a7ba2-3043-4163-89e9-1a7707a41610",
+          "name":"Created by Go nr.87",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/401a7ba2-3043-4163-89e9-1a7707a41610",
+          "state":"wellFormed",
+          "revision":738,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:33.917Z"
+       },
+       {
+          "id":"defc12e2-6688-4cf5-8c26-65eab5581717",
+          "name":"Created by Go nr.43",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/defc12e2-6688-4cf5-8c26-65eab5581717",
+          "state":"wellFormed",
+          "rev
+ ision":486,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:18.373Z"
+       },
+       {
+          "id":"9e3fd7ef-76d3-45fd-ada3-06c0ca81f071",
+          "name":"Created by Go nr.116",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/9e3fd7ef-76d3-45fd-ada3-06c0ca81f071",
+          "state":"wellFormed",
+          "revision":1031,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:50.147Z"
+       },
+       {
+          "id":"8f3ecf7f-9038-407c-9874-82f2746b1516",
+          "name":"Created by Go nr.66",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/8f3ecf7f-9038-407c-9874-82f2746b1516",
+          "state":"wellFormed",
+          "revision":716,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:30.933Z"
+       },
+       {
+          "id":"4e12ea75-98ea-4638-8242-fa85128e7a56",
+          "name":"Created by Go nr.83",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_a
+ pis/projects/4e12ea75-98ea-4638-8242-fa85128e7a56",
+          "state":"wellFormed",
+          "revision":808,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:41.96Z"
+       },
+       {
+          "id":"b12a0426-6faa-46ae-92d0-45af81bd5836",
+          "name":"Created by Go nr.34",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/b12a0426-6faa-46ae-92d0-45af81bd5836",
+          "state":"wellFormed",
+          "revision":373,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:04.323Z"
+       },
+       {
+          "id":"d1ceeebe-7912-48ca-89d9-3130663c058c",
+          "name":"Created by Go nr.55",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/d1ceeebe-7912-48ca-89d9-3130663c058c",
+          "state":"wellFormed",
+          "revision":536,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:30.55Z"
+       },
+       {
+          "id":"18038400-25b9-42d3-a118-24d76cc3e0ed",
+          "name":"Created by Go nr.45",
+          "description":"Sorry for the Spam but I need to let the continuat
+ ion token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/18038400-25b9-42d3-a118-24d76cc3e0ed",
+          "state":"wellFormed",
+          "revision":403,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:09.563Z"
+       },
+       {
+          "id":"334992c7-e5b6-4140-9ed8-9ca835dfe0fb",
+          "name":"Created by Go nr.7",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/334992c7-e5b6-4140-9ed8-9ca835dfe0fb",
+          "state":"wellFormed",
+          "revision":144,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:40.567Z"
+       },
+       {
+          "id":"7cf2e1fe-9ab0-460c-b726-823006458370",
+          "name":"Created by Go nr.21",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/7cf2e1fe-9ab0-460c-b726-823006458370",
+          "state":"wellFormed",
+          "revision":273,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:45:00.273Z"
+       },
+       {
+          "id":"2b219a25-70c5-4c56-8457-87c021547f4c",
+          "name":"Created by Go nr.70",
+          "description":"Sorry for the Spam but I need to let the continuation token a
+ ppear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/2b219a25-70c5-4c56-8457-87c021547f4c",
+          "state":"wellFormed",
+          "revision":825,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:44.01Z"
+       },
+       {
+          "id":"98c016dd-8707-41f3-a2cb-f55b196b9203",
+          "name":"Created by Go nr.33",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/98c016dd-8707-41f3-a2cb-f55b196b9203",
+          "state":"wellFormed",
+          "revision":381,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:05.58Z"
+       },
+       {
+          "id":"72264173-785c-46a7-ab0a-1b3e6aa6657b",
+          "name":"Created by Go nr.74",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/72264173-785c-46a7-ab0a-1b3e6aa6657b",
+          "state":"wellFormed",
+          "revision":651,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:24.563Z"
+       },
+       {
+          "id":"1c979e6e-9a58-4682-aa89-7050c00b0ff3",
+          "name":"Created by Go nr.93",
+          "des
+ cription":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/1c979e6e-9a58-4682-aa89-7050c00b0ff3",
+          "state":"wellFormed",
+          "revision":858,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:05:00.603Z"
+       },
+       {
+          "id":"1cb5e7ce-f4e3-45e7-9060-a7588d83ecbc",
+          "name":"Created by Go nr.24",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/1cb5e7ce-f4e3-45e7-9060-a7588d83ecbc",
+          "state":"wellFormed",
+          "revision":286,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:45:01.517Z"
+       },
+       {
+          "id":"9d62c5c9-1fad-4ac0-8d41-2deda5149514",
+          "name":"Krateo-microservices",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/9d62c5c9-1fad-4ac0-8d41-2deda5149514",
+          "state":"wellFormed",
+          "revision":43,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-15T16:49:22.777Z"
+       },
+       {
+          "id":"74d79fa1-04dc-4c15-b773-48d2dcc3f34c",
+          "name":"Created by Go nr.81",
+          "description":"Sorry for the Spam but I need to let the co
+ ntinuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/74d79fa1-04dc-4c15-b773-48d2dcc3f34c",
+          "state":"wellFormed",
+          "revision":703,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:29.377Z"
+       },
+       {
+          "id":"c97f7972-e626-41d8-9f1e-e8f070f7f0ed",
+          "name":"Created by Go nr.62",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/c97f7972-e626-41d8-9f1e-e8f070f7f0ed",
+          "state":"wellFormed",
+          "revision":593,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:19.853Z"
+       },
+       {
+          "id":"001f4158-3fef-463b-b688-f97a58f673a1",
+          "name":"Created by Go nr.95",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/001f4158-3fef-463b-b688-f97a58f673a1",
+          "state":"wellFormed",
+          "revision":815,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:42.59Z"
+       },
+       {
+          "id":"0aabde55-11f7-4135-afdc-717d9d3a9c1b",
+          "name":"Create
+ d by Go nr.20",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/0aabde55-11f7-4135-afdc-717d9d3a9c1b",
+          "state":"wellFormed",
+          "revision":219,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:49.593Z"
+       },
+       {
+          "id":"a39e86c0-54d9-4659-b804-06f1b84c05e3",
+          "name":"Created by Go nr.8",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/a39e86c0-54d9-4659-b804-06f1b84c05e3",
+          "state":"wellFormed",
+          "revision":146,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:40.883Z"
+       },
+       {
+          "id":"0393463e-3904-4e7b-ba10-dc1f5d798461",
+          "name":"Created by Go nr.40",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/0393463e-3904-4e7b-ba10-dc1f5d798461",
+          "state":"wellFormed",
+          "revision":481,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:17.86Z"
+       },
+       {
+          "id":"a613ee27-87a8-4c4d-9fcf-02af8fb2c077",
+          "name":"Created by Go nr.2
+ 6",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/a613ee27-87a8-4c4d-9fcf-02af8fb2c077",
+          "state":"wellFormed",
+          "revision":245,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:54.22Z"
+       },
+       {
+          "id":"51b918f1-c403-452e-9d11-17ac722b1133",
+          "name":"Created by Go nr.11",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/51b918f1-c403-452e-9d11-17ac722b1133",
+          "state":"wellFormed",
+          "revision":157,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:42.693Z"
+       },
+       {
+          "id":"9e215bac-9ccf-47d7-9e5a-2bafb177a3b8",
+          "name":"Created by Go nr.42",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/9e215bac-9ccf-47d7-9e5a-2bafb177a3b8",
+          "state":"wellFormed",
+          "revision":485,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:18.317Z"
+       },
+       {
+          "id":"93442cb0-d43c-48e2-9bf8-882bfdd47488",
+          "name":"Created by Go nr.110",
+          "descri
+ ption":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/93442cb0-d43c-48e2-9bf8-882bfdd47488",
+          "state":"wellFormed",
+          "revision":987,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:46.98Z"
+       },
+       {
+          "id":"be0281fd-531b-4279-b23d-1e2d8a173e2e",
+          "name":"Created by Go nr.10",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/be0281fd-531b-4279-b23d-1e2d8a173e2e",
+          "state":"wellFormed",
+          "revision":269,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:58.87Z"
+       },
+       {
+          "id":"1525d926-6b6c-471d-8c16-edfd47b15426",
+          "name":"Created by Go nr.67",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/1525d926-6b6c-471d-8c16-edfd47b15426",
+          "state":"wellFormed",
+          "revision":805,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:41.353Z"
+       },
+       {
+          "id":"e7f888d3-cb6f-4fbb-8b90-8da31c613266",
+          "name":"Created by Go nr.44",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/e7f888d3-cb6f-4fbb-8b90-8da31c613266",
+          "state":"wellFormed",
+          "revision":492,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:19.237Z"
+       },
+       {
+          "id":"dc6222e3-e931-4b2b-94fc-357f5b794ba4",
+          "name":"Created by Go nr.119",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/dc6222e3-e931-4b2b-94fc-357f5b794ba4",
+          "state":"wellFormed",
+          "revision":1081,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:09:02.69Z"
+       },
+       {
+          "id":"0e16c1f0-5b1d-429c-a906-87d829a04dcc",
+          "name":"Created by Go nr.107",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/0e16c1f0-5b1d-429c-a906-87d829a04dcc",
+          "state":"wellFormed",
+          "revision":1053,
+          "visibility":"private",
+          "lastUpdateTime":"2
+ 023-02-16T14:08:54.34Z"
+       },
+       {
+          "id":"867028ad-003d-4421-9f37-07b65b2dca0d",
+          "name":"Created by Go nr.101",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/867028ad-003d-4421-9f37-07b65b2dca0d",
+          "state":"wellFormed",
+          "revision":917,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:40.167Z"
+       },
+       {
+          "id":"58a3fda0-f190-4831-93d3-01c5a88b4c8e",
+          "name":"Created by Go nr.52",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/58a3fda0-f190-4831-93d3-01c5a88b4c8e",
+          "state":"wellFormed",
+          "revision":520,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:27.267Z"
+       },
+       {
+          "id":"23979028-c67f-46a1-8bbd-f993ccbe136f",
+          "name":"Created by Go nr.53",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/23979028-c67f-46a1-8bbd-f993ccbe136f",
+          "sta
+ te":"wellFormed",
+          "revision":495,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:19.837Z"
+       },
+       {
+          "id":"ee722b1c-f5fc-4adb-9653-4c774900ad37",
+          "name":"Created by Go nr.99",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/ee722b1c-f5fc-4adb-9653-4c774900ad37",
+          "state":"wellFormed",
+          "revision":834,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:47.433Z"
+       },
+       {
+          "id":"ff3ab1b8-81c8-4858-8b42-5f9ab4a42aa2",
+          "name":"Created by Go nr.73",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/ff3ab1b8-81c8-4858-8b42-5f9ab4a42aa2",
+          "state":"wellFormed",
+          "revision":654,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:25.043Z"
+       },
+       {
+          "id":"ce92aeb0-963a-46ee-8a03-f12c38ddbaa6",
+          "name":"Created by Go nr.37",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kir
+ atech-BancaSella/_apis/projects/ce92aeb0-963a-46ee-8a03-f12c38ddbaa6",
+          "state":"wellFormed",
+          "revision":380,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:05.417Z"
+       },
+       {
+          "id":"8c8a2481-5be6-411d-859f-f9161f0cd5ac",
+          "name":"Created by Go nr.86",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/8c8a2481-5be6-411d-859f-f9161f0cd5ac",
+          "state":"wellFormed",
+          "revision":739,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:33.923Z"
+       },
+       {
+          "id":"31c2dfd7-a6ed-4fe8-9ad6-d4f8a0a52e20",
+          "name":"Created by Go nr.82",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/31c2dfd7-a6ed-4fe8-9ad6-d4f8a0a52e20",
+          "state":"wellFormed",
+          "revision":705,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:29.39Z"
+       },
+       {
+          "id":"b2d8ce53-9995-4035-97e0-8d219f5be823",
+          "name":"Created by Go nr.76",
+          "description":"Sorry for the Spam but I need
+ to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/b2d8ce53-9995-4035-97e0-8d219f5be823",
+          "state":"wellFormed",
+          "revision":669,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:25.84Z"
+       },
+       {
+          "id":"e87a8b59-44e2-4ff1-b76a-f6f1224463da",
+          "name":"Created by Go nr.6",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/e87a8b59-44e2-4ff1-b76a-f6f1224463da",
+          "state":"wellFormed",
+          "revision":139,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:39.713Z"
+       },
+       {
+          "id":"45a549f7-a293-4a7f-864a-63cbd220dba1",
+          "name":"Created by Go nr.114",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/45a549f7-a293-4a7f-864a-63cbd220dba1",
+          "state":"wellFormed",
+          "revision":1000,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:47.963Z"
+       },
+       {
+          "id":"5589482e-24d9-41b4-af20-0a4637e07f23",
+          "name":"Created by Go nr.17",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/5589482e-24d9-41b4-af20-0a4637e07f23",
+          "state":"wellFormed",
+          "revision":179,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:45.58Z"
+       },
+       {
+          "id":"45b99c7f-e32d-413b-b757-b29c4e06e1b4",
+          "name":"Created by Go nr.29",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/45b99c7f-e32d-413b-b757-b29c4e06e1b4",
+          "state":"wellFormed",
+          "revision":299,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:45:05.713Z"
+       },
+       {
+          "id":"860d2574-3130-4fb3-8737-1c21577bb083",
+          "name":"Created by Go nr.108",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/860d2574-3130-4fb3-8737-1c21577bb083",
+          "state":"wellFormed",
+          "revision":1055,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:54.483Z"
+       },
+       {
+          "id":"3101a7b6-2fa2-4b35-a6fb-536b7a4d6a68",
+          "name":"Created by Go nr.125",
+          "description":"Sorry
+ for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/3101a7b6-2fa2-4b35-a6fb-536b7a4d6a68",
+          "state":"wellFormed",
+          "revision":1083,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:09:03.177Z"
+       },
+       {
+          "id":"f4539f36-c619-4f1c-9450-06b8a846e19a",
+          "name":"Created by Go nr.112",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/f4539f36-c619-4f1c-9450-06b8a846e19a",
+          "state":"wellFormed",
+          "revision":989,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:47.02Z"
+       },
+       {
+          "id":"1cff4b61-7b83-4135-b953-b265093190ac",
+          "name":"Created by Go nr.68",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/1cff4b61-7b83-4135-b953-b265093190ac",
+          "state":"wellFormed",
+          "revision":721,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:32.37Z"
+       },
+       {
+          "id":"e1c88166-8f91-
+ 4823-a3a7-fb5c7ef256e9",
+          "name":"Internet Banking",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/e1c88166-8f91-4823-a3a7-fb5c7ef256e9",
+          "state":"wellFormed",
+          "revision":27,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-02T09:37:22.873Z"
+       },
+       {
+          "id":"99daf19f-e76a-4297-b1a0-8ded7825b794",
+          "name":"Created by Go nr.111",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/99daf19f-e76a-4297-b1a0-8ded7825b794",
+          "state":"wellFormed",
+          "revision":990,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:47.107Z"
+       },
+       {
+          "id":"d72b7bfb-e9ec-4206-808e-65df0dd5b7fa",
+          "name":"Created by Go nr.106",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/d72b7bfb-e9ec-4206-808e-65df0dd5b7fa",
+          "state":"wellFormed",
+          "revision":947,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:42.95Z"
+       },
+       {
+          "id":"93959804-1853-4251-a3d1-fef7f
+ e5d90e9",
+          "name":"Created by Go nr.72",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/93959804-1853-4251-a3d1-fef7fe5d90e9",
+          "state":"wellFormed",
+          "revision":647,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:24.09Z"
+       },
+       {
+          "id":"db9af805-75a3-4ab8-94fb-bf3ed411c65c",
+          "name":"Created by Go nr.35",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/db9af805-75a3-4ab8-94fb-bf3ed411c65c",
+          "state":"wellFormed",
+          "revision":445,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:13.423Z"
+       },
+       {
+          "id":"84c82b8c-e0bb-4b92-9703-0253365b0288",
+          "name":"Project Created Via Rest Api 2",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/84c82b8c-e0bb-4b92-9703-0253365b0288",
+          "state":"wellFormed",
+          "revision":59,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:40:24.70
+ 3Z"
+       },
+       {
+          "id":"267fdd62-8725-47f1-a982-89b3e4db38d8",
+          "name":"Created by Go nr.124",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/267fdd62-8725-47f1-a982-89b3e4db38d8",
+          "state":"wellFormed",
+          "revision":1056,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:54.58Z"
+       },
+       {
+          "id":"b104511e-a919-439b-85a2-028e0e3bec0c",
+          "name":"Created by Go nr.123",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/b104511e-a919-439b-85a2-028e0e3bec0c",
+          "state":"wellFormed",
+          "revision":1052,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:54.327Z"
+       },
+       {
+          "id":"6c49a147-b67f-4a88-bb7a-afe83c7ece6a",
+          "name":"Toolchain",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/6c49a147-b67f-4a88-bb7a-afe83c7ece6a",
+          "state":"wellFormed",
+          "revision":19,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-02T09:36:51.067Z"
+       },
+       {
+          "id":"c29f8649
+ -a9e2-4174-8744-1cb147027cd4",
+          "name":"Created by Go nr.30",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/c29f8649-a9e2-4174-8744-1cb147027cd4",
+          "state":"wellFormed",
+          "revision":370,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:04.163Z"
+       },
+       {
+          "id":"75d5fec2-2e86-4caa-8443-f3f355e86d43",
+          "name":"Created by Go nr.120",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/75d5fec2-2e86-4caa-8443-f3f355e86d43",
+          "state":"wellFormed",
+          "revision":1054,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:54.373Z"
+       },
+       {
+          "id":"0bb03e31-f510-45ed-b0c8-cc8b4d86d73a",
+          "name":"Created by Go nr.96",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/0bb03e31-f510-45ed-b0c8-cc8b4d86d73a",
+          "state":"wellFormed",
+          "revision":847,
+          "visibi
+ lity":"private",
+          "lastUpdateTime":"2023-02-16T14:04:53.37Z"
+       },
+       {
+          "id":"559b3e53-2a70-4a70-ae38-3f0d54850810",
+          "name":"Created by Go nr.16",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/559b3e53-2a70-4a70-ae38-3f0d54850810",
+          "state":"wellFormed",
+          "revision":297,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:45:04.753Z"
+       },
+       {
+          "id":"d8d1a3eb-2cbc-4137-afd2-e08ede952fb5",
+          "name":"Created by Go nr.121",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/d8d1a3eb-2cbc-4137-afd2-e08ede952fb5",
+          "state":"wellFormed",
+          "revision":1051,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:54.303Z"
+       },
+       {
+          "id":"e54b19be-4fb8-4481-9d1f-798b457e301b",
+          "name":"Created by Go nr.92",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/e54b19be-4fb8-4481-9d1f-798b457e301b",
+          "state":"w
+ ellFormed",
+          "revision":799,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:40.22Z"
+       },
+       {
+          "id":"e7ca46e9-981b-4679-bbe2-a545f56c66ad",
+          "name":"Created by Go nr.39",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/e7ca46e9-981b-4679-bbe2-a545f56c66ad",
+          "state":"wellFormed",
+          "revision":479,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:17.553Z"
+       },
+       {
+          "id":"3ccce898-fae8-49dd-a4a5-58ab9363549c",
+          "name":"Created by Go nr.91",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/3ccce898-fae8-49dd-a4a5-58ab9363549c",
+          "state":"wellFormed",
+          "revision":798,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:40.113Z"
+       },
+       {
+          "id":"58661f49-2144-4115-9d37-ed5f0ea3ae2d",
+          "name":"Project Created Via Rest Api",
+          "description":"Test Project Created by Go! #2",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/58661
+ f49-2144-4115-9d37-ed5f0ea3ae2d",
+          "state":"wellFormed",
+          "revision":51,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T10:44:43.77Z"
+       },
+       {
+          "id":"a7e1e8f4-0166-4de6-8abf-5de9f3ac0893",
+          "name":"Created by Go nr.22",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/a7e1e8f4-0166-4de6-8abf-5de9f3ac0893",
+          "state":"wellFormed",
+          "revision":239,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:52.163Z"
+       },
+       {
+          "id":"af847a52-7fce-4592-8f19-7031e1e02249",
+          "name":"Created by Go nr.88",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/af847a52-7fce-4592-8f19-7031e1e02249",
+          "state":"wellFormed",
+          "revision":760,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:36.773Z"
+       },
+       {
+          "id":"abf92cee-c332-459c-b8a9-4769bb9147f4",
+          "name":"Created by Go nr.12",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/abf92cee-c332-459
+ c-b8a9-4769bb9147f4",
+          "state":"wellFormed",
+          "revision":272,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:45:00.267Z"
+       },
+       {
+          "id":"73e54624-cb90-4410-8c52-355b2073c077",
+          "name":"Created by Go nr.14",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/73e54624-cb90-4410-8c52-355b2073c077",
+          "state":"wellFormed",
+          "revision":243,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:53.557Z"
+       },
+       {
+          "id":"7fa2027d-1c5f-4138-86cf-8d7d0945ce1e",
+          "name":"Created by Go nr.126",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/7fa2027d-1c5f-4138-86cf-8d7d0945ce1e",
+          "state":"wellFormed",
+          "revision":1099,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:09:13.317Z"
+       },
+       {
+          "id":"34b45292-d83e-4931-a1f0-afbfc4a63cd8",
+          "name":"Created by Go nr.47",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSell
+ a/_apis/projects/34b45292-d83e-4931-a1f0-afbfc4a63cd8",
+          "state":"wellFormed",
+          "revision":422,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:11.88Z"
+       },
+       {
+          "id":"f14861ed-21a9-4319-88cb-bf8e056672e5",
+          "name":"Created by Go nr.48",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/f14861ed-21a9-4319-88cb-bf8e056672e5",
+          "state":"wellFormed",
+          "revision":430,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:12.47Z"
+       },
+       {
+          "id":"756dc3c8-7e16-4c9e-a3f3-26b4573a36c0",
+          "name":"Created by Go nr.2",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/756dc3c8-7e16-4c9e-a3f3-26b4573a36c0",
+          "state":"wellFormed",
+          "revision":138,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:39.643Z"
+       },
+       {
+          "id":"199f1700-9158-45dc-98a4-afcfedb4f15c",
+          "name":"Created by Go nr.51",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev
+ .azure.com/Kiratech-BancaSella/_apis/projects/199f1700-9158-45dc-98a4-afcfedb4f15c",
+          "state":"wellFormed",
+          "revision":490,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:18.883Z"
+       },
+       {
+          "id":"be5c4fca-c00a-4f43-a9ca-9d0881db77c6",
+          "name":"Created by Go nr.94",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/be5c4fca-c00a-4f43-a9ca-9d0881db77c6",
+          "state":"wellFormed",
+          "revision":859,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:05:00.677Z"
+       },
+       {
+          "id":"9bada2fc-1660-445e-90df-a6479722b2e7",
+          "name":"Created by Go nr.36",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/9bada2fc-1660-445e-90df-a6479722b2e7",
+          "state":"wellFormed",
+          "revision":505,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:23.657Z"
+       },
+       {
+          "id":"c3852570-6991-4282-8ca9-08c4bdca0eed",
+          "name":"Created by Go nr.1",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/c3852570-6991-4282-8ca9-08c4bdca0eed",
+          "state":"wellFormed",
+          "revision":137,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:39.623Z"
+       },
+       {
+          "id":"d3667cc1-e871-4d37-a58a-5bf7c50f8e4e",
+          "name":"Created by Go nr.118",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/d3667cc1-e871-4d37-a58a-5bf7c50f8e4e",
+          "state":"wellFormed",
+          "revision":1077,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:09:00.443Z"
+       },
+       {
+          "id":"12002f3b-71ce-4399-8ec0-d0a2827a17c3",
+          "name":"Created by Go nr.5",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/12002f3b-71ce-4399-8ec0-d0a2827a17c3",
+          "state":"wellFormed",
+          "revision":210,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:44:48.687Z"
+       },
+       {
+          "id":"ee95eb12-dea9-4ab6-835a-3fc1c60c656e",
+          "name":"Created by Go nr.100",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/ee95eb12-dea9-4ab6-835a-3fc1c60c656e",
+          "state":"wellFormed",
+          "revision":918,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:40.173Z"
+       },
+       {
+          "id":"ea5be153-b5e6-46ae-b292-13d8e33beb83",
+          "name":"Created by Go nr.105",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/ea5be153-b5e6-46ae-b292-13d8e33beb83",
+          "state":"wellFormed",
+          "revision":933,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:41.763Z"
+       },
+       {
+          "id":"d24a542b-cb0c-48bd-8772-cd692c6587ce",
+          "name":"Created by Go nr.85",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/d24a542b-cb0c-48bd-8772-cd692c6587ce",
+          "state":"wellFormed",
+          "revision":818,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:42.777Z"
+       },
+       {
+          "id":"3193f449-85f7-4861-8633-d341088787fc",
+          "name":"Created by Go nr.115",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/3193f449-85f7-4861-8633-d341088787fc",
+          "state":"wellFormed",
+          "revision":1011,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:08:48.5Z"
+       },
+       {
+          "id":"53ac20b2-d1bd-43e2-a753-d5fa7dee3755",
+          "name":"Created by Go nr.57",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/53ac20b2-d1bd-43e2-a753-d5fa7dee3755",
+          "state":"wellFormed",
+          "revision":538,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:32.473Z"
+       },
+       {
+          "id":"fd12d706-7786-4f4a-b7fa-e52c5ad2cd3b",
+          "name":"Created by Go nr.98",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/fd12d706-7786-4f4a-b7fa-e52c5ad2cd3b",
+          "state":"wellFormed",
+          "revision":833,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:46.907Z"
+       },
+       {
+          "id":"012de572-3b20-4463-8621-6bab09f6c7bb",
+          "name":"Created by Go nr.65",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/012de572-3b20-4463-8621-6bab09f6c7bb",
+          "state":"wellFormed",
+          "revision":715,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:30.797Z"
+       },
+       {
+          "id":"fa4fda5d-7ee0-44a1-8203-a270df0b64dd",
+          "name":"Created by Go nr.50",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/fa4fda5d-7ee0-44a1-8203-a270df0b64dd",
+          "state":"wellFormed",
+          "revision":483,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:18.173Z"
+       },
+       {
+          "id":"9d362b68-f4e6-478f-aad8-3827d89f8d7d",
+          "name":"Created by Go nr.28",
+          "description":"Test Project Created by Go!",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/9d362b68-f4e6-478f-aad8-3827d89f8d7d",
+          "state":"wellFormed",
+          "revision":298,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:45:04.86Z"
+       },
+       {
+          "id":"0458479b-a99c-4ad1-9d7b-7d63ed3f9d74",
+          "name":"Created by Go nr.60",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/0458479b-a99c-4ad1-9d7b-7d63ed3f9d74",
+          "state":"wellFormed",
+          "revision":594,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:19.89Z"
+       },
+       {
+          "id":"53472afb-a1e1-435f-8f07-a25899603469",
+          "name":"Test-Sella",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/53472afb-a1e1-435f-8f07-a25899603469",
+          "state":"wellFormed",
+          "revision":11,
+          "visibility":"private",
+          "lastUpdateTime":"2022-12-22T09:42:07.333Z"
+       },
+       {
+          "id":"0e8ae28b-6b5a-4163-a310-c7354ade38ba",
+          "name":"Created by Go nr.59",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/0e8ae28b-6b5a-4163-a310-c7354ade38ba",
+          "state":"wellFormed",
+          "revision":502,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T13:48:23.067Z"
+       },
+       {
+          "id":"dfc6249f-9ca6-4fae-b2ad-179a3ea610eb",
+          "name":"Created by Go nr.63",
+          "description":"Sorry for the Spam but I need to let the continuation token appear...",
+          "url":"https://dev.azure.com/Kiratech-BancaSella/_apis/projects/dfc6249f-9ca6-4fae-b2ad-179a3ea610eb",
+          "state":"wellFormed",
+          "revision":595,
+          "visibility":"private",
+          "lastUpdateTime":"2023-02-16T14:04:20.073Z"
+       }
+    ]
+ }

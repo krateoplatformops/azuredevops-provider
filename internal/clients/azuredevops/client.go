@@ -72,3 +72,23 @@ func (c *Client) newPostRequest(path string, queryParams map[string]string, val 
 	req.SetBasicAuth(userAgent, c.options.Token)
 	return req, nil
 }
+
+func (c *Client) newDeleteRequest(path string, queryParams map[string]string) (*http.Request, error) {
+	if len(queryParams) == 0 {
+		queryParams = map[string]string{}
+	}
+	queryParams[apiVersionKey] = apiVersionVal
+
+	req, err := httplib.NewRequest(httplib.CreateRequestOpts{
+		Method:      http.MethodDelete,
+		BaseURL:     c.options.BaseURL,
+		Path:        path,
+		QueryParams: queryParams,
+	})
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Accept", "application/json")
+	req.SetBasicAuth(userAgent, c.options.Token)
+	return req, nil
+}

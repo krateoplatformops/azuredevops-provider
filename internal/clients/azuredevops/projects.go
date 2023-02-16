@@ -2,11 +2,14 @@ package azuredevops
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"path"
 	"strconv"
 
 	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 )
 
 type ProjectState string
@@ -90,8 +93,9 @@ type ListProjectsOpts struct {
 
 // Return type for the GetProjects function
 type ListProjectsResponseValue struct {
-	Value             []TeamProject
-	ContinuationToken string
+	Count             int           `json:"count"`
+	Value             []TeamProject `json:"value,omitempty"`
+	ContinuationToken *string       `json:"continuationToken,omitempty"`
 }
 
 // Get all projects in the organization that the authenticated user has access to.
@@ -122,8 +126,19 @@ func ListProjects(ctx context.Context, cli *Client, opts ListProjectsOpts) (*Lis
 	val := &ListProjectsResponseValue{}
 
 	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
-		Verbose:         cli.options.Verbose,
-		ResponseHandler: httplib.ToJSON(val),
+		Verbose: cli.options.Verbose,
+		ResponseHandler: func(res *http.Response) error {
+			data, err := io.ReadAll(res.Body)
+			if err != nil {
+				return err
+			}
+			if err = json.Unmarshal(data, val); err != nil {
+				return err
+			}
+
+			val.ContinuationToken = helpers.StringPtr(res.Header.Get("X-Ms-Continuationtoken"))
+			return nil
+		},
 		Validators: []httplib.ResponseHandler{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
@@ -170,6 +185,33 @@ type CreateProjectOpts struct {
 func CreateProject(ctx context.Context, cli *Client, opts CreateProjectOpts) (*OperationReference, error) {
 	apiPath := path.Join(opts.Organization, "_apis/projects")
 	req, err := cli.newPostRequest(apiPath, nil, opts.TeamProject)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	apiErr := &APIError{}
+	val := &OperationReference{}
+	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
+		Verbose:         cli.options.Verbose,
+		ResponseHandler: httplib.ToJSON(val),
+		Validators: []httplib.ResponseHandler{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+	return val, err
+}
+
+type DeleteProjectOpts struct {
+	Organization string
+	ProjectId    string
+}
+
+// Queues a project to be deleted. Use the GetOperation to periodically check for delete project status.
+// DELETE https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
+func DeleteProject(ctx context.Context, cli *Client, opts DeleteProjectOpts) (*OperationReference, error) {
+	apiPath := path.Join(opts.Organization, "_apis/projects/", opts.ProjectId)
+	req, err := cli.newDeleteRequest(apiPath, nil)
 	if err != nil {
 		return nil, err
 	}
