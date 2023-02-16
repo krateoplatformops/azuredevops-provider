@@ -1,11 +1,11 @@
-package projects
+package azuredevops
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httputil"
+	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
 )
 
 type APIError struct {
@@ -25,7 +25,7 @@ func IsNotFound(err error) bool {
 		return false
 	}
 
-	se := &httputil.StatusError{}
+	se := &httplib.StatusError{}
 	if errors.As(err, se) {
 		return se.StatusCode == http.StatusNotFound
 	}

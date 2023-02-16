@@ -1,4 +1,4 @@
-package httputil
+package httplib
 
 import (
 	"crypto/tls"
@@ -6,13 +6,12 @@ import (
 	"time"
 )
 
-type ClientOpts struct {
-	Verbose  bool
+type CreateHTTPClientOpts struct {
 	Insecure bool
 	Timeout  time.Duration
 }
 
-func ClientFromOpts(opts ClientOpts) *http.Client {
+func CreateHTTPClient(opts CreateHTTPClientOpts) *http.Client {
 	transport := defaultTransport()
 
 	if opts.Insecure {
@@ -23,10 +22,6 @@ func ClientFromOpts(opts ClientOpts) *http.Client {
 			Proxy:           http.ProxyFromEnvironment,
 			TLSClientConfig: tlsConfig,
 		}
-	}
-
-	if opts.Verbose {
-		transport = &verboseTracer{transport}
 	}
 
 	timeout := 20 * time.Second
