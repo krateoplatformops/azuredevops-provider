@@ -154,6 +154,15 @@ spec:
                   - type
                   type: object
                 type: array
+              id:
+                description: 'Id: project identifier.'
+                type: string
+              name:
+                description: 'Name: project name.'
+                type: string
+              state:
+                description: 'State: the current state of the project..'
+                type: string
             type: object
         type: object
     served: true

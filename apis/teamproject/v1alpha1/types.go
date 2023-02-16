@@ -45,6 +45,18 @@ type TeamProjectSpec struct {
 // TeamProjectStatus defines the observed state of Repo
 type TeamProjectStatus struct {
 	rtv1.ManagedStatus `json:",inline"`
+
+	// Id: project identifier.
+	// +optional
+	Id *string `json:"id,omitempty"`
+
+	// Name: project name.
+	// +optional
+	Name *string `json:"name,omitempty"`
+
+	// State: the current state of the project..
+	// +optional
+	State *string `json:"state,omitempty"`
 }
 
 //+kubebuilder:object:root=true
