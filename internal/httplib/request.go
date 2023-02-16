@@ -23,11 +23,11 @@ type CreateRequestOpts struct {
 }
 
 func NewRequest(opts CreateRequestOpts) (*http.Request, error) {
-	uri, err := url.Parse(opts.BaseURL)
+	base, err := url.Parse(opts.BaseURL)
 	if err != nil {
 		return nil, err
 	}
-	uri = uri.JoinPath(opts.Path)
+	uri := base.JoinPath(opts.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +71,15 @@ type CallOpts struct {
 // Call calls the underlying http.Client and validates and handles any resulting response.
 // The response body is closed after all validators and the handler run.
 func Call(httpClient *http.Client, req *http.Request, opts CallOpts) (err error) {
+	if opts.Verbose {
+		// Dump the request to os.Stderr.
+		buf, err := httputil.DumpRequestOut(req, true)
+		if err == nil {
+			os.Stderr.Write(buf)
+			os.Stderr.Write([]byte{'\n'})
+		}
+	}
+
 	res, err := httpClient.Do(req)
 	if err != nil {
 		return err

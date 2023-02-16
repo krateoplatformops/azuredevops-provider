@@ -12,14 +12,32 @@ import (
 	"github.com/lucasepe/dotenv"
 )
 
+func TestListProjects(t *testing.T) {
+	cli := setupClient()
+
+	top := int(2)
+	res, err := ListProjects(context.TODO(), cli, ListProjectsOpts{
+		Organization: os.Getenv("ORG"),
+		Top:          &top,
+	})
+	if err != nil {
+		var apierr *APIError
+		if errors.As(err, &apierr) {
+			fmt.Println(apierr.Error())
+		}
+	}
+
+	fmt.Printf("%v\n", res)
+}
+
 func TestCreateProject(t *testing.T) {
 	cli := setupClient()
 
 	res, err := CreateProject(context.TODO(), cli, CreateProjectOpts{
 		Organization: os.Getenv("ORG"),
 		TeamProject: &TeamProject{
-			Name:        helpers.StringPtr("ProjectCreatedViaRestApi"),
-			Description: helpers.StringPtr("Test Project Created by Go!"),
+			Name:        helpers.StringPtr("Project Created Via Rest Api"),
+			Description: helpers.StringPtr("Test Project Created by Go! #2"),
 			Capabilities: &map[string]map[string]string{
 				"versioncontrol": {
 					"sourceControlType": "Git",
@@ -45,7 +63,7 @@ func TestGetProject(t *testing.T) {
 
 	res, err := GetProject(context.TODO(), cli, GetProjectOpts{
 		Organization: os.Getenv("ORG"),
-		ProjectId:    "e25a896e-a4a8-4046-b703-96ccd4d94deb",
+		ProjectId:    "bdb1db89-f1ea-45a7-89c2-97eff028a5a8",
 	})
 	if err != nil {
 		if IsNotFound(err) {
@@ -63,7 +81,7 @@ func TestGetProject(t *testing.T) {
 }
 
 func setupClient() *Client {
-	env, _ := dotenv.FromFile("../../../../../.env")
+	env, _ := dotenv.FromFile("../../../.env")
 	dotenv.PutInEnv(env, false)
 
 	httpClient := httplib.CreateHTTPClient(httplib.CreateHTTPClientOpts{})

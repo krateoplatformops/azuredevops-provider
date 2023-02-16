@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"strconv"
 
 	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
 )
@@ -74,6 +75,63 @@ type TeamProject struct {
 	DefaultTeam *WebApiTeamRef `json:"defaultTeam,omitempty"`
 }
 
+// Arguments for the ListProjects function
+type ListProjectsOpts struct {
+	Organization string
+	// (optional) Filter on team projects in a specific team project state (default: WellFormed).
+	StateFilter *ProjectState
+	// (optional)
+	Top *int
+	// (optional)
+	Skip *int
+	// (optional)
+	ContinuationToken *string
+}
+
+// Return type for the GetProjects function
+type ListProjectsResponseValue struct {
+	Value             []TeamProject
+	ContinuationToken string
+}
+
+// Get all projects in the organization that the authenticated user has access to.
+// https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.0&tabs=HTTP#teamprojectreference
+func ListProjects(ctx context.Context, cli *Client, opts ListProjectsOpts) (*ListProjectsResponseValue, error) {
+	apiPath := path.Join(opts.Organization, "_apis/projects")
+	queryParams := map[string]string{}
+	if opts.StateFilter != nil {
+		queryParams["stateFilter"] = string(*opts.StateFilter)
+	}
+	if opts.Top != nil {
+		queryParams["$top"] = strconv.Itoa(*opts.Top)
+	}
+	if opts.Skip != nil {
+		queryParams["$skip"] = strconv.Itoa(*opts.Skip)
+	}
+	if opts.ContinuationToken != nil {
+		queryParams["continuationToken"] = *opts.ContinuationToken
+	}
+
+	req, err := cli.newGetRequest(apiPath, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	apiErr := &APIError{}
+	val := &ListProjectsResponseValue{}
+
+	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
+		Verbose:         cli.options.Verbose,
+		ResponseHandler: httplib.ToJSON(val),
+		Validators: []httplib.ResponseHandler{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
+}
+
 type GetProjectOpts struct {
 	Organization string
 	ProjectId    string
@@ -92,6 +150,7 @@ func GetProject(ctx context.Context, cli *Client, opts GetProjectOpts) (*TeamPro
 	val := &TeamProject{}
 
 	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
+		Verbose:         cli.options.Verbose,
 		ResponseHandler: httplib.ToJSON(val),
 		Validators: []httplib.ResponseHandler{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
@@ -119,6 +178,7 @@ func CreateProject(ctx context.Context, cli *Client, opts CreateProjectOpts) (*O
 	apiErr := &APIError{}
 	val := &OperationReference{}
 	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
+		Verbose:         cli.options.Verbose,
 		ResponseHandler: httplib.ToJSON(val),
 		Validators: []httplib.ResponseHandler{
 			httplib.ErrorJSON(apiErr, http.StatusOK),

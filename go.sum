@@ -1,3 +1,5 @@
+github.com/google/uuid v1.1.2 h1:EVhdT+1Kseyi1/pUmXKaFxYsDNy9RQYkMWRH68J/W7Y=
+github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/krateoplatformops/provider-runtime v0.2.9 h1:2F+pOrVE+N7ZPm8Iqa7gg2vINI/3lRBPfCUTeHBHDcY=
 github.com/krateoplatformops/provider-runtime v0.2.9/go.mod h1:HVypEz1yphtFQLlDkiHZFRzqqXxJLx+ZfLBj1dYXhpQ=
 github.com/lucasepe/dotenv v0.1.0 h1:w9JoOcuic7Hn4BhvP+rGk6UJgOsHTWb2KkJGGtuwZ7I=

@@ -1,5 +1,13 @@
 package azuredevops
 
+import (
+	"context"
+	"net/http"
+	"path"
+
+	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
+)
+
 type OperationResultReference struct {
 	// URL to the operation result.
 	ResultUrl *string `json:"resultUrl,omitempty"`
@@ -16,7 +24,7 @@ type Operation struct {
 	// URL to get the full operation object.
 	Url *string `json:"url,omitempty"`
 	// Links to other related objects.
-	Links interface{} `json:"_links,omitempty"`
+	Links any `json:"_links,omitempty"`
 	// Detailed messaged about the status of an operation.
 	DetailedMessage *string `json:"detailedMessage,omitempty"`
 	// Result message for an operation.
@@ -48,3 +56,31 @@ const (
 	StatusSucceeded  OperationStatus = "succeded"
 	StatusFailed     OperationStatus = "failed"
 )
+
+type GetOperationOpts struct {
+	Organization string
+	OperationId  string
+}
+
+// Gets an operation from the operationId using the given pluginId.
+// https://learn.microsoft.com/en-us/rest/api/azure/devops/operations/operations/get?view=azure-devops-rest-7.0#operation
+func GetOperation(ctx context.Context, cli *Client, opts GetOperationOpts) (*Operation, error) {
+	apiPath := path.Join(opts.Organization, "_apis/operations", opts.OperationId)
+	req, err := cli.newGetRequest(apiPath, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	apiErr := &APIError{}
+	val := &Operation{}
+
+	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
+		Verbose:         cli.options.Verbose,
+		ResponseHandler: httplib.ToJSON(val),
+		Validators: []httplib.ResponseHandler{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
+}
