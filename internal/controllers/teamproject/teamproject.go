@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gihtub.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
-	prv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
+	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/event"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/krateoplatformops/provider-runtime/pkg/logging"
+	"github.com/krateoplatformops/provider-runtime/pkg/meta"
 	"github.com/krateoplatformops/provider-runtime/pkg/ratelimiter"
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
@@ -28,6 +30,8 @@ import (
 
 const (
 	errNotTeamProject = "managed resource is not a TeamProject custom resource"
+
+	operationReferenceTag = "oprefid:"
 )
 
 // Setup adds a controller that reconciles Token managed resources.
@@ -113,28 +117,31 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{}, errors.New(errNotTeamProject)
 	}
 
-	spec := cr.Spec.DeepCopy()
-
-	ok, err := e.ghCli.Repos().Exists(spec)
-	if err != nil {
-		return managed.ExternalObservation{}, err
+	if meta.GetExternalName(cr) == "" {
+		return managed.ExternalObservation{ResourceExists: false}, nil
 	}
 
-	if ok {
-		e.log.Debug("Repo already exists", "org", spec.Org, "name", spec.Name)
-		e.rec.Eventf(cr, corev1.EventTypeNormal, "AlredyExists", "Repo '%s/%s' already exists", spec.Org, spec.Name)
+	if strings.HasPrefix(meta.GetExternalName(cr), operationReferenceTag) {
+		op, err := azuredevops.GetOperation(ctx, e.azCli, azuredevops.GetOperationOpts{
+			Organization: cr.Spec.Org,
+			OperationId:  strings.TrimPrefix(meta.GetExternalName(cr), operationReferenceTag),
+		})
+		if err != nil {
+			return managed.ExternalObservation{}, err
+		}
 
-		cr.SetConditions(prv1.Available())
-		return managed.ExternalObservation{
-			ResourceExists:   true,
-			ResourceUpToDate: true,
-		}, nil
+		if *op.Status == azuredevops.StatusSucceeded {
+			// TODO: find TeamProjectId
+			cr.SetConditions(rtv1.Available())
+
+			e.log.Debug("TeamProject exists", "org", cr.Spec.Org, "name", cr.Spec.Name)
+
+			return managed.ExternalObservation{ResourceExists: true}, err
+		}
 	}
-
-	e.log.Debug("Repo does not exists", "org", spec.Org, "name", spec.Name)
 
 	return managed.ExternalObservation{
-		ResourceExists:   false,
+		ResourceExists:   true,
 		ResourceUpToDate: true,
 	}, nil
 }
@@ -145,15 +152,29 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotTeamProject)
 	}
 
-	cr.SetConditions(prv1.Creating())
+	cr.SetConditions(rtv1.Creating())
 
 	spec := cr.Spec.DeepCopy()
-
-	err := e.ghCli.Repos().Create(spec)
+	opRef, err := azuredevops.CreateProject(ctx, e.azCli, azuredevops.CreateProjectOpts{
+		Organization: spec.Org,
+		TeamProject:  teamProjectFromSpec(spec),
+	})
 	if err != nil {
 		return err
 	}
-	e.log.Debug("Repo created", "org", spec.Org, "name", spec.Name)
+
+	meta.SetExternalName(cr, fmt.Sprintf("%s%s", operationReferenceTag, *opRef.Id))
+
+	/*
+		cr.Status.OperationReference = &teamprojectv1alpha1.OperationReference{
+			Id:     helpers.StringPtr(*opRef.Id),
+			Status: helpers.StringPtr(string(*opRef.Status)),
+		}
+	*/
+
+	cr.SetConditions(conditionFromOperationReference(opRef))
+
+	e.log.Debug("Create TeamProject", "org", spec.Org, "name", spec.Name, "status", opRef.Status)
 	e.rec.Eventf(cr, corev1.EventTypeNormal, "RepoCreated", "Repo '%s/%s' created", spec.Org, spec.Name)
 
 	return nil
@@ -169,24 +190,20 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotTeamProject)
 	}
 
-	cr.SetConditions(prv1.Deleting())
+	cr.SetConditions(rtv1.Deleting())
 
-	org := cr.Spec.Org
-	projectId := helpers.String(cr.Status.Id)
-
-	opts := azuredevops.DeleteProjectOpts{
+	_, err := azuredevops.DeleteProject(ctx, e.azCli, azuredevops.DeleteProjectOpts{
 		Organization: cr.Spec.Org,
 		ProjectId:    helpers.String(cr.Status.Id),
-	}
-	res, err := azuredevops.DeleteProject(ctx, e.azCli, opts)
+	})
 	if err != nil {
 		return err
 	}
 
-	e.log.Debug("TeamProject deleted",
-		"id", opts.ProjectId, "org", opts.Organization, "name", cr.Spec.Name)
+	e.log.Debug("Delete TeamProject",
+		"id", helpers.String(cr.Status.Id), "org", cr.Spec.Org, "name", cr.Spec.Name)
 	e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectDeleted",
-		"TeamProject '%s/%s' deleted", opts.Organization, cr.Spec.Name)
+		"TeamProject '%s/%s' deleted", cr.Spec.Org, cr.Spec.Name)
 
 	return nil
 }

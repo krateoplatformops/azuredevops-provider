@@ -7,20 +7,20 @@ import (
 
 type Versioncontrol struct {
 	// SourceControlType:
-	SourceControlType string `json:"sourceControlType"`
+	SourceControlType *string `json:"sourceControlType"`
 }
 
 // ProcessTemplate define reusable content in Azure Devops.
 type ProcessTemplate struct {
 	// TemplateTypeId: id of the desired template
-	TemplateTypeId string `json:"templateTypeId"`
+	TemplateTypeId *string `json:"templateTypeId"`
 }
 
 // Capabilities this project has
 type Capabilities struct {
-	Versioncontrol Versioncontrol `json:"versioncontrol"`
+	Versioncontrol *Versioncontrol `json:"versioncontrol"`
 
-	ProcessTemplate ProcessTemplate `json:"processTemplate"`
+	ProcessTemplate *ProcessTemplate `json:"processTemplate"`
 }
 
 // TeamProjectSpec defines the desired state of TeamProject
