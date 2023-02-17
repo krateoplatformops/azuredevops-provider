@@ -5,6 +5,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type Versioncontrol struct {
+	// SourceControlType:
+	SourceControlType string `json:"sourceControlType"`
+}
+
+// ProcessTemplate define reusable content in Azure Devops.
+type ProcessTemplate struct {
+	// TemplateTypeId: id of the desired template
+	TemplateTypeId string `json:"templateTypeId"`
+}
+
+// Capabilities this project has
+type Capabilities struct {
+	Versioncontrol Versioncontrol `json:"versioncontrol"`
+
+	ProcessTemplate ProcessTemplate `json:"processTemplate"`
+}
+
 // TeamProjectSpec defines the desired state of TeamProject
 type TeamProjectSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
@@ -32,14 +50,23 @@ type TeamProjectSpec struct {
 	// +optional
 	Description string `json:"description,omitempty"`
 
-	// Private: the project is only visible to users with explicit access. (default: true).
+	// Visibility: project visibility: private, public (default: private).
 	// +optional
-	Private bool `json:"private,omitempty"`
+	Visibility *string `json:"private,omitempty"`
 
 	// Capabilities: set of capabilities this project has
 	// (such as process template & version control).
 	// +optional
-	Capabilities map[string]map[string]string `json:"capabilities,omitempty"`
+	Capabilities *Capabilities `json:"capabilities,omitempty"`
+}
+
+// Reference for an async operation.
+type OperationReference struct {
+	// Unique identifier for the operation.
+	Id *string `json:"id,omitempty"`
+
+	// The current status of the operation.
+	Status *string `json:"status,omitempty"`
 }
 
 // TeamProjectStatus defines the observed state of Repo
@@ -54,9 +81,16 @@ type TeamProjectStatus struct {
 	// +optional
 	Name *string `json:"name,omitempty"`
 
+	// Project revision.
+	Revision *uint64 `json:"revision,omitempty"`
+
 	// State: the current state of the project..
 	// +optional
 	State *string `json:"state,omitempty"`
+
+	// OperationReference: reference for an async operation.
+	// +optional
+	OperationReference *OperationReference `json:"operationReference,omitempty"`
 }
 
 //+kubebuilder:object:root=true

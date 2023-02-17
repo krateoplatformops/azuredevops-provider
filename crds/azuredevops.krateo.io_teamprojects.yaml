@@ -5,9 +5,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
   creationTimestamp: null
-  name: teamprojects.github.krateo.io
+  name: teamprojects.azuredevops.krateo.io
 spec:
-  group: github.krateo.io
+  group: azuredevops.krateo.io
   names:
     categories:
     - krateo
@@ -49,12 +49,30 @@ spec:
                 description: 'ApiUrl: the baseUrl for the REST API provider.'
                 type: string
               capabilities:
-                additionalProperties:
-                  additionalProperties:
-                    type: string
-                  type: object
                 description: 'Capabilities: set of capabilities this project has (such
                   as process template & version control).'
+                properties:
+                  processTemplate:
+                    description: ProcessTemplate define reusable content in Azure
+                      Devops.
+                    properties:
+                      templateTypeId:
+                        description: 'TemplateTypeId: id of the desired template'
+                        type: string
+                    required:
+                    - templateTypeId
+                    type: object
+                  versioncontrol:
+                    properties:
+                      sourceControlType:
+                        description: 'SourceControlType:'
+                        type: string
+                    required:
+                    - sourceControlType
+                    type: object
+                required:
+                - processTemplate
+                - versioncontrol
                 type: object
               credentials:
                 description: Credentials required to authenticate ReST API server.
@@ -107,9 +125,9 @@ spec:
                 description: 'Org: the organization name.'
                 type: string
               private:
-                description: 'Private: the project is only visible to users with explicit
-                  access. (default: true).'
-                type: boolean
+                description: 'Visibility: project visibility: private, public (default:
+                  private).'
+                type: string
               verbose:
                 description: Verbose is true dumps your client requests and responses.
                 type: boolean
@@ -160,6 +178,20 @@ spec:
               name:
                 description: 'Name: project name.'
                 type: string
+              operationReference:
+                description: 'OperationReference: reference for an async operation.'
+                properties:
+                  id:
+                    description: Unique identifier for the operation.
+                    type: string
+                  status:
+                    description: The current status of the operation.
+                    type: string
+                type: object
+              revision:
+                description: Project revision.
+                format: int64
+                type: integer
               state:
                 description: 'State: the current state of the project..'
                 type: string

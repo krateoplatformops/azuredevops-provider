@@ -39,43 +39,52 @@ const (
 	VisibilityPublic  ProjectVisibility = "public"
 )
 
-type WebApiTeamRef struct {
-	// Team (Identity) Guid. A Team Foundation ID.
-	Id *string `json:"id,omitempty"`
-	// Team name
-	Name *string `json:"name,omitempty"`
-	// Team REST API Url
-	Url *string `json:"url,omitempty"`
+type Versioncontrol struct {
+	// SourceControlType:
+	SourceControlType *string `json:"sourceControlType,omitempty"`
+}
+
+// ProcessTemplate define reusable content in Azure Devops.
+type ProcessTemplate struct {
+	// TemplateTypeId: id of the desired template
+	TemplateTypeId *string `json:"templateTypeId,omitempty"`
+}
+
+// Capabilities this project has
+type Capabilities struct {
+	Versioncontrol *Versioncontrol `json:"versioncontrol,omitempty"`
+
+	ProcessTemplate *ProcessTemplate `json:"processTemplate,omitempty"`
 }
 
 // Represents a Team Project object.
 type TeamProject struct {
-	// Project abbreviation.
-	Abbreviation *string `json:"abbreviation,omitempty"`
-	// Url to default team identity image.
-	DefaultTeamImageUrl *string `json:"defaultTeamImageUrl,omitempty"`
-	// The project's description (if any).
-	Description *string `json:"description,omitempty"`
 	// Project identifier.
 	Id *string `json:"id,omitempty"`
-	// Project last update time.
-	LastUpdateTime *Time `json:"lastUpdateTime,omitempty"`
+
 	// Project name.
 	Name *string `json:"name,omitempty"`
-	// Project revision.
-	Revision *uint64 `json:"revision,omitempty"`
-	// Project state.
-	State *ProjectState `json:"state,omitempty"`
-	// Url to the full version of the object.
-	Url *string `json:"url,omitempty"`
+
+	// The project's description (if any).
+	Description *string `json:"description,omitempty"`
+
 	// Project visibility.
 	Visibility *ProjectVisibility `json:"visibility,omitempty"`
-	// The links to other objects related to this object.
-	Links any `json:"_links,omitempty"`
+
 	// Set of capabilities this project has (such as process template & version control).
-	Capabilities *map[string]map[string]string `json:"capabilities,omitempty"`
-	// The shallow ref to the default team.
-	DefaultTeam *WebApiTeamRef `json:"defaultTeam,omitempty"`
+	Capabilities *Capabilities `json:"capabilities,omitempty"`
+
+	// Project last update time.
+	LastUpdateTime *Time `json:"lastUpdateTime,omitempty"`
+
+	// Project revision.
+	Revision *uint64 `json:"revision,omitempty"`
+
+	// Project state.
+	State *ProjectState `json:"state,omitempty"`
+
+	// Url to the full version of the object.
+	Url *string `json:"url,omitempty"`
 }
 
 // Arguments for the ListProjects function

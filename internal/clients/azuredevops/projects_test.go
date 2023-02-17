@@ -52,12 +52,12 @@ func TestCreateProject(t *testing.T) {
 			TeamProject: &TeamProject{
 				Name:        helpers.StringPtr(fmt.Sprintf("Created by Go nr.%d", i)),
 				Description: helpers.StringPtr("Sorry for the Spam but I need to let the continuation token appear..."),
-				Capabilities: &map[string]map[string]string{
-					"versioncontrol": {
-						"sourceControlType": "Git",
+				Capabilities: &Capabilities{
+					&Versioncontrol{
+						SourceControlType: helpers.StringPtr("Git"),
 					},
-					"processTemplate": {
-						"templateTypeId": "6b724908-ef14-45cf-84f8-768b5384da45",
+					&ProcessTemplate{
+						TemplateTypeId: helpers.StringPtr("6b724908-ef14-45cf-84f8-768b5384da45"),
 					},
 				},
 			},
