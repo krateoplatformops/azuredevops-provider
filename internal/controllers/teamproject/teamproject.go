@@ -137,14 +137,13 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		meta.RemoveAnnotations(cr, meta.AnnotationKeyExternalOperation)
 		meta.SetExternalName(cr, helpers.String(prj.Id))
 
-		cr.Status.Id = prj.Id
-		cr.Status.Name = prj.Name
+		cr.Status.Id = helpers.StringPtr(*prj.Id)
 		cr.Status.Revision = prj.Revision
-		cr.Status.State = (*string)(prj.State)
+		cr.Status.State = helpers.StringPtr(string(*prj.State))
 
 		cr.SetConditions(rtv1.Available())
 
-		return managed.ExternalObservation{ResourceExists: true, ResourceUpToDate: true}, nil
+		return managed.ExternalObservation{ResourceExists: true, ResourceUpToDate: true}, e.kube.Update(ctx, cr)
 	}
 
 	if meta.GetExternalName(cr) == "" {

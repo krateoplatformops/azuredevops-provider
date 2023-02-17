@@ -77,10 +77,6 @@ type TeamProjectStatus struct {
 	// +optional
 	Id *string `json:"id,omitempty"`
 
-	// Name: project name.
-	// +optional
-	Name *string `json:"name,omitempty"`
-
 	// Project revision.
 	Revision *uint64 `json:"revision,omitempty"`
 
@@ -93,7 +89,6 @@ type TeamProjectStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster,categories={krateo,azuredevops}
 //+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id"
-//+kubebuilder:printcolumn:name="ORG",type="string",JSONPath=".status.org"
 //+kubebuilder:printcolumn:name="STATE",type="string",JSONPath=".status.state"
 //+kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 //+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"

@@ -22,9 +22,6 @@ spec:
     - jsonPath: .status.id
       name: ID
       type: string
-    - jsonPath: .status.org
-      name: ORG
-      type: string
     - jsonPath: .status.state
       name: STATE
       type: string
@@ -183,9 +180,6 @@ spec:
                 type: array
               id:
                 description: 'Id: project identifier.'
-                type: string
-              name:
-                description: 'Name: project name.'
                 type: string
               revision:
                 description: Project revision.

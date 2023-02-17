@@ -200,11 +200,6 @@ func (in *TeamProjectStatus) DeepCopyInto(out *TeamProjectStatus) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.Name != nil {
-		in, out := &in.Name, &out.Name
-		*out = new(string)
-		**out = **in
-	}
 	if in.Revision != nil {
 		in, out := &in.Revision, &out.Revision
 		*out = new(uint64)
