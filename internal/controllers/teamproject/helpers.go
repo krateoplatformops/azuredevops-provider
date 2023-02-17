@@ -1,6 +1,10 @@
 package teamproject
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
 	teamprojectv1alpha1 "gihtub.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
 	"gihtub.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
@@ -43,17 +47,17 @@ func teamProjectFromSpec(spec *teamprojectv1alpha1.TeamProjectSpec) *azuredevops
 // conditionFromOperationReference returns a condition that indicates
 // the TeamProject resource is not currently available for use.
 func conditionFromOperationReference(opref *azuredevops.OperationReference) rtv1.Condition {
-	if opref == nil || opref.Status == nil {
+	if opref == nil {
 		return rtv1.Unavailable()
 	}
 
 	res := rtv1.Condition{
 		Type:               rtv1.TypeReady,
 		LastTransitionTime: metav1.Now(),
-		Reason:             rtv1.ConditionReason(*opref.Status),
+		Reason:             rtv1.ConditionReason(opref.Status),
 	}
 
-	switch s := *opref.Status; {
+	switch s := opref.Status; {
 	case s == azuredevops.StatusSucceeded:
 		res.Status = corev1.ConditionTrue
 	default:
@@ -61,4 +65,36 @@ func conditionFromOperationReference(opref *azuredevops.OperationReference) rtv1
 	}
 
 	return res
+}
+
+func findTeamProject(ctx context.Context, cli *azuredevops.Client, org, name string) (azuredevops.TeamProject, error) {
+	var continutationToken string
+	for {
+		top := int(30)
+		filter := azuredevops.StateWellFormed
+		res, err := azuredevops.ListProjects(ctx, cli, azuredevops.ListProjectsOpts{
+			Organization:      org,
+			StateFilter:       &filter,
+			Top:               &top,
+			ContinuationToken: &continutationToken,
+		})
+		if err != nil {
+			fmt.Printf("err => %v\n\n", err)
+			return azuredevops.TeamProject{}, err
+		}
+
+		for _, el := range res.Value {
+			fmt.Printf("name: %s, id: %s\n\n", *el.Name, *el.Id)
+			if strings.EqualFold(*el.Name, name) {
+				return el, nil
+			}
+		}
+
+		continutationToken = *res.ContinuationToken
+		if continutationToken == "" {
+			break
+		}
+	}
+
+	return azuredevops.TeamProject{}, fmt.Errorf("project '%s' not found", name)
 }

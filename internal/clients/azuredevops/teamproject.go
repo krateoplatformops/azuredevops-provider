@@ -205,7 +205,7 @@ func CreateProject(ctx context.Context, cli *Client, opts CreateProjectOpts) (*O
 		Verbose:         cli.options.Verbose,
 		ResponseHandler: httplib.ToJSON(val),
 		Validators: []httplib.ResponseHandler{
-			httplib.ErrorJSON(apiErr, http.StatusOK),
+			httplib.ErrorJSON(apiErr, http.StatusAccepted),
 		},
 	})
 	return val, err

@@ -19,6 +19,15 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .status.id
+      name: ID
+      type: string
+    - jsonPath: .status.org
+      name: ORG
+      type: string
+    - jsonPath: .status.state
+      name: STATE
+      type: string
     - jsonPath: .status.conditions[?(@.type=='Ready')].status
       name: READY
       type: string
@@ -124,13 +133,13 @@ spec:
               org:
                 description: 'Org: the organization name.'
                 type: string
-              private:
-                description: 'Visibility: project visibility: private, public (default:
-                  private).'
-                type: string
               verbose:
                 description: Verbose is true dumps your client requests and responses.
                 type: boolean
+              visibility:
+                description: 'Visibility: project visibility: private, public (default:
+                  private).'
+                type: string
             required:
             - credentials
             - name
@@ -178,16 +187,6 @@ spec:
               name:
                 description: 'Name: project name.'
                 type: string
-              operationReference:
-                description: 'OperationReference: reference for an async operation.'
-                properties:
-                  id:
-                    description: Unique identifier for the operation.
-                    type: string
-                  status:
-                    description: The current status of the operation.
-                    type: string
-                type: object
               revision:
                 description: Project revision.
                 format: int64

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"gihtub.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
@@ -30,8 +29,6 @@ import (
 
 const (
 	errNotTeamProject = "managed resource is not a TeamProject custom resource"
-
-	operationReferenceTag = "oprefid:"
 )
 
 // Setup adds a controller that reconciles Token managed resources.
@@ -117,27 +114,41 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{}, errors.New(errNotTeamProject)
 	}
 
-	if meta.GetExternalName(cr) == "" {
-		return managed.ExternalObservation{ResourceExists: false}, nil
-	}
-
-	if strings.HasPrefix(meta.GetExternalName(cr), operationReferenceTag) {
+	if meta.GetExternalOperation(cr) != "" {
 		op, err := azuredevops.GetOperation(ctx, e.azCli, azuredevops.GetOperationOpts{
 			Organization: cr.Spec.Org,
-			OperationId:  strings.TrimPrefix(meta.GetExternalName(cr), operationReferenceTag),
+			OperationId:  meta.GetExternalOperation(cr),
 		})
 		if err != nil {
 			return managed.ExternalObservation{}, err
 		}
 
-		if *op.Status == azuredevops.StatusSucceeded {
-			// TODO: find TeamProjectId
-			cr.SetConditions(rtv1.Available())
-
-			e.log.Debug("TeamProject exists", "org", cr.Spec.Org, "name", cr.Spec.Name)
-
-			return managed.ExternalObservation{ResourceExists: true}, err
+		if op.Status != azuredevops.StatusSucceeded {
+			return managed.ExternalObservation{}, nil
 		}
+
+		prj, err := findTeamProject(ctx, e.azCli, cr.Spec.Org, cr.Spec.Name)
+		if err != nil {
+			return managed.ExternalObservation{}, err
+		}
+
+		e.log.Debug("Found Project", "id", *prj.Id, "name", *prj.Name)
+
+		meta.RemoveAnnotations(cr, meta.AnnotationKeyExternalOperation)
+		meta.SetExternalName(cr, helpers.String(prj.Id))
+
+		cr.Status.Id = prj.Id
+		cr.Status.Name = prj.Name
+		cr.Status.Revision = prj.Revision
+		cr.Status.State = (*string)(prj.State)
+
+		cr.SetConditions(rtv1.Available())
+
+		return managed.ExternalObservation{ResourceExists: true, ResourceUpToDate: true}, nil
+	}
+
+	if meta.GetExternalName(cr) == "" {
+		return managed.ExternalObservation{ResourceExists: false}, nil
 	}
 
 	return managed.ExternalObservation{
@@ -152,10 +163,15 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotTeamProject)
 	}
 
+	if meta.GetExternalOperation(cr) != "" {
+		return nil
+	}
+
 	cr.SetConditions(rtv1.Creating())
 
 	spec := cr.Spec.DeepCopy()
-	opRef, err := azuredevops.CreateProject(ctx, e.azCli, azuredevops.CreateProjectOpts{
+
+	op, err := azuredevops.CreateProject(ctx, e.azCli, azuredevops.CreateProjectOpts{
 		Organization: spec.Org,
 		TeamProject:  teamProjectFromSpec(spec),
 	})
@@ -163,19 +179,11 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return err
 	}
 
-	meta.SetExternalName(cr, fmt.Sprintf("%s%s", operationReferenceTag, *opRef.Id))
+	meta.SetExternalOperation(cr, op.Id)
+	cr.SetConditions(conditionFromOperationReference(op))
 
-	/*
-		cr.Status.OperationReference = &teamprojectv1alpha1.OperationReference{
-			Id:     helpers.StringPtr(*opRef.Id),
-			Status: helpers.StringPtr(string(*opRef.Status)),
-		}
-	*/
-
-	cr.SetConditions(conditionFromOperationReference(opRef))
-
-	e.log.Debug("Create TeamProject", "org", spec.Org, "name", spec.Name, "status", opRef.Status)
-	e.rec.Eventf(cr, corev1.EventTypeNormal, "RepoCreated", "Repo '%s/%s' created", spec.Org, spec.Name)
+	e.log.Debug("Creating TeamProject", "org", spec.Org, "name", spec.Name, "status", op.Status)
+	//e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreated", "TeamProject '%s/%s' created", spec.Org, spec.Name)
 
 	return nil
 }

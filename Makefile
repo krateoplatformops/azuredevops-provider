@@ -60,6 +60,11 @@ install: ## Install this provider using Helm
 	@$(HELM) repo update krateo
 	@$(HELM) install patch-provider krateo/patch-provider 
 
+.PHONY: demo
+demo: ## Run the demo examples
+	@$(KUBECTL) create secret generic azuredevops-secret --from-literal=token=$(TOKEN) || true
+	@$(KUBECTL) apply -f samples/teamproject.yaml
+
 .PHONY: help
 help: ## Print this help.
 	@grep -E '^[a-zA-Z\._-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

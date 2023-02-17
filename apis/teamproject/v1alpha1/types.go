@@ -52,7 +52,7 @@ type TeamProjectSpec struct {
 
 	// Visibility: project visibility: private, public (default: private).
 	// +optional
-	Visibility *string `json:"private,omitempty"`
+	Visibility *string `json:"visibility,omitempty"`
 
 	// Capabilities: set of capabilities this project has
 	// (such as process template & version control).
@@ -87,15 +87,14 @@ type TeamProjectStatus struct {
 	// State: the current state of the project..
 	// +optional
 	State *string `json:"state,omitempty"`
-
-	// OperationReference: reference for an async operation.
-	// +optional
-	OperationReference *OperationReference `json:"operationReference,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster,categories={krateo,azuredevops}
+//+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id"
+//+kubebuilder:printcolumn:name="ORG",type="string",JSONPath=".status.org"
+//+kubebuilder:printcolumn:name="STATE",type="string",JSONPath=".status.state"
 //+kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 //+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 
