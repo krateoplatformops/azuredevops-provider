@@ -51,9 +51,6 @@ spec:
           spec:
             description: TeamProjectSpec defines the desired state of TeamProject
             properties:
-              apiUrl:
-                description: 'ApiUrl: the baseUrl for the REST API provider.'
-                type: string
               capabilities:
                 description: 'Capabilities: set of capabilities this project has (such
                   as process template & version control).'
@@ -80,37 +77,52 @@ spec:
                 - processTemplate
                 - versioncontrol
                 type: object
-              credentials:
-                description: Credentials required to authenticate ReST API server.
+              connectorConfig:
+                description: 'ConnectorConfig: configuration spec for the REST API
+                  client.'
                 properties:
-                  env:
-                    description: Env is a reference to an environment variable that
-                      contains credentials that must be used to connect to the provider.
+                  apiUrl:
+                    description: 'ApiUrl: the baseUrl for the REST API provider.'
+                    type: string
+                  credentials:
+                    description: Credentials required to authenticate ReST API server.
                     properties:
-                      name:
-                        description: Name is the name of an environment variable.
-                        type: string
-                    required:
-                    - name
+                      env:
+                        description: Env is a reference to an environment variable
+                          that contains credentials that must be used to connect to
+                          the provider.
+                        properties:
+                          name:
+                            description: Name is the name of an environment variable.
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      secretRef:
+                        description: A SecretRef is a reference to a secret key that
+                          contains the credentials that must be used to connect to
+                          the provider.
+                        properties:
+                          key:
+                            description: The key to select.
+                            type: string
+                          name:
+                            description: Name of the secret.
+                            type: string
+                          namespace:
+                            description: Namespace of the secret.
+                            type: string
+                        required:
+                        - key
+                        - name
+                        - namespace
+                        type: object
                     type: object
-                  secretRef:
-                    description: A SecretRef is a reference to a secret key that contains
-                      the credentials that must be used to connect to the provider.
-                    properties:
-                      key:
-                        description: The key to select.
-                        type: string
-                      name:
-                        description: Name of the secret.
-                        type: string
-                      namespace:
-                        description: Namespace of the secret.
-                        type: string
-                    required:
-                    - key
-                    - name
-                    - namespace
-                    type: object
+                  verbose:
+                    description: Verbose is true dumps your client requests and responses.
+                    type: boolean
+                required:
+                - credentials
                 type: object
               deletionPolicy:
                 default: Delete
@@ -130,15 +142,12 @@ spec:
               org:
                 description: 'Org: the organization name.'
                 type: string
-              verbose:
-                description: Verbose is true dumps your client requests and responses.
-                type: boolean
               visibility:
                 description: 'Visibility: project visibility: private, public (default:
                   private).'
                 type: string
             required:
-            - credentials
+            - connectorConfig
             - name
             - org
             type: object

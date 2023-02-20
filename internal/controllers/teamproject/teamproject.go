@@ -67,9 +67,9 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.New(errNotTeamProject)
 	}
 
-	spec := cr.Spec.DeepCopy()
+	cfg := cr.Spec.ConnectorConfig
 
-	csr := spec.Credentials.SecretRef
+	csr := cfg.Credentials.SecretRef
 	if csr == nil {
 		return nil, fmt.Errorf("no credentials secret referenced")
 	}
@@ -83,8 +83,8 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		kube: c.kube,
 		log:  c.log,
 		azCli: azuredevops.NewClient(azuredevops.ClientOptions{
-			BaseURL: spec.ApiUrl,
-			Verbose: helpers.IsBoolPtrEqualToBool(spec.Verbose, true),
+			BaseURL: cfg.ApiUrl,
+			Verbose: helpers.IsBoolPtrEqualToBool(cfg.Verbose, true),
 			Token:   token,
 		}),
 		rec: c.recorder,
@@ -125,14 +125,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			return managed.ExternalObservation{}, err
 		}
 
-		e.log.Debug("Found Project", "id", *prj.Id, "name", *prj.Name)
+		e.log.Debug("Found Project", "id", *prj.Id, "name", prj.Name)
 
 		deleteOperationAnnotation(cr)
 		meta.SetExternalName(cr, helpers.String(prj.Id))
 
-		cr.Status.Id = helpers.StringPtr(*prj.Id)
-		cr.Status.Revision = prj.Revision
-		cr.Status.State = helpers.StringPtr(string(*prj.State))
+		cr.Status.Id = helpers.String(prj.Id)
+		cr.Status.Revision = *prj.Revision
+		cr.Status.State = string(*prj.State)
 
 		cr.SetConditions(rtv1.Available())
 
@@ -175,7 +175,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotTeamProject)
 	}
 
-	if meta.GetExternalOperation(cr) != "" {
+	if getOperationAnnotation(cr) != "" {
 		return nil
 	}
 
@@ -214,14 +214,14 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	_, err := e.azCli.DeleteProject(ctx, azuredevops.DeleteProjectOpts{
 		Organization: cr.Spec.Org,
-		ProjectId:    helpers.String(cr.Status.Id),
+		ProjectId:    cr.Status.Id,
 	})
 	if err != nil {
 		return err
 	}
 
 	e.log.Debug("Delete TeamProject",
-		"id", helpers.String(cr.Status.Id), "org", cr.Spec.Org, "name", cr.Spec.Name)
+		"id", cr.Status.Id, "org", cr.Spec.Org, "name", cr.Spec.Name)
 	e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectDeleted",
 		"TeamProject '%s/%s' deleted", cr.Spec.Org, cr.Spec.Name)
 

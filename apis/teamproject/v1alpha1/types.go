@@ -5,15 +5,28 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type ConnectorSpec struct {
+	// ApiUrl: the baseUrl for the REST API provider.
+	// +immutable
+	ApiUrl string `json:"apiUrl,omitempty"`
+
+	// Credentials required to authenticate ReST API server.
+	Credentials *rtv1.CredentialSelectors `json:"credentials"`
+
+	// Verbose is true dumps your client requests and responses.
+	// +optional
+	Verbose *bool `json:"verbose,omitempty"`
+}
+
 type Versioncontrol struct {
 	// SourceControlType:
-	SourceControlType *string `json:"sourceControlType"`
+	SourceControlType string `json:"sourceControlType"`
 }
 
 // ProcessTemplate define reusable content in Azure Devops.
 type ProcessTemplate struct {
 	// TemplateTypeId: id of the desired template
-	TemplateTypeId *string `json:"templateTypeId"`
+	TemplateTypeId string `json:"templateTypeId"`
 }
 
 // Capabilities this project has
@@ -27,16 +40,9 @@ type Capabilities struct {
 type TeamProjectSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
 
-	// ApiUrl: the baseUrl for the REST API provider.
+	// ConnectorConfig: configuration spec for the REST API client.
 	// +immutable
-	ApiUrl string `json:"apiUrl,omitempty"`
-
-	// Credentials required to authenticate ReST API server.
-	Credentials *rtv1.CredentialSelectors `json:"credentials"`
-
-	// Verbose is true dumps your client requests and responses.
-	// +optional
-	Verbose *bool `json:"verbose,omitempty"`
+	ConnectorConfig ConnectorSpec `json:"connectorConfig"`
 
 	// Org: the organization name.
 	// +immutable
@@ -56,17 +62,16 @@ type TeamProjectSpec struct {
 
 	// Capabilities: set of capabilities this project has
 	// (such as process template & version control).
-	// +optional
-	Capabilities *Capabilities `json:"capabilities,omitempty"`
+	Capabilities Capabilities `json:"capabilities,omitempty"`
 }
 
 // Reference for an async operation.
 type OperationReference struct {
 	// Unique identifier for the operation.
-	Id *string `json:"id,omitempty"`
+	Id string `json:"id,omitempty"`
 
 	// The current status of the operation.
-	Status *string `json:"status,omitempty"`
+	Status string `json:"status,omitempty"`
 }
 
 // TeamProjectStatus defines the observed state of Repo
@@ -75,14 +80,14 @@ type TeamProjectStatus struct {
 
 	// Id: project identifier.
 	// +optional
-	Id *string `json:"id,omitempty"`
+	Id string `json:"id,omitempty"`
 
 	// Project revision.
-	Revision *uint64 `json:"revision,omitempty"`
+	Revision uint64 `json:"revision,omitempty"`
 
 	// State: the current state of the project..
 	// +optional
-	State *string `json:"state,omitempty"`
+	State string `json:"state,omitempty"`
 }
 
 //+kubebuilder:object:root=true

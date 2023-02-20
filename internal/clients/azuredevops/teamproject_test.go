@@ -47,14 +47,14 @@ func TestCreateProject(t *testing.T) {
 	res, err := cli.CreateProject(context.TODO(), CreateProjectOpts{
 		Organization: os.Getenv("ORG"),
 		TeamProject: &TeamProject{
-			Name: helpers.StringPtr(os.Getenv("PROJECT_NAME")),
+			Name: os.Getenv("PROJECT_NAME"),
 			//Description: helpers.StringPtr("Sorry for the Spam but I need to let the continuation token appear..."),
-			Capabilities: &Capabilities{
+			Capabilities: Capabilities{
 				&Versioncontrol{
-					SourceControlType: helpers.StringPtr("Git"),
+					SourceControlType: "Git",
 				},
 				&ProcessTemplate{
-					TemplateTypeId: helpers.StringPtr(os.Getenv("TEMPLATE_ID")),
+					TemplateTypeId: os.Getenv("TEMPLATE_ID"),
 				},
 			},
 		},

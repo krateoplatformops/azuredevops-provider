@@ -43,13 +43,13 @@ const (
 
 type Versioncontrol struct {
 	// SourceControlType:
-	SourceControlType *string `json:"sourceControlType,omitempty"`
+	SourceControlType string `json:"sourceControlType,omitempty"`
 }
 
 // ProcessTemplate define reusable content in Azure Devops.
 type ProcessTemplate struct {
 	// TemplateTypeId: id of the desired template
-	TemplateTypeId *string `json:"templateTypeId,omitempty"`
+	TemplateTypeId string `json:"templateTypeId,omitempty"`
 }
 
 // Capabilities this project has
@@ -65,28 +65,22 @@ type TeamProject struct {
 	Id *string `json:"id,omitempty"`
 
 	// Project name.
-	Name *string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 
 	// The project's description (if any).
 	Description *string `json:"description,omitempty"`
 
 	// Project visibility.
-	Visibility *ProjectVisibility `json:"visibility,omitempty"`
+	Visibility ProjectVisibility `json:"visibility,omitempty"`
 
 	// Set of capabilities this project has (such as process template & version control).
-	Capabilities *Capabilities `json:"capabilities,omitempty"`
-
-	// Project last update time.
-	LastUpdateTime *Time `json:"lastUpdateTime,omitempty"`
+	Capabilities Capabilities `json:"capabilities,omitempty"`
 
 	// Project revision.
 	Revision *uint64 `json:"revision,omitempty"`
 
 	// Project state.
 	State *ProjectState `json:"state,omitempty"`
-
-	// Url to the full version of the object.
-	Url *string `json:"url,omitempty"`
 }
 
 // Arguments for the ListProjects function
@@ -289,7 +283,7 @@ func (c *Client) FindProject(ctx context.Context, opts FindProjectsOpts) (*TeamP
 		}
 
 		for _, el := range res.Value {
-			if strings.EqualFold(*el.Name, opts.Name) {
+			if strings.EqualFold(el.Name, opts.Name) {
 				return el, nil
 			}
 		}

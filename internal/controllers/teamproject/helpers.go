@@ -24,23 +24,21 @@ func teamProjectFromSpec(spec *teamprojectv1alpha1.TeamProjectSpec) *azuredevops
 	}
 
 	res := &azuredevops.TeamProject{
-		Name:        helpers.StringPtr(spec.Name),
+		Name:        spec.Name,
 		Description: helpers.StringPtr(spec.Description),
-		Visibility:  &visibility,
+		Visibility:  visibility,
 	}
 
-	if spec.Capabilities != nil {
-		res.Capabilities = &azuredevops.Capabilities{}
-		if spec.Capabilities.Versioncontrol != nil {
-			res.Capabilities.Versioncontrol = &azuredevops.Versioncontrol{
-				SourceControlType: spec.Capabilities.Versioncontrol.SourceControlType,
-			}
+	res.Capabilities = azuredevops.Capabilities{}
+	if spec.Capabilities.Versioncontrol != nil {
+		res.Capabilities.Versioncontrol = &azuredevops.Versioncontrol{
+			SourceControlType: spec.Capabilities.Versioncontrol.SourceControlType,
 		}
+	}
 
-		if spec.Capabilities.ProcessTemplate != nil {
-			res.Capabilities.ProcessTemplate = &azuredevops.ProcessTemplate{
-				TemplateTypeId: spec.Capabilities.ProcessTemplate.TemplateTypeId,
-			}
+	if spec.Capabilities.ProcessTemplate != nil {
+		res.Capabilities.ProcessTemplate = &azuredevops.ProcessTemplate{
+			TemplateTypeId: spec.Capabilities.ProcessTemplate.TemplateTypeId,
 		}
 	}
 
