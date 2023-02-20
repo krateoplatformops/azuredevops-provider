@@ -1,10 +1,6 @@
 package teamproject
 
 import (
-	"context"
-	"fmt"
-	"strings"
-
 	teamprojectv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
@@ -65,36 +61,4 @@ func conditionFromOperationReference(opref *azuredevops.OperationReference) rtv1
 	}
 
 	return res
-}
-
-func findTeamProject(ctx context.Context, cli *azuredevops.Client, org, name string) (azuredevops.TeamProject, error) {
-	var continutationToken string
-	for {
-		top := int(30)
-		filter := azuredevops.StateWellFormed
-		res, err := cli.ListProjects(ctx, azuredevops.ListProjectsOpts{
-			Organization:      org,
-			StateFilter:       &filter,
-			Top:               &top,
-			ContinuationToken: &continutationToken,
-		})
-		if err != nil {
-			fmt.Printf("err => %v\n\n", err)
-			return azuredevops.TeamProject{}, err
-		}
-
-		for _, el := range res.Value {
-			fmt.Printf("name: %s, id: %s\n\n", *el.Name, *el.Id)
-			if strings.EqualFold(*el.Name, name) {
-				return el, nil
-			}
-		}
-
-		continutationToken = *res.ContinuationToken
-		if continutationToken == "" {
-			break
-		}
-	}
-
-	return azuredevops.TeamProject{}, fmt.Errorf("project '%s' not found", name)
 }

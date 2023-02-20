@@ -11,7 +11,7 @@ import (
 )
 
 func ExampleClient_GetOperation() {
-	cli := setupClient()
+	cli := createAzureDevopsClient()
 
 	res, err := cli.GetOperation(context.TODO(), GetOperationOpts{
 		Organization: os.Getenv("ORG"),

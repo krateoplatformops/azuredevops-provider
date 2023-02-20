@@ -117,7 +117,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			return managed.ExternalObservation{}, nil
 		}
 
-		prj, err := findTeamProject(ctx, e.azCli, cr.Spec.Org, cr.Spec.Name)
+		prj, err := e.azCli.FindProject(ctx, azuredevops.FindProjectsOpts{
+			Organization: cr.Spec.Org,
+			Name:         cr.Spec.Name,
+		})
 		if err != nil {
 			return managed.ExternalObservation{}, err
 		}

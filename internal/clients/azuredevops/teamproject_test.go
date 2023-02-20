@@ -15,7 +15,7 @@ import (
 )
 
 func TestListProjects(t *testing.T) {
-	cli := setupClient()
+	cli := createAzureDevopsClient()
 
 	var continutationToken string
 	for {
@@ -35,7 +35,6 @@ func TestListProjects(t *testing.T) {
 		}
 
 		continutationToken = *res.ContinuationToken
-		fmt.Printf("TOKEN => %v\n", continutationToken)
 		if continutationToken == "" {
 			break
 		}
@@ -43,80 +42,78 @@ func TestListProjects(t *testing.T) {
 }
 
 func TestCreateProject(t *testing.T) {
-	cli := setupClient()
+	cli := createAzureDevopsClient()
 
-	for i := 0; i < 20; i++ {
-		res, err := cli.CreateProject(context.TODO(), CreateProjectOpts{
-			Organization: os.Getenv("ORG"),
-			TeamProject: &TeamProject{
-				Name:        helpers.StringPtr(fmt.Sprintf("Created by Go nr.%d", i)),
-				Description: helpers.StringPtr("Sorry for the Spam but I need to let the continuation token appear..."),
-				Capabilities: &Capabilities{
-					&Versioncontrol{
-						SourceControlType: helpers.StringPtr("Git"),
-					},
-					&ProcessTemplate{
-						TemplateTypeId: helpers.StringPtr("6b724908-ef14-45cf-84f8-768b5384da45"),
-					},
+	res, err := cli.CreateProject(context.TODO(), CreateProjectOpts{
+		Organization: os.Getenv("ORG"),
+		TeamProject: &TeamProject{
+			Name: helpers.StringPtr(os.Getenv("PROJECT_NAME")),
+			//Description: helpers.StringPtr("Sorry for the Spam but I need to let the continuation token appear..."),
+			Capabilities: &Capabilities{
+				&Versioncontrol{
+					SourceControlType: helpers.StringPtr("Git"),
+				},
+				&ProcessTemplate{
+					TemplateTypeId: helpers.StringPtr(os.Getenv("TEMPLATE_ID")),
 				},
 			},
-		})
-		if err != nil {
-			var apierr *APIError
-			if errors.As(err, &apierr) {
-				fmt.Println(apierr.Error())
-			}
+		},
+	})
+	if err != nil {
+		var apierr *APIError
+		if errors.As(err, &apierr) {
+			fmt.Println(apierr.Error())
 		}
-
-		fmt.Printf("%v\n", res)
 	}
+
+	fmt.Printf("%v\n", res)
 }
 
 func TestGetProject(t *testing.T) {
-	cli := setupClient()
+	cli := createAzureDevopsClient()
 
 	res, err := cli.GetProject(context.TODO(), GetProjectOpts{
 		Organization: os.Getenv("ORG"),
-		ProjectId:    "bdb1db89-f1ea-45a7-89c2-97eff028a5a8",
+		ProjectId:    os.Getenv("PROJECT_ID"),
 	})
 	if err != nil {
-		if IsNotFound(err) {
-			fmt.Println("NOT FOUNDOK")
-		}
-
-		//var apierr *APIError
-		//if errors.As(err, &apierr) {
-		//	fmt.Println(apierr.Error())
-		//}
-
+		t.Fatal(err)
 	}
 
 	fmt.Printf("%v\n", res)
 }
 
 func TestDeleteProject(t *testing.T) {
-	cli := setupClient()
+	cli := createAzureDevopsClient()
 
 	res, err := cli.DeleteProject(context.TODO(), DeleteProjectOpts{
 		Organization: os.Getenv("ORG"),
-		ProjectId:    "401a7ba2-3043-4163-89e9-1a7707a41610",
+		ProjectId:    os.Getenv("PROJECT_ID"),
 	})
 	if err != nil {
-		if IsNotFound(err) {
-			fmt.Println("NOT FOUNDOK")
+		if !IsNotFound(err) {
+			t.Fatal(err)
 		}
-
-		//var apierr *APIError
-		//if errors.As(err, &apierr) {
-		//	fmt.Println(apierr.Error())
-		//}
-
 	}
 
-	fmt.Printf("%v\n", res)
+	t.Logf("operationId: %s", res.Id)
 }
 
-func setupClient() *Client {
+func TestFindProject(t *testing.T) {
+	cli := createAzureDevopsClient()
+
+	res, err := cli.FindProject(context.TODO(), FindProjectsOpts{
+		Organization: os.Getenv("ORG"),
+		Name:         os.Getenv("PROJECT_NAME"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%+v\n", helpers.String(res.Id))
+}
+
+func createAzureDevopsClient() *Client {
 	env, _ := dotenv.FromFile("../../../.env")
 	dotenv.PutInEnv(env, false)
 

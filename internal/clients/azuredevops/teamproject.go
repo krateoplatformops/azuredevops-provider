@@ -3,10 +3,12 @@ package azuredevops
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
@@ -102,15 +104,15 @@ type ListProjectsOpts struct {
 
 // Return type for the GetProjects function
 type ListProjectsResponseValue struct {
-	Count             int           `json:"count"`
-	Value             []TeamProject `json:"value,omitempty"`
-	ContinuationToken *string       `json:"continuationToken,omitempty"`
+	Count             int            `json:"count"`
+	Value             []*TeamProject `json:"value,omitempty"`
+	ContinuationToken *string        `json:"continuationToken,omitempty"`
 }
 
 // Get all projects in the organization that the authenticated user has access to.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.0&tabs=HTTP#teamprojectreference
 func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOpts) (*ListProjectsResponseValue, error) {
-	params := []string{apiVersionKey, apiVersionKey}
+	params := []string{apiVersionKey, apiVersionVal}
 	if opts.StateFilter != nil {
 		params = append(params, "stateFilter", string(*opts.StateFilter))
 	}
@@ -180,6 +182,7 @@ func (c *Client) GetProject(ctx context.Context, opts GetProjectOpts) (*TeamProj
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(ctx)
 
 	apiErr := &APIError{}
 	val := &TeamProject{}
@@ -214,6 +217,7 @@ func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOpts) (*Op
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
 	apiErr := &APIError{}
@@ -256,8 +260,48 @@ func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOpts) (*Op
 		Verbose:         c.verbose,
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
-			httplib.ErrorJSON(apiErr, http.StatusOK),
+			httplib.ErrorJSON(apiErr, http.StatusAccepted),
 		},
 	})
 	return val, err
+}
+
+// Arguments for the FindProjects function
+type FindProjectsOpts struct {
+	Organization string
+	Name         string
+}
+
+// FindProject utility method to look for a specific project.
+func (c *Client) FindProject(ctx context.Context, opts FindProjectsOpts) (*TeamProject, error) {
+	var continutationToken string
+	for {
+		top := int(30)
+		//filter := StateWellFormed
+		res, err := c.ListProjects(ctx, ListProjectsOpts{
+			Organization: opts.Organization,
+			//StateFilter:       &filter,
+			Top:               &top,
+			ContinuationToken: &continutationToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, el := range res.Value {
+			if strings.EqualFold(*el.Name, opts.Name) {
+				return el, nil
+			}
+		}
+
+		continutationToken = *res.ContinuationToken
+		if continutationToken == "" {
+			break
+		}
+	}
+
+	return nil, &httplib.StatusError{
+		StatusCode: http.StatusNotFound,
+		Inner:      fmt.Errorf("project '%s' not found", opts.Name),
+	}
 }
