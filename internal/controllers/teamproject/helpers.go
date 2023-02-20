@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	teamprojectv1alpha1 "gihtub.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	teamprojectv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 
@@ -72,7 +72,7 @@ func findTeamProject(ctx context.Context, cli *azuredevops.Client, org, name str
 	for {
 		top := int(30)
 		filter := azuredevops.StateWellFormed
-		res, err := azuredevops.ListProjects(ctx, cli, azuredevops.ListProjectsOpts{
+		res, err := cli.ListProjects(ctx, azuredevops.ListProjectsOpts{
 			Organization:      org,
 			StateFilter:       &filter,
 			Top:               &top,

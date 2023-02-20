@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"path"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
+	"github.com/lucasepe/httplib"
 )
 
 // Contains information about the progress or result of an async operation.
@@ -51,20 +51,27 @@ type GetOperationOpts struct {
 
 // Gets an operation from the operationId using the given pluginId.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/operations/operations/get?view=azure-devops-rest-7.0#operation
-func GetOperation(ctx context.Context, cli *Client, opts GetOperationOpts) (*Operation, error) {
-	apiPath := path.Join(opts.Organization, "_apis/operations", opts.OperationId)
-	req, err := cli.newGetRequest(apiPath, nil)
+func (c *Client) GetOperation(ctx context.Context, opts GetOperationOpts) (*Operation, error) {
+	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, "_apis/operations", opts.OperationId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	})
+
+	req, err := httplib.NewGetRequest(ub)
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(ctx)
 
 	apiErr := &APIError{}
 	val := &Operation{}
 
-	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
-		Verbose:         cli.options.Verbose,
-		ResponseHandler: httplib.ToJSON(val),
-		Validators: []httplib.ResponseHandler{
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		Verbose:         c.verbose,
+		AuthMethod:      c.authMethod,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})

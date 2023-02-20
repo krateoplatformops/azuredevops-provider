@@ -3,7 +3,7 @@ package apis
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 
-	teamprojectv1alpha1 "gihtub.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
+	teamprojectv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
 )
 
 func init() {

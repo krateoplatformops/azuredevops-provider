@@ -10,7 +10,6 @@ import (
 	"os"
 	"testing"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/dotenv"
 )
@@ -21,7 +20,7 @@ func TestListProjects(t *testing.T) {
 	var continutationToken string
 	for {
 		top := int(4)
-		res, err := ListProjects(context.TODO(), cli, ListProjectsOpts{
+		res, err := cli.ListProjects(context.TODO(), ListProjectsOpts{
 			Organization:      os.Getenv("ORG"),
 			StateFilter:       (*ProjectState)(helpers.StringPtr("all")),
 			Top:               &top,
@@ -46,8 +45,8 @@ func TestListProjects(t *testing.T) {
 func TestCreateProject(t *testing.T) {
 	cli := setupClient()
 
-	for i := 0; i < 30; i++ {
-		res, err := CreateProject(context.TODO(), cli, CreateProjectOpts{
+	for i := 0; i < 20; i++ {
+		res, err := cli.CreateProject(context.TODO(), CreateProjectOpts{
 			Organization: os.Getenv("ORG"),
 			TeamProject: &TeamProject{
 				Name:        helpers.StringPtr(fmt.Sprintf("Created by Go nr.%d", i)),
@@ -76,7 +75,7 @@ func TestCreateProject(t *testing.T) {
 func TestGetProject(t *testing.T) {
 	cli := setupClient()
 
-	res, err := GetProject(context.TODO(), cli, GetProjectOpts{
+	res, err := cli.GetProject(context.TODO(), GetProjectOpts{
 		Organization: os.Getenv("ORG"),
 		ProjectId:    "bdb1db89-f1ea-45a7-89c2-97eff028a5a8",
 	})
@@ -98,7 +97,7 @@ func TestGetProject(t *testing.T) {
 func TestDeleteProject(t *testing.T) {
 	cli := setupClient()
 
-	res, err := DeleteProject(context.TODO(), cli, DeleteProjectOpts{
+	res, err := cli.DeleteProject(context.TODO(), DeleteProjectOpts{
 		Organization: os.Getenv("ORG"),
 		ProjectId:    "401a7ba2-3043-4163-89e9-1a7707a41610",
 	})
@@ -121,9 +120,7 @@ func setupClient() *Client {
 	env, _ := dotenv.FromFile("../../../.env")
 	dotenv.PutInEnv(env, false)
 
-	httpClient := httplib.CreateHTTPClient(httplib.CreateHTTPClientOpts{})
-
-	return NewClient(httpClient, Options{
+	return NewClient(ClientOptions{
 		Verbose: false,
 		BaseURL: os.Getenv("BASE_URL"),
 		Token:   os.Getenv("TOKEN"),

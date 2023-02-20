@@ -3,7 +3,7 @@ package azuredevops
 import (
 	"net/http"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
+	"github.com/lucasepe/httplib"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	userAgent     = "krateo/azuredevops-provider"
 )
 
-type Options struct {
+type ClientOptions struct {
 	BaseURL string
 	Token   string
 	Verbose bool
@@ -20,16 +20,36 @@ type Options struct {
 
 type Client struct {
 	httpClient *http.Client
-	options    Options
+	baseURL    string
+	verbose    bool
+	authMethod httplib.AuthMethod
 }
 
-func NewClient(httpClient *http.Client, opts Options) *Client {
+func NewClient(opts ClientOptions) *Client {
 	return &Client{
-		httpClient: httpClient,
-		options:    opts,
+		httpClient: httplib.NewClient(),
+		baseURL:    opts.BaseURL,
+		verbose:    opts.Verbose,
+		authMethod: &httplib.TokenAuth{
+			Token: opts.Token,
+		},
 	}
 }
 
+/*
+type urlBuilder struct {
+	baseURL string
+	path string
+	params []string
+}
+
+var _ httplib.URLBuilder = (*urlBuilder)(nil)
+
+func (ub *urlBuilder) Build() (*url.URL, error) {
+
+}
+*/
+/*
 func (c *Client) newGetRequest(path string, queryParams map[string]string) (*http.Request, error) {
 	if len(queryParams) == 0 {
 		queryParams = map[string]string{}
@@ -92,3 +112,4 @@ func (c *Client) newDeleteRequest(path string, queryParams map[string]string) (*
 	req.SetBasicAuth(userAgent, c.options.Token)
 	return req, nil
 }
+*/

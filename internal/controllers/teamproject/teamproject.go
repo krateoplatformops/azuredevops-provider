@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
@@ -24,7 +22,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
-	teamprojectv1alpha1 "gihtub.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
+	teamprojectv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
 )
 
 const (
@@ -81,26 +79,18 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, err
 	}
 
-	opts := azuredevops.Options{
-		BaseURL: spec.ApiUrl,
-		Verbose: helpers.IsBoolPtrEqualToBool(spec.Verbose, true),
-		Token:   token,
-	}
-
-	httpClient := httplib.CreateHTTPClient(httplib.CreateHTTPClientOpts{
-		Timeout: 40 * time.Second,
-	})
-
 	return &external{
-		kube:  c.kube,
-		log:   c.log,
-		azCli: azuredevops.NewClient(httpClient, opts),
-		rec:   c.recorder,
+		kube: c.kube,
+		log:  c.log,
+		azCli: azuredevops.NewClient(azuredevops.ClientOptions{
+			BaseURL: spec.ApiUrl,
+			Verbose: helpers.IsBoolPtrEqualToBool(spec.Verbose, true),
+			Token:   token,
+		}),
+		rec: c.recorder,
 	}, nil
 }
 
-// An ExternalClient observes, then either creates, updates, or deletes an
-// external resource to ensure it reflects the managed resource's desired state.
 type external struct {
 	kube  client.Client
 	log   logging.Logger
@@ -115,7 +105,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	if meta.GetExternalOperation(cr) != "" {
-		op, err := azuredevops.GetOperation(ctx, e.azCli, azuredevops.GetOperationOpts{
+		op, err := e.azCli.GetOperation(ctx, azuredevops.GetOperationOpts{
 			Organization: cr.Spec.Org,
 			OperationId:  meta.GetExternalOperation(cr),
 		})
@@ -143,12 +133,32 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 		cr.SetConditions(rtv1.Available())
 
-		return managed.ExternalObservation{ResourceExists: true, ResourceUpToDate: true}, e.kube.Update(ctx, cr)
+		e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreated",
+			"TeamProject '%s/%s' created", cr.Spec.Org, cr.Spec.Name)
+
+		return managed.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: true,
+		}, e.kube.Update(ctx, cr)
 	}
 
 	if meta.GetExternalName(cr) == "" {
-		return managed.ExternalObservation{ResourceExists: false}, nil
+		return managed.ExternalObservation{
+			ResourceExists:   false,
+			ResourceUpToDate: true,
+		}, nil
 	}
+
+	// TODO(@lucasepe): should handle configuration drift?
+	/*
+		prj, err := e.azCli.GetProject(ctx, azuredevops.GetProjectOpts{
+			Organization: cr.Spec.Org,
+			ProjectId: meta.GetExternalName(cr),
+		})
+		if err != nil {
+			return managed.ExternalObservation{}, err
+		}
+	*/
 
 	return managed.ExternalObservation{
 		ResourceExists:   true,
@@ -170,7 +180,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
-	op, err := azuredevops.CreateProject(ctx, e.azCli, azuredevops.CreateProjectOpts{
+	op, err := e.azCli.CreateProject(ctx, azuredevops.CreateProjectOpts{
 		Organization: spec.Org,
 		TeamProject:  teamProjectFromSpec(spec),
 	})
@@ -182,7 +192,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	cr.SetConditions(conditionFromOperationReference(op))
 
 	e.log.Debug("Creating TeamProject", "org", spec.Org, "name", spec.Name, "status", op.Status)
-	//e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreated", "TeamProject '%s/%s' created", spec.Org, spec.Name)
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreating", "TeamProject '%s/%s' creating", spec.Org, spec.Name)
 
 	return nil
 }
@@ -199,7 +209,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Deleting())
 
-	_, err := azuredevops.DeleteProject(ctx, e.azCli, azuredevops.DeleteProjectOpts{
+	_, err := e.azCli.DeleteProject(ctx, azuredevops.DeleteProjectOpts{
 		Organization: cr.Spec.Org,
 		ProjectId:    helpers.String(cr.Status.Id),
 	})

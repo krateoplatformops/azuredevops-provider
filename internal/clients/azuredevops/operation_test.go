@@ -13,7 +13,7 @@ import (
 func TestGetOperation(t *testing.T) {
 	cli := setupClient()
 
-	res, err := GetOperation(context.TODO(), cli, GetOperationOpts{
+	res, err := cli.GetOperation(context.TODO(), GetOperationOpts{
 		Organization: os.Getenv("ORG"),
 		OperationId:  "ebf2b78f-1d81-418c-8559-3c867660776a",
 	})

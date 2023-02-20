@@ -203,6 +203,8 @@ github.com/krateoplatformops/provider-runtime v0.3.3 h1:uXSp8Byc366XOtCxSHELCZVS
 github.com/krateoplatformops/provider-runtime v0.3.3/go.mod h1:HVypEz1yphtFQLlDkiHZFRzqqXxJLx+ZfLBj1dYXhpQ=
 github.com/lucasepe/dotenv v0.1.0 h1:w9JoOcuic7Hn4BhvP+rGk6UJgOsHTWb2KkJGGtuwZ7I=
 github.com/lucasepe/dotenv v0.1.0/go.mod h1:1kAFKdDhPXR+pkTgBfjSOmKzCf+wrY29OP727UhJ5rA=
+github.com/lucasepe/httplib v0.1.1 h1:3rK0RFi1PPZUcdxjMKuGGazlRAotHkyyIuaGclM6I0E=
+github.com/lucasepe/httplib v0.1.1/go.mod h1:Elmrrzp7dQoKSldJhK5lcwH8nNn98ohrwg8nZgkJAn0=
 github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.7.6 h1:8yTIVnZgCoiM1TgqoeTl+LfU5Jg6/xL3QhGQnimLYnA=

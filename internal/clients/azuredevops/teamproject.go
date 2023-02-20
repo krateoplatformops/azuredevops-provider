@@ -8,8 +8,8 @@ import (
 	"path"
 	"strconv"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
+	"github.com/lucasepe/httplib"
 )
 
 type ProjectState string
@@ -109,23 +109,28 @@ type ListProjectsResponseValue struct {
 
 // Get all projects in the organization that the authenticated user has access to.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.0&tabs=HTTP#teamprojectreference
-func ListProjects(ctx context.Context, cli *Client, opts ListProjectsOpts) (*ListProjectsResponseValue, error) {
-	apiPath := path.Join(opts.Organization, "_apis/projects")
-	queryParams := map[string]string{}
+func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOpts) (*ListProjectsResponseValue, error) {
+	params := []string{apiVersionKey, apiVersionKey}
 	if opts.StateFilter != nil {
-		queryParams["stateFilter"] = string(*opts.StateFilter)
+		params = append(params, "stateFilter", string(*opts.StateFilter))
 	}
 	if opts.Top != nil {
-		queryParams["$top"] = strconv.Itoa(*opts.Top)
+		params = append(params, "$top", strconv.Itoa(*opts.Top))
 	}
 	if opts.Skip != nil {
-		queryParams["$skip"] = strconv.Itoa(*opts.Skip)
+		params = append(params, "$skip", strconv.Itoa(*opts.Skip))
 	}
 	if opts.ContinuationToken != nil {
-		queryParams["continuationToken"] = *opts.ContinuationToken
+		params = append(params, "continuationToken", *opts.ContinuationToken)
 	}
 
-	req, err := cli.newGetRequest(apiPath, queryParams)
+	ub := httplib.NewURLBuilder(
+		httplib.URLBuilderOptions{
+			BaseURL: c.baseURL,
+			Path:    path.Join(opts.Organization, "_apis/projects"),
+			Params:  params,
+		})
+	req, err := httplib.NewGetRequest(ub)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +139,9 @@ func ListProjects(ctx context.Context, cli *Client, opts ListProjectsOpts) (*Lis
 	apiErr := &APIError{}
 	val := &ListProjectsResponseValue{}
 
-	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
-		Verbose: cli.options.Verbose,
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		AuthMethod: c.authMethod,
+		Verbose:    c.verbose,
 		ResponseHandler: func(res *http.Response) error {
 			data, err := io.ReadAll(res.Body)
 			if err != nil {
@@ -148,7 +154,7 @@ func ListProjects(ctx context.Context, cli *Client, opts ListProjectsOpts) (*Lis
 			val.ContinuationToken = helpers.StringPtr(res.Header.Get("X-Ms-Continuationtoken"))
 			return nil
 		},
-		Validators: []httplib.ResponseHandler{
+		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
@@ -163,9 +169,14 @@ type GetProjectOpts struct {
 
 // Get project with the specified id or name, optionally including capabilities.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get?view=azure-devops-rest-7.0
-func GetProject(ctx context.Context, cli *Client, opts GetProjectOpts) (*TeamProject, error) {
-	apiPath := path.Join(opts.Organization, "_apis/projects", opts.ProjectId)
-	req, err := cli.newGetRequest(apiPath, nil)
+func (c *Client) GetProject(ctx context.Context, opts GetProjectOpts) (*TeamProject, error) {
+	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	})
+
+	req, err := httplib.NewGetRequest(ub)
 	if err != nil {
 		return nil, err
 	}
@@ -173,10 +184,11 @@ func GetProject(ctx context.Context, cli *Client, opts GetProjectOpts) (*TeamPro
 	apiErr := &APIError{}
 	val := &TeamProject{}
 
-	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
-		Verbose:         cli.options.Verbose,
-		ResponseHandler: httplib.ToJSON(val),
-		Validators: []httplib.ResponseHandler{
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		Verbose:         c.verbose,
+		AuthMethod:      c.authMethod,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
@@ -191,9 +203,14 @@ type CreateProjectOpts struct {
 
 // Queues a project to be created. Use the GetOperation to periodically check for create project status.
 // POST https://dev.azure.com/{organization}/_apis/projects?api-version=7.0
-func CreateProject(ctx context.Context, cli *Client, opts CreateProjectOpts) (*OperationReference, error) {
-	apiPath := path.Join(opts.Organization, "_apis/projects")
-	req, err := cli.newPostRequest(apiPath, nil, opts.TeamProject)
+func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOpts) (*OperationReference, error) {
+	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, "_apis/projects"),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	})
+
+	req, err := httplib.NewPostRequest(ub, httplib.ToJSON(opts.TeamProject))
 	if err != nil {
 		return nil, err
 	}
@@ -201,10 +218,11 @@ func CreateProject(ctx context.Context, cli *Client, opts CreateProjectOpts) (*O
 
 	apiErr := &APIError{}
 	val := &OperationReference{}
-	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
-		Verbose:         cli.options.Verbose,
-		ResponseHandler: httplib.ToJSON(val),
-		Validators: []httplib.ResponseHandler{
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		AuthMethod:      c.authMethod,
+		Verbose:         c.verbose,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusAccepted),
 		},
 	})
@@ -218,9 +236,14 @@ type DeleteProjectOpts struct {
 
 // Queues a project to be deleted. Use the GetOperation to periodically check for delete project status.
 // DELETE https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
-func DeleteProject(ctx context.Context, cli *Client, opts DeleteProjectOpts) (*OperationReference, error) {
-	apiPath := path.Join(opts.Organization, "_apis/projects/", opts.ProjectId)
-	req, err := cli.newDeleteRequest(apiPath, nil)
+func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOpts) (*OperationReference, error) {
+	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, "_apis/projects/", opts.ProjectId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	})
+
+	req, err := httplib.NewDeleteRequest(ub)
 	if err != nil {
 		return nil, err
 	}
@@ -228,10 +251,11 @@ func DeleteProject(ctx context.Context, cli *Client, opts DeleteProjectOpts) (*O
 
 	apiErr := &APIError{}
 	val := &OperationReference{}
-	err = httplib.Call(cli.httpClient, req, httplib.CallOpts{
-		Verbose:         cli.options.Verbose,
-		ResponseHandler: httplib.ToJSON(val),
-		Validators: []httplib.ResponseHandler{
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		AuthMethod:      c.authMethod,
+		Verbose:         c.verbose,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})

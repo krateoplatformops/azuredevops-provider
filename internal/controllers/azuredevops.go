@@ -4,7 +4,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/controller"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/controllers/teamproject"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/teamproject"
 )
 
 // Setup creates all controllers with the supplied logger and adds them to

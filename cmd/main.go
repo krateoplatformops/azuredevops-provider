@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/controllers"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers"
 	"gopkg.in/alecthomas/kingpin.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/apis"
+	"github.com/krateoplatformops/azuredevops-provider/apis"
 	"github.com/krateoplatformops/provider-runtime/pkg/controller"
 	"github.com/krateoplatformops/provider-runtime/pkg/logging"
 	"github.com/krateoplatformops/provider-runtime/pkg/ratelimiter"

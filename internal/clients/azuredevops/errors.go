@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"gihtub.com/krateoplatformops/azuredevops-provider/internal/httplib"
+	"github.com/lucasepe/httplib"
 )
 
 type APIError struct {
