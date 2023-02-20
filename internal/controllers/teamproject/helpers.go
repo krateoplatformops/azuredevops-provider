@@ -5,9 +5,16 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
+	"github.com/krateoplatformops/provider-runtime/pkg/meta"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	// annotationKeyOperation is the key in the annotations map of a
+	// async operation for the name of the resource to be created.
+	annotationKeyOperation = "krateo.io/azuredevops/operation"
 )
 
 func teamProjectFromSpec(spec *teamprojectv1alpha1.TeamProjectSpec) *azuredevops.TeamProject {
@@ -61,4 +68,19 @@ func conditionFromOperationReference(opref *azuredevops.OperationReference) rtv1
 	}
 
 	return res
+}
+
+// getOperationAnnotation returns the azuredevops operation annotation.
+func getOperationAnnotation(o metav1.Object) string {
+	return o.GetAnnotations()[annotationKeyOperation]
+}
+
+// setOperationAnnotation sets the azuredevops operation annotation.
+func setOperationAnnotation(o metav1.Object, identifier string) {
+	meta.AddAnnotations(o, map[string]string{annotationKeyOperation: identifier})
+}
+
+// deleteOperationAnnotation delete the azuredevops operation annotation.
+func deleteOperationAnnotation(o metav1.Object) {
+	meta.RemoveAnnotations(o, annotationKeyOperation)
 }

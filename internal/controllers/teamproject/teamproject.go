@@ -104,10 +104,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{}, errors.New(errNotTeamProject)
 	}
 
-	if meta.GetExternalOperation(cr) != "" {
+	if getOperationAnnotation(cr) != "" {
 		op, err := e.azCli.GetOperation(ctx, azuredevops.GetOperationOpts{
 			Organization: cr.Spec.Org,
-			OperationId:  meta.GetExternalOperation(cr),
+			OperationId:  getOperationAnnotation(cr),
 		})
 		if err != nil {
 			return managed.ExternalObservation{}, err
@@ -127,7 +127,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 		e.log.Debug("Found Project", "id", *prj.Id, "name", *prj.Name)
 
-		meta.RemoveAnnotations(cr, meta.AnnotationKeyExternalOperation)
+		deleteOperationAnnotation(cr)
 		meta.SetExternalName(cr, helpers.String(prj.Id))
 
 		cr.Status.Id = helpers.StringPtr(*prj.Id)
@@ -191,7 +191,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return err
 	}
 
-	meta.SetExternalOperation(cr, op.Id)
+	setOperationAnnotation(cr, op.Id)
 	cr.SetConditions(conditionFromOperationReference(op))
 
 	e.log.Debug("Creating TeamProject", "org", spec.Org, "name", spec.Name, "status", op.Status)
