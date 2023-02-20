@@ -1,6 +1,7 @@
 package azuredevops
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/lucasepe/httplib"
@@ -37,80 +38,13 @@ func NewClient(opts ClientOptions) *Client {
 	}
 }
 
-/*
-type urlBuilder struct {
-	baseURL string
-	path string
-	params []string
+type APIError struct {
+	Message   string `json:"message"`
+	TypeKey   string `json:"typeKey"`
+	ErrorCode int    `json:"errorCode"`
+	EventID   int    `json:"eventId"`
 }
 
-var _ httplib.URLBuilder = (*urlBuilder)(nil)
-
-func (ub *urlBuilder) Build() (*url.URL, error) {
-
+func (e *APIError) Error() string {
+	return fmt.Sprintf("azuredevops: %s (%s, %d)", e.Message, e.TypeKey, e.EventID)
 }
-*/
-/*
-func (c *Client) newGetRequest(path string, queryParams map[string]string) (*http.Request, error) {
-	if len(queryParams) == 0 {
-		queryParams = map[string]string{}
-	}
-	queryParams[apiVersionKey] = apiVersionVal
-
-	req, err := httplib.NewRequest(httplib.CreateRequestOpts{
-		Method:      http.MethodGet,
-		BaseURL:     c.options.BaseURL,
-		Path:        path,
-		QueryParams: queryParams,
-	})
-	if err != nil {
-		return nil, err
-	}
-	//req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	req.SetBasicAuth(userAgent, c.options.Token)
-	return req, nil
-}
-
-func (c *Client) newPostRequest(path string, queryParams map[string]string, val any) (*http.Request, error) {
-	if len(queryParams) == 0 {
-		queryParams = map[string]string{}
-	}
-	queryParams[apiVersionKey] = apiVersionVal
-
-	req, err := httplib.NewRequest(httplib.CreateRequestOpts{
-		Method:      http.MethodPost,
-		BaseURL:     c.options.BaseURL,
-		Path:        path,
-		QueryParams: queryParams,
-		GetBody:     httplib.BodyJSON(val),
-	})
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	req.SetBasicAuth(userAgent, c.options.Token)
-	return req, nil
-}
-
-func (c *Client) newDeleteRequest(path string, queryParams map[string]string) (*http.Request, error) {
-	if len(queryParams) == 0 {
-		queryParams = map[string]string{}
-	}
-	queryParams[apiVersionKey] = apiVersionVal
-
-	req, err := httplib.NewRequest(httplib.CreateRequestOpts{
-		Method:      http.MethodDelete,
-		BaseURL:     c.options.BaseURL,
-		Path:        path,
-		QueryParams: queryParams,
-	})
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Accept", "application/json")
-	req.SetBasicAuth(userAgent, c.options.Token)
-	return req, nil
-}
-*/

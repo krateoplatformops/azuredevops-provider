@@ -1,7 +1,7 @@
 apiVersion: azuredevops.krateo.io/v1alpha1
 kind: TeamProject
 metadata:
-  name: team-sample
+  name: teamproject-sample
 spec:
   org: kiratech-bancasella
   name: Test project created by Krateo 

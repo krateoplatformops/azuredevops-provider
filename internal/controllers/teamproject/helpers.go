@@ -14,7 +14,7 @@ import (
 const (
 	// annotationKeyOperation is the key in the annotations map of a
 	// async operation for the name of the resource to be created.
-	annotationKeyOperation = "krateo.io/azuredevops/operation"
+	annotationKeyOperation = "krateo.io/opid"
 )
 
 func teamProjectFromSpec(spec *teamprojectv1alpha1.TeamProjectSpec) *azuredevops.TeamProject {

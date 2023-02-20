@@ -7,6 +7,7 @@ import (
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
+	"github.com/lucasepe/httplib"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 
@@ -110,7 +111,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			OperationId:  getOperationAnnotation(cr),
 		})
 		if err != nil {
-			return managed.ExternalObservation{}, err
+			return managed.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
 		}
 
 		if op.Status != azuredevops.StatusSucceeded {
@@ -136,8 +137,8 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 		cr.SetConditions(rtv1.Available())
 
-		e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreated",
-			"TeamProject '%s/%s' created", cr.Spec.Org, cr.Spec.Name)
+		//e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreated",
+		//	"TeamProject '%s/%s' created", cr.Spec.Org, cr.Spec.Name)
 
 		return managed.ExternalObservation{
 			ResourceExists:   true,
@@ -145,26 +146,29 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}, e.kube.Update(ctx, cr)
 	}
 
-	if meta.GetExternalName(cr) == "" {
+	if meta.GetExternalName(cr) != "" {
+		prj, err := e.azCli.GetProject(ctx, azuredevops.GetProjectOpts{
+			Organization: cr.Spec.Org,
+			ProjectId:    meta.GetExternalName(cr),
+		})
+		if err != nil {
+			return managed.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+		}
+
+		cr.Status.Id = helpers.String(prj.Id)
+		cr.Status.Revision = *prj.Revision
+		cr.Status.State = string(*prj.State)
+
+		cr.SetConditions(rtv1.Available())
+
 		return managed.ExternalObservation{
-			ResourceExists:   false,
+			ResourceExists:   true,
 			ResourceUpToDate: true,
 		}, nil
 	}
 
-	// TODO(@lucasepe): should handle configuration drift?
-	/*
-		prj, err := e.azCli.GetProject(ctx, azuredevops.GetProjectOpts{
-			Organization: cr.Spec.Org,
-			ProjectId: meta.GetExternalName(cr),
-		})
-		if err != nil {
-			return managed.ExternalObservation{}, err
-		}
-	*/
-
 	return managed.ExternalObservation{
-		ResourceExists:   true,
+		ResourceExists:   false,
 		ResourceUpToDate: true,
 	}, nil
 }
@@ -217,10 +221,10 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		ProjectId:    cr.Status.Id,
 	})
 	if err != nil {
-		return err
+		return resource.Ignore(httplib.IsNotFoundError, err)
 	}
 
-	e.log.Debug("Delete TeamProject",
+	e.log.Debug("TeamProject deleted",
 		"id", cr.Status.Id, "org", cr.Spec.Org, "name", cr.Spec.Name)
 	e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectDeleted",
 		"TeamProject '%s/%s' deleted", cr.Spec.Org, cr.Spec.Name)

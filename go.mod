@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/krateoplatformops/provider-runtime v0.3.4
 	github.com/lucasepe/dotenv v0.1.0
-	github.com/lucasepe/httplib v0.1.1
+	github.com/lucasepe/httplib v0.1.3
 	github.com/stoewer/go-strcase v1.2.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.26.0

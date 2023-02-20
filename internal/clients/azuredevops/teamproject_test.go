@@ -7,11 +7,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"testing"
 
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/dotenv"
+	"github.com/lucasepe/httplib"
 )
 
 func TestListProjects(t *testing.T) {
@@ -91,12 +93,14 @@ func TestDeleteProject(t *testing.T) {
 		ProjectId:    os.Getenv("PROJECT_ID"),
 	})
 	if err != nil {
-		if !IsNotFound(err) {
+		if !httplib.HasStatusErr(err, http.StatusNotFound) {
 			t.Fatal(err)
 		}
 	}
 
-	t.Logf("operationId: %s", res.Id)
+	if res != nil {
+		t.Logf("operationId: %s", res.Id)
+	}
 }
 
 func TestFindProject(t *testing.T) {
@@ -107,10 +111,14 @@ func TestFindProject(t *testing.T) {
 		Name:         os.Getenv("PROJECT_NAME"),
 	})
 	if err != nil {
-		t.Fatal(err)
+		if !httplib.HasStatusErr(err, http.StatusNotFound) {
+			t.Fatal(err)
+		}
 	}
 
-	fmt.Printf("%+v\n", helpers.String(res.Id))
+	if res != nil {
+		fmt.Printf("%+v\n", helpers.String(res.Id))
+	}
 }
 
 func createAzureDevopsClient() *Client {
