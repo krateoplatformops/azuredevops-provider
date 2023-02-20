@@ -30,8 +30,9 @@ func NewClient(opts ClientOptions) *Client {
 		httpClient: httplib.NewClient(),
 		baseURL:    opts.BaseURL,
 		verbose:    opts.Verbose,
-		authMethod: &httplib.TokenAuth{
-			Token: opts.Token,
+		authMethod: &httplib.BasicAuth{
+			Username: userAgent,
+			Password: opts.Token,
 		},
 	}
 }

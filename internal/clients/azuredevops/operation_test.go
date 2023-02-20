@@ -7,27 +7,23 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"testing"
+	"strings"
 )
 
-func TestGetOperation(t *testing.T) {
+func ExampleClient_GetOperation() {
 	cli := setupClient()
 
 	res, err := cli.GetOperation(context.TODO(), GetOperationOpts{
 		Organization: os.Getenv("ORG"),
-		OperationId:  "ebf2b78f-1d81-418c-8559-3c867660776a",
+		OperationId:  os.Getenv("OPERATION_ID"),
 	})
 	if err != nil {
-		if IsNotFound(err) {
-			fmt.Println("OP NOT FOUND")
-		}
-
-		//var apierr *APIError
-		//if errors.As(err, &apierr) {
-		//	fmt.Println(apierr.Error())
-		//}
-
+		panic(err)
 	}
 
-	fmt.Printf("%v\n", res)
+	ok := strings.HasSuffix(res.Url, fmt.Sprintf("/_apis/operations/%s", os.Getenv("OPERATION_ID")))
+	fmt.Printf("%t", ok)
+
+	// Output:
+	// true
 }
