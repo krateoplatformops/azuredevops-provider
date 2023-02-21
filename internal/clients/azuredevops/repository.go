@@ -19,6 +19,42 @@ type GitRepository struct {
 	Url           *string      `json:"url,omitempty"`
 }
 
+type GetRepositoryOptions struct {
+	Organization string
+	ProjectId    string
+	RepositoryId string
+}
+
+// GetRepository retrieve a git repository.
+// GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
+func (c *Client) GetRepository(ctx context.Context, opts GetRepositoryOptions) (*GitRepository, error) {
+	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories", opts.RepositoryId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	})
+
+	req, err := httplib.NewGetRequest(ub)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	apiErr := &APIError{}
+	val := &GitRepository{}
+
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		Verbose:         c.verbose,
+		AuthMethod:      c.authMethod,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
+}
+
 type CreateRepositoryOptions struct {
 	Organization string
 	ProjectId    string

@@ -22,7 +22,7 @@ func TestListProjects(t *testing.T) {
 	var continutationToken string
 	for {
 		top := int(4)
-		res, err := cli.ListProjects(context.TODO(), ListProjectsOpts{
+		res, err := cli.ListProjects(context.TODO(), ListProjectsOptions{
 			Organization:      os.Getenv("ORG"),
 			StateFilter:       (*ProjectState)(helpers.StringPtr("all")),
 			Top:               &top,
@@ -50,7 +50,7 @@ func TestListProjects(t *testing.T) {
 func TestCreateProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.CreateProject(context.TODO(), CreateProjectOpts{
+	res, err := cli.CreateProject(context.TODO(), CreateProjectOptions{
 		Organization: os.Getenv("ORG"),
 		TeamProject: &TeamProject{
 			Name: os.Getenv("PROJECT_NAME"),
@@ -78,7 +78,7 @@ func TestCreateProject(t *testing.T) {
 func TestGetProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.GetProject(context.TODO(), GetProjectOpts{
+	res, err := cli.GetProject(context.TODO(), GetProjectOptions{
 		Organization: os.Getenv("ORG"),
 		ProjectId:    os.Getenv("PROJECT_ID"),
 	})
@@ -92,7 +92,7 @@ func TestGetProject(t *testing.T) {
 func TestDeleteProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.DeleteProject(context.TODO(), DeleteProjectOpts{
+	res, err := cli.DeleteProject(context.TODO(), DeleteProjectOptions{
 		Organization: os.Getenv("ORG"),
 		ProjectId:    os.Getenv("PROJECT_ID"),
 	})
@@ -110,7 +110,7 @@ func TestDeleteProject(t *testing.T) {
 func TestFindProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.FindProject(context.TODO(), FindProjectsOpts{
+	res, err := cli.FindProject(context.TODO(), FindProjectsOptions{
 		Organization: os.Getenv("ORG"),
 		Name:         os.Getenv("PROJECT_NAME"),
 	})

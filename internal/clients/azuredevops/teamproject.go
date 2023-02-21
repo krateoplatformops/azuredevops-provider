@@ -84,7 +84,7 @@ type TeamProject struct {
 }
 
 // Arguments for the ListProjects function
-type ListProjectsOpts struct {
+type ListProjectsOptions struct {
 	Organization string
 	// (optional) Filter on team projects in a specific team project state (default: WellFormed).
 	StateFilter *ProjectState
@@ -105,7 +105,7 @@ type ListProjectsResponseValue struct {
 
 // Get all projects in the organization that the authenticated user has access to.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.0&tabs=HTTP#teamprojectreference
-func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOpts) (*ListProjectsResponseValue, error) {
+func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOptions) (*ListProjectsResponseValue, error) {
 	params := []string{apiVersionKey, apiVersionVal}
 	if opts.StateFilter != nil {
 		params = append(params, "stateFilter", string(*opts.StateFilter))
@@ -158,14 +158,14 @@ func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOpts) (*List
 	return val, err
 }
 
-type GetProjectOpts struct {
+type GetProjectOptions struct {
 	Organization string
 	ProjectId    string
 }
 
 // Get project with the specified id or name, optionally including capabilities.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get?view=azure-devops-rest-7.0
-func (c *Client) GetProject(ctx context.Context, opts GetProjectOpts) (*TeamProject, error) {
+func (c *Client) GetProject(ctx context.Context, opts GetProjectOptions) (*TeamProject, error) {
 	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
@@ -193,14 +193,14 @@ func (c *Client) GetProject(ctx context.Context, opts GetProjectOpts) (*TeamProj
 	return val, err
 }
 
-type CreateProjectOpts struct {
+type CreateProjectOptions struct {
 	Organization string
 	TeamProject  *TeamProject
 }
 
 // Queues a project to be created. Use the GetOperation to periodically check for create project status.
 // POST https://dev.azure.com/{organization}/_apis/projects?api-version=7.0
-func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOpts) (*OperationReference, error) {
+func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOptions) (*OperationReference, error) {
 	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/projects"),
@@ -227,14 +227,14 @@ func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOpts) (*Op
 	return val, err
 }
 
-type DeleteProjectOpts struct {
+type DeleteProjectOptions struct {
 	Organization string
 	ProjectId    string
 }
 
 // Queues a project to be deleted. Use the GetOperation to periodically check for delete project status.
 // DELETE https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
-func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOpts) (*OperationReference, error) {
+func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOptions) (*OperationReference, error) {
 	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/projects/", opts.ProjectId),
@@ -261,18 +261,18 @@ func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOpts) (*Op
 }
 
 // Arguments for the FindProjects function
-type FindProjectsOpts struct {
+type FindProjectsOptions struct {
 	Organization string
 	Name         string
 }
 
 // FindProject utility method to look for a specific project.
-func (c *Client) FindProject(ctx context.Context, opts FindProjectsOpts) (*TeamProject, error) {
+func (c *Client) FindProject(ctx context.Context, opts FindProjectsOptions) (*TeamProject, error) {
 	var continutationToken string
 	for {
 		top := int(30)
 		//filter := StateWellFormed
-		res, err := c.ListProjects(ctx, ListProjectsOpts{
+		res, err := c.ListProjects(ctx, ListProjectsOptions{
 			Organization: opts.Organization,
 			//StateFilter:       &filter,
 			Top:               &top,

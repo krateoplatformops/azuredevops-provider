@@ -28,3 +28,20 @@ func TestCreateRepository(t *testing.T) {
 
 	fmt.Printf("%v\n", res)
 }
+
+func TestGetRepository(t *testing.T) {
+	cli := createAzureDevopsClient()
+
+	res, err := cli.GetRepository(context.TODO(), GetRepositoryOptions{
+		Organization: os.Getenv("ORG"),
+		ProjectId:    os.Getenv("PROJECT_ID"),
+		RepositoryId: os.Getenv("REPO_NAME"),
+	})
+	if err != nil {
+		if !httplib.IsNotFoundError(err) {
+			t.Fatal(err)
+		}
+	}
+
+	t.Logf("%s (id: %s)\n", *res.Name, *res.Id)
+}

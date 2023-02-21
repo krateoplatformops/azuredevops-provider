@@ -118,7 +118,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			return managed.ExternalObservation{}, nil
 		}
 
-		prj, err := e.azCli.FindProject(ctx, azuredevops.FindProjectsOpts{
+		prj, err := e.azCli.FindProject(ctx, azuredevops.FindProjectsOptions{
 			Organization: cr.Spec.Org,
 			Name:         cr.Spec.Name,
 		})
@@ -147,7 +147,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	if meta.GetExternalName(cr) != "" {
-		prj, err := e.azCli.GetProject(ctx, azuredevops.GetProjectOpts{
+		prj, err := e.azCli.GetProject(ctx, azuredevops.GetProjectOptions{
 			Organization: cr.Spec.Org,
 			ProjectId:    meta.GetExternalName(cr),
 		})
@@ -187,7 +187,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
-	op, err := e.azCli.CreateProject(ctx, azuredevops.CreateProjectOpts{
+	op, err := e.azCli.CreateProject(ctx, azuredevops.CreateProjectOptions{
 		Organization: spec.Org,
 		TeamProject:  teamProjectFromSpec(spec),
 	})
@@ -216,7 +216,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Deleting())
 
-	_, err := e.azCli.DeleteProject(ctx, azuredevops.DeleteProjectOpts{
+	_, err := e.azCli.DeleteProject(ctx, azuredevops.DeleteProjectOptions{
 		Organization: cr.Spec.Org,
 		ProjectId:    cr.Status.Id,
 	})
