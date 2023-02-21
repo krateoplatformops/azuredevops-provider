@@ -139,8 +139,8 @@ spec:
               name:
                 description: 'Name: the name of the project.'
                 type: string
-              org:
-                description: 'Org: the organization name.'
+              organization:
+                description: 'Organization: the organization name.'
                 type: string
               visibility:
                 description: 'Visibility: project visibility: private, public (default:
@@ -149,7 +149,7 @@ spec:
             required:
             - connectorConfig
             - name
-            - org
+            - organization
             type: object
           status:
             description: TeamProjectStatus defines the observed state of a TeamProject

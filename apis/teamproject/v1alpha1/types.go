@@ -44,9 +44,12 @@ type TeamProjectSpec struct {
 	// +immutable
 	ConnectorConfig ConnectorSpec `json:"connectorConfig"`
 
-	// Org: the organization name.
+	// Organization: the organization name.
 	// +immutable
-	Org string `json:"org"`
+	Organization string `json:"organization"`
+
+	// OrganizationRef - A reference to an Organization.
+	// OrganizationRef *rtv1.Reference `json:"organizationRef,omitempty"`
 
 	// Name: the name of the project.
 	// +immutable

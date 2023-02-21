@@ -1,0 +1,18 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: GitRepository
+metadata:
+  name: gitrepository-sample
+spec:
+  organization: kiratech-bancasella
+  name: Test Repo created by Krateo 
+  projectRef:
+    name: teamproject-sample
+  connectorConfig:
+    apiUrl: https://dev.azure.com
+    verbose: false
+    credentials:
+      secretRef:
+        namespace: default
+        name: azuredevops-secret
+        key: token
+  

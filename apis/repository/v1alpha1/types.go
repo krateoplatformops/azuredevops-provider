@@ -25,18 +25,14 @@ type GitRepositorySpec struct {
 	// +immutable
 	ConnectorConfig ConnectorSpec `json:"connectorConfig"`
 
-	// Org: organization name.
-	// +optional
-	Org *string `json:"org,omitempty"`
+	// Organization: the organization name.
+	Organization string `json:"organization"`
 
 	// Project: TeamProject name or ID.
 	Project string `json:"project,omitempty"`
 
-	// PojectIdRef - A reference to a TeamProject to retrieve its id.
-	PojectIdRef *rtv1.Reference `json:"projectIdRef,omitempty"`
-
-	// PojectIdRefSelector - Select a reference to a TeamProject to retrieve its id.
-	PojectIdRefSelector *rtv1.Selector `json:"projectIdSelector,omitempty"`
+	// PojectRef - A reference to a TeamProject.
+	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
 
 	// Name: name of the Git repository.
 	Name string `json:"name,omitempty"`

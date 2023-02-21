@@ -115,19 +115,9 @@ func (in *GitRepositorySpec) DeepCopyInto(out *GitRepositorySpec) {
 	*out = *in
 	out.ManagedSpec = in.ManagedSpec
 	in.ConnectorConfig.DeepCopyInto(&out.ConnectorConfig)
-	if in.Org != nil {
-		in, out := &in.Org, &out.Org
-		*out = new(string)
-		**out = **in
-	}
-	if in.PojectIdRef != nil {
-		in, out := &in.PojectIdRef, &out.PojectIdRef
+	if in.PojectRef != nil {
+		in, out := &in.PojectRef, &out.PojectRef
 		*out = new(v1.Reference)
-		(*in).DeepCopyInto(*out)
-	}
-	if in.PojectIdRefSelector != nil {
-		in, out := &in.PojectIdRefSelector, &out.PojectIdRefSelector
-		*out = new(v1.Selector)
 		(*in).DeepCopyInto(*out)
 	}
 }

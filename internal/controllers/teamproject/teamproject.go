@@ -107,7 +107,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	if getOperationAnnotation(cr) != "" {
 		op, err := e.azCli.GetOperation(ctx, azuredevops.GetOperationOpts{
-			Organization: cr.Spec.Org,
+			Organization: cr.Spec.Organization,
 			OperationId:  getOperationAnnotation(cr),
 		})
 		if err != nil {
@@ -119,7 +119,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		}
 
 		prj, err := e.azCli.FindProject(ctx, azuredevops.FindProjectsOptions{
-			Organization: cr.Spec.Org,
+			Organization: cr.Spec.Organization,
 			Name:         cr.Spec.Name,
 		})
 		if err != nil {
@@ -148,7 +148,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	if meta.GetExternalName(cr) != "" {
 		prj, err := e.azCli.GetProject(ctx, azuredevops.GetProjectOptions{
-			Organization: cr.Spec.Org,
+			Organization: cr.Spec.Organization,
 			ProjectId:    meta.GetExternalName(cr),
 		})
 		if err != nil {
@@ -188,7 +188,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	spec := cr.Spec.DeepCopy()
 
 	op, err := e.azCli.CreateProject(ctx, azuredevops.CreateProjectOptions{
-		Organization: spec.Org,
+		Organization: spec.Organization,
 		TeamProject:  teamProjectFromSpec(spec),
 	})
 	if err != nil {
@@ -198,8 +198,9 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	setOperationAnnotation(cr, op.Id)
 	cr.SetConditions(conditionFromOperationReference(op))
 
-	e.log.Debug("Creating TeamProject", "org", spec.Org, "name", spec.Name, "status", op.Status)
-	e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreating", "TeamProject '%s/%s' creating", spec.Org, spec.Name)
+	e.log.Debug("Creating TeamProject", "org", spec.Organization, "name", spec.Name, "status", op.Status)
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreating",
+		"TeamProject '%s/%s' creating", spec.Organization, spec.Name)
 
 	return nil
 }
@@ -217,7 +218,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	cr.SetConditions(rtv1.Deleting())
 
 	_, err := e.azCli.DeleteProject(ctx, azuredevops.DeleteProjectOptions{
-		Organization: cr.Spec.Org,
+		Organization: cr.Spec.Organization,
 		ProjectId:    cr.Status.Id,
 	})
 	if err != nil {
@@ -225,9 +226,9 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	e.log.Debug("TeamProject deleted",
-		"id", cr.Status.Id, "org", cr.Spec.Org, "name", cr.Spec.Name)
+		"id", cr.Status.Id, "org", cr.Spec.Organization, "name", cr.Spec.Name)
 	e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectDeleted",
-		"TeamProject '%s/%s' deleted", cr.Spec.Org, cr.Spec.Name)
+		"TeamProject '%s/%s' deleted", cr.Spec.Organization, cr.Spec.Name)
 
 	return nil
 }
