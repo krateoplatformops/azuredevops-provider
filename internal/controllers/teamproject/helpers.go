@@ -29,7 +29,7 @@ func teamProjectFromSpec(spec *teamprojectv1alpha1.TeamProjectSpec) *azuredevops
 		Visibility:  visibility,
 	}
 
-	res.Capabilities = azuredevops.Capabilities{}
+	res.Capabilities = &azuredevops.Capabilities{}
 	if spec.Capabilities.Versioncontrol != nil {
 		res.Capabilities.Versioncontrol = &azuredevops.Versioncontrol{
 			SourceControlType: spec.Capabilities.Versioncontrol.SourceControlType,

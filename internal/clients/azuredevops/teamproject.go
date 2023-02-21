@@ -74,7 +74,7 @@ type TeamProject struct {
 	Visibility ProjectVisibility `json:"visibility,omitempty"`
 
 	// Set of capabilities this project has (such as process template & version control).
-	Capabilities Capabilities `json:"capabilities,omitempty"`
+	Capabilities *Capabilities `json:"capabilities,omitempty"`
 
 	// Project revision.
 	Revision *uint64 `json:"revision,omitempty"`

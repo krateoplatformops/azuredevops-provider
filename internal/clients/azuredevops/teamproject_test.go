@@ -36,6 +36,10 @@ func TestListProjects(t *testing.T) {
 			break
 		}
 
+		for _, el := range res.Value {
+			t.Logf("%s (id: %s)", el.Name, *el.Id)
+		}
+
 		continutationToken = *res.ContinuationToken
 		if continutationToken == "" {
 			break
@@ -51,7 +55,7 @@ func TestCreateProject(t *testing.T) {
 		TeamProject: &TeamProject{
 			Name: os.Getenv("PROJECT_NAME"),
 			//Description: helpers.StringPtr("Sorry for the Spam but I need to let the continuation token appear..."),
-			Capabilities: Capabilities{
+			Capabilities: &Capabilities{
 				&Versioncontrol{
 					SourceControlType: "Git",
 				},
