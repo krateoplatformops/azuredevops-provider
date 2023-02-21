@@ -5,25 +5,25 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
   creationTimestamp: null
-  name: teamprojects.azuredevops.krateo.io
+  name: gitrepositories.azuredevops.krateo.io
 spec:
   group: azuredevops.krateo.io
   names:
     categories:
     - krateo
     - azuredevops
-    kind: TeamProject
-    listKind: TeamProjectList
-    plural: teamprojects
-    singular: teamproject
+    kind: GitRepository
+    listKind: GitRepositoryList
+    plural: gitrepositories
+    singular: gitrepository
   scope: Cluster
   versions:
   - additionalPrinterColumns:
     - jsonPath: .status.id
       name: ID
       type: string
-    - jsonPath: .status.state
-      name: STATE
+    - jsonPath: .status.url
+      name: URL
       type: string
     - jsonPath: .status.conditions[?(@.type=='Ready')].status
       name: READY
@@ -34,7 +34,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: TeamProject is the Schema for the teamprojects API
+        description: GitRepository is the Schema for the gitrepository API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -49,34 +49,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: TeamProjectSpec defines the desired state of TeamProject
             properties:
-              capabilities:
-                description: 'Capabilities: set of capabilities this project has (such
-                  as process template & version control).'
-                properties:
-                  processTemplate:
-                    description: ProcessTemplate define reusable content in Azure
-                      Devops.
-                    properties:
-                      templateTypeId:
-                        description: 'TemplateTypeId: id of the desired template'
-                        type: string
-                    required:
-                    - templateTypeId
-                    type: object
-                  versioncontrol:
-                    properties:
-                      sourceControlType:
-                        description: 'SourceControlType:'
-                        type: string
-                    required:
-                    - sourceControlType
-                    type: object
-                required:
-                - processTemplate
-                - versioncontrol
-                type: object
               connectorConfig:
                 description: 'ConnectorConfig: configuration spec for the REST API
                   client.'
@@ -133,26 +106,95 @@ spec:
                 - Orphan
                 - Delete
                 type: string
-              description:
-                description: 'Description: the project''s description (if any).'
-                type: string
               name:
-                description: 'Name: the name of the project.'
+                description: 'Name: name of the Git repository.'
                 type: string
               org:
-                description: 'Org: the organization name.'
+                description: 'Org: organization name.'
                 type: string
-              visibility:
-                description: 'Visibility: project visibility: private, public (default:
-                  private).'
+              project:
+                description: 'Project: TeamProject name or ID.'
                 type: string
+              projectIdRef:
+                description: PojectIdRef - A reference to a TeamProject to retrieve
+                  its id.
+                properties:
+                  name:
+                    description: Name of the referenced object.
+                    type: string
+                  policy:
+                    description: Policies for referencing.
+                    properties:
+                      resolution:
+                        default: Required
+                        description: Resolution specifies whether resolution of this
+                          reference is required. The default is 'Required', which
+                          means the reconcile will fail if the reference cannot be
+                          resolved. 'Optional' means this reference will be a no-op
+                          if it cannot be resolved.
+                        enum:
+                        - Required
+                        - Optional
+                        type: string
+                      resolve:
+                        description: Resolve specifies when this reference should
+                          be resolved. The default is 'IfNotPresent', which will attempt
+                          to resolve the reference only when the corresponding field
+                          is not present. Use 'Always' to resolve the reference on
+                          every reconcile.
+                        enum:
+                        - Always
+                        - IfNotPresent
+                        type: string
+                    type: object
+                required:
+                - name
+                type: object
+              projectIdSelector:
+                description: PojectIdRefSelector - Select a reference to a TeamProject
+                  to retrieve its id.
+                properties:
+                  matchControllerRef:
+                    description: MatchControllerRef ensures an object with the same
+                      controller reference as the selecting object is selected.
+                    type: boolean
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: MatchLabels ensures an object with matching labels
+                      is selected.
+                    type: object
+                  policy:
+                    description: Policies for selection.
+                    properties:
+                      resolution:
+                        default: Required
+                        description: Resolution specifies whether resolution of this
+                          reference is required. The default is 'Required', which
+                          means the reconcile will fail if the reference cannot be
+                          resolved. 'Optional' means this reference will be a no-op
+                          if it cannot be resolved.
+                        enum:
+                        - Required
+                        - Optional
+                        type: string
+                      resolve:
+                        description: Resolve specifies when this reference should
+                          be resolved. The default is 'IfNotPresent', which will attempt
+                          to resolve the reference only when the corresponding field
+                          is not present. Use 'Always' to resolve the reference on
+                          every reconcile.
+                        enum:
+                        - Always
+                        - IfNotPresent
+                        type: string
+                    type: object
+                type: object
             required:
             - connectorConfig
-            - name
-            - org
             type: object
           status:
-            description: TeamProjectStatus defines the observed state of a TeamProject
+            description: GitRepositoryStatus defines the observed state of Repository
             properties:
               conditions:
                 description: Conditions of the resource.
@@ -187,15 +229,15 @@ spec:
                   - type
                   type: object
                 type: array
-              id:
-                description: 'Id: project identifier.'
+              defaultBranch:
                 type: string
-              revision:
-                description: Project revision.
-                format: int64
-                type: integer
-              state:
-                description: 'State: the current state of the project..'
+              id:
+                type: string
+              remoteUrl:
+                type: string
+              sshUrl:
+                type: string
+              url:
                 type: string
             type: object
         type: object

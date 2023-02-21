@@ -65,16 +65,7 @@ type TeamProjectSpec struct {
 	Capabilities Capabilities `json:"capabilities,omitempty"`
 }
 
-// Reference for an async operation.
-type OperationReference struct {
-	// Unique identifier for the operation.
-	Id string `json:"id,omitempty"`
-
-	// The current status of the operation.
-	Status string `json:"status,omitempty"`
-}
-
-// TeamProjectStatus defines the observed state of Repo
+// TeamProjectStatus defines the observed state of a TeamProject
 type TeamProjectStatus struct {
 	rtv1.ManagedStatus `json:",inline"`
 
