@@ -21,8 +21,8 @@ type GitRepository struct {
 
 type GetRepositoryOptions struct {
 	Organization string
-	ProjectId    string
-	RepositoryId string
+	Project      string
+	Repository   string
 }
 
 // GetRepository retrieve a git repository.
@@ -30,7 +30,7 @@ type GetRepositoryOptions struct {
 func (c *Client) GetRepository(ctx context.Context, opts GetRepositoryOptions) (*GitRepository, error) {
 	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
-		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories", opts.RepositoryId),
+		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories", opts.Repository),
 		Params:  []string{apiVersionKey, apiVersionVal},
 	})
 
@@ -93,4 +93,58 @@ func (c *Client) CreateRepository(ctx context.Context, opts CreateRepositoryOpti
 		},
 	})
 	return val, err
+}
+
+type DeleteRepositoryOptions struct {
+	Organization string
+	Project      string
+	RepositoryId string
+}
+
+// Delete a git repository.
+// DELETE https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
+func (c *Client) DeleteRepository(ctx context.Context, opts DeleteRepositoryOptions) error {
+	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories/", opts.RepositoryId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	})
+
+	req, err := httplib.NewDeleteRequest(ub)
+	if err != nil {
+		return err
+	}
+	req = req.WithContext(ctx)
+
+	return httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		AuthMethod: c.authMethod,
+		Verbose:    c.verbose,
+		Validators: []httplib.HandleResponseFunc{
+			httplib.CheckStatus(http.StatusOK, http.StatusNoContent),
+		},
+	})
+}
+
+// Destroy (hard delete) a soft-deleted Git repository.
+// DELETE https://dev.azure.com/{organization}/{project}/_apis/git/recycleBin/repositories/{repositoryId}?api-version=7.0
+func (c *Client) DeleteRepositoryFromRecycleBin(ctx context.Context, opts DeleteRepositoryOptions) error {
+	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/recycleBin/repositories", opts.RepositoryId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	})
+
+	req, err := httplib.NewDeleteRequest(ub)
+	if err != nil {
+		return err
+	}
+	req = req.WithContext(ctx)
+
+	return httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		AuthMethod: c.authMethod,
+		Verbose:    c.verbose,
+		Validators: []httplib.HandleResponseFunc{
+			httplib.CheckStatus(http.StatusOK, http.StatusNoContent),
+		},
+	})
 }
