@@ -27,7 +27,7 @@ func TestCreateRepository(t *testing.T) {
 		}
 	}
 
-	fmt.Printf("%v\n", res)
+	fmt.Printf("%s\n", helpers.String(res.Id))
 }
 
 func TestGetRepository(t *testing.T) {

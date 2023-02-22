@@ -94,7 +94,7 @@ func TestDeleteProject(t *testing.T) {
 
 	res, err := cli.DeleteProject(context.TODO(), DeleteProjectOptions{
 		Organization: os.Getenv("ORG"),
-		ProjectId:    os.Getenv("PROJECT_ID"),
+		ProjectId:    "de69b1ba-ce86-4275-8d2c-653e4b354a7b", //os.Getenv("PROJECT_ID"),
 	})
 	if err != nil {
 		if !httplib.HasStatusErr(err, http.StatusNotFound) {
