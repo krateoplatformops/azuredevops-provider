@@ -25,7 +25,7 @@ const (
 	BuildRepositoryUnknown                 BuildRepositoryType = "unknown"
 	BuildRepositoryGitHub                  BuildRepositoryType = "gitHub"
 	BuildRepositoryAzureReposGit           BuildRepositoryType = "azureReposGit"
-	BuildRepositoryAzureReposGitHyphenated BuildRepositoryType = "azureReposGit"
+	BuildRepositoryAzureReposGitHyphenated BuildRepositoryType = "azureReposGitHyphenated"
 )
 
 type BuildRepository struct {

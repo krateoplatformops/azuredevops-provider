@@ -46,6 +46,13 @@ type PipelineSpec struct {
 	// PojectRef - A reference to a TeamProject.
 	// +optional
 	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
+
+	// RepositoryRef: reference to the repository.
+	RepositoryRef *Selector `json:"repositoryRef,omitempty"`
+
+	// RepositoryType: Type of repository (default: azureReposGit).
+	// +optional
+	RepositoryType *string `json:"repositoryType,omitempty"`
 }
 
 type PipelineStatus struct {

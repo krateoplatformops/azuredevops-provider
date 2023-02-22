@@ -8,6 +8,7 @@ spec:
   folder: Test Folder
   configurationType: yaml
   definitionPath: /azure-pipelines.yml
+  repositoryType: azureReposGit
   repositoryRef:
     name: gitrepository-sample
   projectRef:

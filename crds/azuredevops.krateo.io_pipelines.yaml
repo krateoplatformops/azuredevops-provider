@@ -128,6 +128,23 @@ spec:
                 required:
                 - name
                 type: object
+              repositoryRef:
+                description: 'RepositoryRef: reference to the repository.'
+                properties:
+                  name:
+                    description: Name is the name of a connector config.
+                    type: string
+                  namespace:
+                    description: Namespace is the namespace where the connector config
+                      belongs.
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
+              repositoryType:
+                description: 'RepositoryType: Type of repository (default: azureReposGit).'
+                type: string
             required:
             - name
             - organization
