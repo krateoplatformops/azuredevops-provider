@@ -1,0 +1,19 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: pipeline-sample
+spec:
+  organization: kiratech-bancasella
+  name: Krateo Provider Pipeline
+  folder: Test Folder
+  config:
+    type: yaml
+    path: /azure-pipelines.yml
+    repositoryRef:
+      name: gitrepository-sample
+      type: azureReposGit
+  projectRef:
+    name: teamproject-sample
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample
