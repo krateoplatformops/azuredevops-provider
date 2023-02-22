@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -49,7 +50,7 @@ type PipelineConfiguration struct {
 // Pipeline define a pipeline.
 type Pipeline struct {
 	// Pipeline ID
-	Id *int `json:"id,omitempty"`
+	Id *int32 `json:"id,omitempty"`
 	// Pipeline folder
 	Folder string `json:"folder,omitempty"`
 	// Pipeline name
@@ -96,4 +97,49 @@ func (c *Client) CreatePipeline(ctx context.Context, opts CreatePipelineOptions)
 		},
 	})
 	return val, err
+}
+
+type GetPipelineOptions struct {
+	// (required) The name of the Azure DevOps organization.
+	Organization string
+	// (required) Project ID or project name
+	Project string
+	// (required) The pipeline ID
+	PipelineId string
+	// (optional) The pipeline version
+	PipelineVersion *string
+}
+
+// GetPipeline gets a pipeline, optionally at the specified version
+// GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}?api-version=7.0
+func (c *Client) GetPipeline(ctx context.Context, opts GetPipelineOptions) (*Pipeline, error) {
+	ubo := httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", opts.PipelineId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	}
+	if opts.PipelineVersion != nil {
+		ubo.Params = append(ubo.Params, "pipelineVersion", helpers.String(opts.PipelineVersion))
+	}
+
+	req, err := httplib.NewGetRequest(httplib.NewURLBuilder(ubo))
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	apiErr := &APIError{}
+	val := &Pipeline{}
+
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		Verbose:         c.verbose,
+		AuthMethod:      c.authMethod,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
+
 }

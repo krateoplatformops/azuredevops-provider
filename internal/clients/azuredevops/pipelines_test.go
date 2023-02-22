@@ -10,7 +10,26 @@ import (
 	"testing"
 
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
+	"github.com/lucasepe/httplib"
 )
+
+func TestGetPipeline(t *testing.T) {
+	cli := createAzureDevopsClient()
+
+	res, err := cli.GetPipeline(context.TODO(), GetPipelineOptions{
+		Organization: os.Getenv("ORG"),
+		Project:      os.Getenv("PROJECT_ID"),
+		PipelineId:   os.Getenv("PIPELINE_ID"),
+	})
+	if err != nil {
+		if httplib.IsNotFoundError(err) {
+			return
+		}
+		t.Fatal(err)
+	}
+
+	t.Logf("%s (id: %d)\n", res.Name, *res.Id)
+}
 
 func TestCreatePipeline(t *testing.T) {
 	cli := createAzureDevopsClient()
