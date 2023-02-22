@@ -141,5 +141,4 @@ func (c *Client) GetPipeline(ctx context.Context, opts GetPipelineOptions) (*Pip
 	})
 
 	return val, err
-
 }
