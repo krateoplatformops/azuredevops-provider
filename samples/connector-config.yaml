@@ -1,0 +1,12 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: ConnectorConfig
+metadata:
+  name: connectorconfig-sample
+spec:
+  apiUrl: https://dev.azure.com
+  credentials:
+    secretRef:
+      namespace: default
+      name: azuredevops-secret
+      key: token
+  

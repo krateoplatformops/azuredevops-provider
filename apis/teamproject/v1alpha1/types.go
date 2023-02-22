@@ -5,17 +5,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ConnectorSpec struct {
-	// ApiUrl: the baseUrl for the REST API provider.
-	// +immutable
-	ApiUrl string `json:"apiUrl,omitempty"`
-
-	// Credentials required to authenticate ReST API server.
-	Credentials *rtv1.CredentialSelectors `json:"credentials"`
-
-	// Verbose is true dumps your client requests and responses.
-	// +optional
-	Verbose *bool `json:"verbose,omitempty"`
+// ConnectorConfigSelectors selects a ConnectorConfig variable.
+type ConnectorConfigSelector struct {
+	// Name is the name of a connector config.
+	Name string `json:"name"`
+	// Namespace is the namespace where the connector config belongs.
+	Namespace string `json:"namespace"`
 }
 
 type Versioncontrol struct {
@@ -40,9 +35,9 @@ type Capabilities struct {
 type TeamProjectSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
 
-	// ConnectorConfig: configuration spec for the REST API client.
+	// ConnectorConfigRef: configuration spec for the REST API client.
 	// +immutable
-	ConnectorConfig ConnectorSpec `json:"connectorConfig"`
+	ConnectorConfigRef *ConnectorConfigSelector `json:"connectorConfig,omitempty"`
 
 	// Organization: the organization name.
 	// +immutable

@@ -51,51 +51,19 @@ spec:
           spec:
             properties:
               connectorConfig:
-                description: 'ConnectorConfig: configuration spec for the REST API
-                  client.'
+                description: 'ConnectorConfigRef: configuration spec for the REST
+                  API client.'
                 properties:
-                  apiUrl:
-                    description: 'ApiUrl: the baseUrl for the REST API provider.'
+                  name:
+                    description: Name is the name of a connector config.
                     type: string
-                  credentials:
-                    description: Credentials required to authenticate ReST API server.
-                    properties:
-                      env:
-                        description: Env is a reference to an environment variable
-                          that contains credentials that must be used to connect to
-                          the provider.
-                        properties:
-                          name:
-                            description: Name is the name of an environment variable.
-                            type: string
-                        required:
-                        - name
-                        type: object
-                      secretRef:
-                        description: A SecretRef is a reference to a secret key that
-                          contains the credentials that must be used to connect to
-                          the provider.
-                        properties:
-                          key:
-                            description: The key to select.
-                            type: string
-                          name:
-                            description: Name of the secret.
-                            type: string
-                          namespace:
-                            description: Namespace of the secret.
-                            type: string
-                        required:
-                        - key
-                        - name
-                        - namespace
-                        type: object
-                    type: object
-                  verbose:
-                    description: Verbose is true dumps your client requests and responses.
-                    type: boolean
+                  namespace:
+                    description: Namespace is the namespace where the connector config
+                      belongs.
+                    type: string
                 required:
-                - credentials
+                - name
+                - namespace
                 type: object
               deletionPolicy:
                 default: Delete
@@ -150,7 +118,6 @@ spec:
                 - name
                 type: object
             required:
-            - connectorConfig
             - organization
             type: object
           status:

@@ -2,13 +2,16 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/lucasepe/httplib"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -23,11 +26,13 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
+	connectorconfigv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfig/v1alpha1"
 	repositoryv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/repository/v1alpha1"
 )
 
 const (
-	errNotGitRepository = "managed resource is not a GitRepository custom resource"
+	errNotGitRepository           = "managed resource is not a GitRepository custom resource"
+	annotationKeyConnectorVerbose = "krateo.io/connector-verbose"
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
@@ -68,28 +73,57 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.New(errNotGitRepository)
 	}
 
-	cfg := cr.Spec.ConnectorConfig
+	opts, err := c.clientOptions(ctx, cr.Spec.ConnectorConfigRef)
+	if err == nil {
+		return nil, err
+	}
 
-	csr := cfg.Credentials.SecretRef
+	if strings.EqualFold(cr.GetAnnotations()[annotationKeyConnectorVerbose], "true") {
+		opts.Verbose = true
+	}
+
+	return &external{
+		kube:  c.kube,
+		log:   c.log,
+		azCli: azuredevops.NewClient(opts),
+		rec:   c.recorder,
+	}, nil
+}
+
+func (c *connector) clientOptions(ctx context.Context, ref *repositoryv1alpha1.ConnectorConfigSelector) (azuredevops.ClientOptions, error) {
+	opts := azuredevops.ClientOptions{}
+
+	if ref == nil {
+		return opts, errors.New("no ConnectorConfig referenced")
+	}
+
+	cfg := connectorconfigv1alpha1.ConnectorConfig{}
+	err := c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &cfg)
+	if err != nil {
+		return opts, errors.Wrapf(err, "cannot get %s connector config", ref.Name)
+	}
+
+	csr := cfg.Spec.Credentials.SecretRef
 	if csr == nil {
-		return nil, fmt.Errorf("no credentials secret referenced")
+		return opts, fmt.Errorf("no credentials secret referenced")
+	}
+
+	sec := corev1.Secret{}
+	err = c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &sec)
+	if err != nil {
+		return opts, errors.Wrapf(err, "cannot get %s secret", ref.Name)
 	}
 
 	token, err := resource.GetSecret(ctx, c.kube, csr.DeepCopy())
 	if err != nil {
-		return nil, err
+		return opts, err
 	}
 
-	return &external{
-		kube: c.kube,
-		log:  c.log,
-		azCli: azuredevops.NewClient(azuredevops.ClientOptions{
-			BaseURL: cfg.ApiUrl,
-			Verbose: helpers.IsBoolPtrEqualToBool(cfg.Verbose, true),
-			Token:   token,
-		}),
-		rec: c.recorder,
-	}, nil
+	opts.BaseURL = cfg.Spec.ApiUrl
+	opts.Token = token
+	opts.Verbose = false
+
+	return opts, nil
 }
 
 type external struct {
@@ -130,6 +164,9 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	}
 
 	meta.SetExternalName(cr, helpers.String(res.Id))
+	if err := e.kube.Update(ctx, cr); err != nil {
+		return managed.ExternalObservation{}, err
+	}
 
 	cr.Status.Id = helpers.String(res.Id)
 	cr.Status.DefaultBranch = helpers.String(res.DefaultBranch)
@@ -142,7 +179,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	return managed.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: true,
-	}, e.kube.Update(ctx, cr)
+	}, nil
 
 }
 
@@ -163,11 +200,14 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return err
 	}
 
-	if res != nil {
-		e.log.Debug("GitRepository created", "id", helpers.String(res.Id), "url", helpers.String(res.Url))
-		e.rec.Eventf(cr, corev1.EventTypeNormal, "GitRepositoryCreated",
-			"GitRepository '%s' created", helpers.String(res.Url))
+	meta.SetExternalName(cr, helpers.String(res.Id))
+	if err := e.kube.Update(ctx, cr); err != nil {
+		return err
 	}
+
+	e.log.Debug("GitRepository created", "id", helpers.String(res.Id), "url", helpers.String(res.Url))
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "GitRepositoryCreated",
+		"GitRepository '%s' created", helpers.String(res.Url))
 
 	return nil
 }

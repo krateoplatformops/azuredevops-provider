@@ -3,7 +3,7 @@ package teamproject
 import (
 	"context"
 	"errors"
-	"fmt"
+	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
@@ -27,7 +27,8 @@ import (
 )
 
 const (
-	errNotTeamProject = "managed resource is not a TeamProject custom resource"
+	errNotTeamProject             = "managed resource is not a TeamProject custom resource"
+	annotationKeyConnectorVerbose = "krateo.io/connector-verbose"
 )
 
 // Setup adds a controller that reconciles Token managed resources.
@@ -68,27 +69,20 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.New(errNotTeamProject)
 	}
 
-	cfg := cr.Spec.ConnectorConfig
-
-	csr := cfg.Credentials.SecretRef
-	if csr == nil {
-		return nil, fmt.Errorf("no credentials secret referenced")
-	}
-
-	token, err := resource.GetSecret(ctx, c.kube, csr.DeepCopy())
-	if err != nil {
+	opts, err := c.clientOptions(ctx, cr.Spec.ConnectorConfigRef)
+	if err == nil {
 		return nil, err
 	}
 
+	if strings.EqualFold(cr.GetAnnotations()[annotationKeyConnectorVerbose], "true") {
+		opts.Verbose = true
+	}
+
 	return &external{
-		kube: c.kube,
-		log:  c.log,
-		azCli: azuredevops.NewClient(azuredevops.ClientOptions{
-			BaseURL: cfg.ApiUrl,
-			Verbose: helpers.IsBoolPtrEqualToBool(cfg.Verbose, true),
-			Token:   token,
-		}),
-		rec: c.recorder,
+		kube:  c.kube,
+		log:   c.log,
+		azCli: azuredevops.NewClient(opts),
+		rec:   c.recorder,
 	}, nil
 }
 
