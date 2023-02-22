@@ -170,7 +170,6 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	cr.Status.Id = helpers.String(res.Id)
 	cr.Status.DefaultBranch = helpers.String(res.DefaultBranch)
-	cr.Status.RemoteUrl = helpers.String(res.RemoteUrl)
 	cr.Status.SshUrl = helpers.String(res.SshUrl)
 	cr.Status.Url = helpers.String(res.Url)
 

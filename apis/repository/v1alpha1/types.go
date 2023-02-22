@@ -39,7 +39,6 @@ type GitRepositoryStatus struct {
 
 	Id            string `json:"id,omitempty"`
 	DefaultBranch string `json:"defaultBranch,omitempty"`
-	RemoteUrl     string `json:"remoteUrl,omitempty"`
 	SshUrl        string `json:"sshUrl,omitempty"`
 	Url           string `json:"url,omitempty"`
 }

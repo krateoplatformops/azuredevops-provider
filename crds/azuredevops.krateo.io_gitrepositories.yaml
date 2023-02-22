@@ -162,8 +162,6 @@ spec:
                 type: string
               id:
                 type: string
-              remoteUrl:
-                type: string
               sshUrl:
                 type: string
               url:
