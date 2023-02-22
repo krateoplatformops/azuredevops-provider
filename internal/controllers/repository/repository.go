@@ -26,8 +26,8 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
-	connectorconfigv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfig/v1alpha1"
-	repositoryv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/repository/v1alpha1"
+	connectorconfigs "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
+	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 )
 
 const (
@@ -36,14 +36,14 @@ const (
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := managed.ControllerName(repositoryv1alpha1.GitRepositoryGroupKind)
+	name := managed.ControllerName(repositories.GitRepositoryGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := managed.NewReconciler(mgr,
-		resource.ManagedKind(repositoryv1alpha1.GitRepositoryGroupVersionKind),
+		resource.ManagedKind(repositories.GitRepositoryGroupVersionKind),
 		managed.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -57,7 +57,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&repositoryv1alpha1.GitRepository{}).
+		For(&repositories.GitRepository{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -68,7 +68,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	cr, ok := mg.(*repositoryv1alpha1.GitRepository)
+	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
 		return nil, errors.New(errNotGitRepository)
 	}
@@ -90,14 +90,14 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	}, nil
 }
 
-func (c *connector) clientOptions(ctx context.Context, ref *repositoryv1alpha1.ConnectorConfigSelector) (azuredevops.ClientOptions, error) {
+func (c *connector) clientOptions(ctx context.Context, ref *repositories.ConnectorConfigSelector) (azuredevops.ClientOptions, error) {
 	opts := azuredevops.ClientOptions{}
 
 	if ref == nil {
 		return opts, errors.New("no ConnectorConfig referenced")
 	}
 
-	cfg := connectorconfigv1alpha1.ConnectorConfig{}
+	cfg := connectorconfigs.ConnectorConfig{}
 	err := c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &cfg)
 	if err != nil {
 		return opts, errors.Wrapf(err, "cannot get %s connector config", ref.Name)
@@ -134,7 +134,7 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mg.(*repositoryv1alpha1.GitRepository)
+	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errNotGitRepository)
 	}
@@ -183,7 +183,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*repositoryv1alpha1.GitRepository)
+	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
 		return errors.New(errNotGitRepository)
 	}
@@ -216,7 +216,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*repositoryv1alpha1.GitRepository)
+	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
 		return errors.New(errNotGitRepository)
 	}

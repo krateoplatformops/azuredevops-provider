@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	connectorconfigv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfig/v1alpha1"
-	teamprojectv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
+	connectorconfigs "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
+	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
@@ -24,14 +24,14 @@ const (
 	annotationKeyOperation = "krateo.io/opid"
 )
 
-func (c *connector) clientOptions(ctx context.Context, ref *teamprojectv1alpha1.ConnectorConfigSelector) (azuredevops.ClientOptions, error) {
+func (c *connector) clientOptions(ctx context.Context, ref *projects.ConnectorConfigSelector) (azuredevops.ClientOptions, error) {
 	opts := azuredevops.ClientOptions{}
 
 	if ref == nil {
 		return opts, errors.New("no ConnectorConfig referenced")
 	}
 
-	cfg := connectorconfigv1alpha1.ConnectorConfig{}
+	cfg := connectorconfigs.ConnectorConfig{}
 	err := c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &cfg)
 	if err != nil {
 		return opts, errors.Wrapf(err, "cannot get %s connector config", ref.Name)
@@ -60,7 +60,7 @@ func (c *connector) clientOptions(ctx context.Context, ref *teamprojectv1alpha1.
 	return opts, nil
 }
 
-func teamProjectFromSpec(spec *teamprojectv1alpha1.TeamProjectSpec) *azuredevops.TeamProject {
+func teamProjectFromSpec(spec *projects.TeamProjectSpec) *azuredevops.TeamProject {
 	visibility := azuredevops.VisibilityPrivate
 	if spec.Visibility != nil {
 		visibility = azuredevops.ProjectVisibility(helpers.String(spec.Visibility))

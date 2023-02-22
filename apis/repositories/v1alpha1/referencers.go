@@ -3,7 +3,7 @@ package v1alpha1
 import (
 	"context"
 
-	"github.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
+	"github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	"github.com/krateoplatformops/provider-runtime/pkg/reference"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"

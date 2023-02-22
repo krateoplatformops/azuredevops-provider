@@ -6,12 +6,10 @@ spec:
   organization: kiratech-bancasella
   name: Krateo Provider Pipeline
   folder: Test Folder
-  config:
-    type: yaml
-    path: /azure-pipelines.yml
-    repositoryRef:
-      name: gitrepository-sample
-      type: azureReposGit
+  configurationType: yaml
+  definitionPath: /azure-pipelines.yml
+  repositoryRef:
+    name: gitrepository-sample
   projectRef:
     name: teamproject-sample
   connectorConfigRef:

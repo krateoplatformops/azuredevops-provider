@@ -23,7 +23,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
-	teamprojectv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/teamproject/v1alpha1"
+	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 )
 
 const (
@@ -33,14 +33,14 @@ const (
 
 // Setup adds a controller that reconciles Token managed resources.
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := managed.ControllerName(teamprojectv1alpha1.TeamProjectGroupKind)
+	name := managed.ControllerName(projects.TeamProjectGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := managed.NewReconciler(mgr,
-		resource.ManagedKind(teamprojectv1alpha1.TeamProjectGroupVersionKind),
+		resource.ManagedKind(projects.TeamProjectGroupVersionKind),
 		managed.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -53,7 +53,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&teamprojectv1alpha1.TeamProject{}).
+		For(&projects.TeamProject{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -64,7 +64,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
-	cr, ok := mg.(*teamprojectv1alpha1.TeamProject)
+	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
 		return nil, errors.New(errNotTeamProject)
 	}
@@ -94,7 +94,7 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
-	cr, ok := mg.(*teamprojectv1alpha1.TeamProject)
+	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
 		return managed.ExternalObservation{}, errors.New(errNotTeamProject)
 	}
@@ -168,7 +168,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*teamprojectv1alpha1.TeamProject)
+	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
 		return errors.New(errNotTeamProject)
 	}
@@ -204,7 +204,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*teamprojectv1alpha1.TeamProject)
+	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
 		return errors.New(errNotTeamProject)
 	}

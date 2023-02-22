@@ -43,9 +43,6 @@ type TeamProjectSpec struct {
 	// +immutable
 	Organization string `json:"organization"`
 
-	// OrganizationRef - A reference to an Organization.
-	// OrganizationRef *rtv1.Reference `json:"organizationRef,omitempty"`
-
 	// Name: the name of the project.
 	// +immutable
 	Name string `json:"name"`
