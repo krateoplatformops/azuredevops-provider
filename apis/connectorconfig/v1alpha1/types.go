@@ -12,10 +12,6 @@ type ConnectorConfigSpec struct {
 
 	// Credentials required to authenticate ReST API server.
 	Credentials *rtv1.CredentialSelectors `json:"credentials"`
-
-	// Verbose is true dumps your client requests and responses.
-	// +optional
-	//Verbose *bool `json:"verbose,omitempty"`
 }
 
 //+kubebuilder:object:root=true

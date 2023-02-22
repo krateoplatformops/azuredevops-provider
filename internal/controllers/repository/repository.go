@@ -74,7 +74,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	}
 
 	opts, err := c.clientOptions(ctx, cr.Spec.ConnectorConfigRef)
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (c *connector) clientOptions(ctx context.Context, ref *repositoryv1alpha1.C
 	}
 
 	sec := corev1.Secret{}
-	err = c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &sec)
+	err = c.kube.Get(ctx, types.NamespacedName{Namespace: csr.Namespace, Name: csr.Name}, &sec)
 	if err != nil {
 		return opts, errors.Wrapf(err, "cannot get %s secret", ref.Name)
 	}

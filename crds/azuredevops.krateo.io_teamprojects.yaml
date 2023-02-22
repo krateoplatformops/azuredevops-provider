@@ -30,6 +30,7 @@ spec:
       type: string
     - jsonPath: .status.conditions[?(@.type=='Synced')].status
       name: SYNCED
+      priority: 10
       type: string
     name: v1alpha1
     schema:
@@ -77,7 +78,7 @@ spec:
                 - processTemplate
                 - versioncontrol
                 type: object
-              connectorConfig:
+              connectorConfigRef:
                 description: 'ConnectorConfigRef: configuration spec for the REST
                   API client.'
                 properties:

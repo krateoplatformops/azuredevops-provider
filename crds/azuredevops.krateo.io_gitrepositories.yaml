@@ -21,15 +21,17 @@ spec:
   - additionalPrinterColumns:
     - jsonPath: .status.id
       name: ID
+      priority: 10
       type: string
-    - jsonPath: .status.url
-      name: URL
+    - jsonPath: .status.sshUrl
+      name: SSH_URL
       type: string
     - jsonPath: .status.conditions[?(@.type=='Ready')].status
       name: READY
       type: string
     - jsonPath: .status.conditions[?(@.type=='Synced')].status
       name: SYNCED
+      priority: 10
       type: string
     name: v1alpha1
     schema:
@@ -50,7 +52,7 @@ spec:
             type: object
           spec:
             properties:
-              connectorConfig:
+              connectorConfigRef:
                 description: 'ConnectorConfigRef: configuration spec for the REST
                   API client.'
                 properties:

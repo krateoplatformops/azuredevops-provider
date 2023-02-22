@@ -43,7 +43,7 @@ func (c *connector) clientOptions(ctx context.Context, ref *teamprojectv1alpha1.
 	}
 
 	sec := corev1.Secret{}
-	err = c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &sec)
+	err = c.kube.Get(ctx, types.NamespacedName{Namespace: csr.Namespace, Name: csr.Name}, &sec)
 	if err != nil {
 		return opts, errors.Wrapf(err, "cannot get %s secret", ref.Name)
 	}

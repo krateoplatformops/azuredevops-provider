@@ -18,7 +18,7 @@ type GitRepositorySpec struct {
 
 	// ConnectorConfigRef: configuration spec for the REST API client.
 	// +immutable
-	ConnectorConfigRef *ConnectorConfigSelector `json:"connectorConfig,omitempty"`
+	ConnectorConfigRef *ConnectorConfigSelector `json:"connectorConfigRef,omitempty"`
 
 	// Organization: the organization name.
 	Organization string `json:"organization"`
@@ -47,10 +47,10 @@ type GitRepositoryStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster,categories={krateo,azuredevops}
-//+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id"
-//+kubebuilder:printcolumn:name="URL",type="string",JSONPath=".status.url"
+//+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id",priority=10
+//+kubebuilder:printcolumn:name="SSH_URL",type="string",JSONPath=".status.sshUrl"
 //+kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
-//+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
+//+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status",priority=10
 
 // GitRepository is the Schema for the gitrepository API
 type GitRepository struct {

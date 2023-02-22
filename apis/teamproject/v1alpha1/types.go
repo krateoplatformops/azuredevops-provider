@@ -37,7 +37,7 @@ type TeamProjectSpec struct {
 
 	// ConnectorConfigRef: configuration spec for the REST API client.
 	// +immutable
-	ConnectorConfigRef *ConnectorConfigSelector `json:"connectorConfig,omitempty"`
+	ConnectorConfigRef *ConnectorConfigSelector `json:"connectorConfigRef,omitempty"`
 
 	// Organization: the organization name.
 	// +immutable
@@ -85,7 +85,7 @@ type TeamProjectStatus struct {
 //+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id"
 //+kubebuilder:printcolumn:name="STATE",type="string",JSONPath=".status.state"
 //+kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
-//+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
+//+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status",priority=10
 
 // TeamProject is the Schema for the teamprojects API
 type TeamProject struct {

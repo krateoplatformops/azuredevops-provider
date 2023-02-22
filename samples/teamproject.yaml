@@ -12,12 +12,6 @@ spec:
       sourceControlType: Git
     processTemplate:
       templateTypeId: 6b724908-ef14-45cf-84f8-768b5384da45
-  connectorConfig:
-    apiUrl: https://dev.azure.com
-    verbose: false
-    credentials:
-      secretRef:
-        namespace: default
-        name: azuredevops-secret
-        key: token
-  
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

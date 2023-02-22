@@ -70,7 +70,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	}
 
 	opts, err := c.clientOptions(ctx, cr.Spec.ConnectorConfigRef)
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 
