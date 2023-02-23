@@ -27,6 +27,7 @@ type PipelineSpec struct {
 	RepositoryRef *rtv1.Reference `json:"repositoryRef,omitempty"`
 
 	// RepositoryType: Type of repository (default: azureReposGit).
+	// +kubebuilder:default=azureReposGit
 	// +optional
 	RepositoryType *string `json:"repositoryType,omitempty"`
 

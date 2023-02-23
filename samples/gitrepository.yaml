@@ -6,6 +6,7 @@ spec:
   name: Test Repo created by Krateo 
   projectRef:
     name: teamproject-sample
+    namespace: default
   connectorConfigRef:
     namespace: default
     name: connectorconfig-sample

@@ -114,6 +114,7 @@ spec:
                 - namespace
                 type: object
               repositoryType:
+                default: azureReposGit
                 description: 'RepositoryType: Type of repository (default: azureReposGit).'
                 type: string
             required:

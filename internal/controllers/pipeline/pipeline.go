@@ -206,5 +206,11 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
+	cr, ok := mg.(*pipelines.Pipeline)
+	if !ok {
+		return errors.New(errNotPipeline)
+	}
+
+	cr.SetConditions(rtv1.Deleting())
 	return nil // noop
 }

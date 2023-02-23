@@ -10,8 +10,10 @@ spec:
   repositoryType: azureReposGit
   repositoryRef:
     name: gitrepository-sample
+    namespace: default
   projectRef:
     name: teamproject-sample
+    namespace: default
   connectorConfigRef:
     namespace: default
     name: connectorconfig-sample
