@@ -3,7 +3,6 @@ kind: GitRepository
 metadata:
   name: gitrepository-sample
 spec:
-  organization: kiratech-bancasella
   name: Test Repo created by Krateo 
   projectRef:
     name: teamproject-sample

@@ -2,16 +2,15 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/lucasepe/httplib"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -26,7 +25,6 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
-	connectorconfigs "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
 	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 )
 
@@ -51,7 +49,6 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		}),
 		managed.WithPollInterval(o.PollInterval),
 		managed.WithLogger(log),
-		managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
 		managed.WithRecorder(event.NewAPIRecorder(recorder)))
 
 	return ctrl.NewControllerManagedBy(mgr).
@@ -73,7 +70,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.New(errNotGitRepository)
 	}
 
-	opts, err := c.clientOptions(ctx, cr.Spec.ConnectorConfigRef)
+	opts, err := resolvers.ResolveConnectorConfig(ctx, c.kube, cr.Spec.ConnectorConfigRef)
 	if err != nil {
 		return nil, err
 	}
@@ -88,42 +85,6 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		azCli: azuredevops.NewClient(opts),
 		rec:   c.recorder,
 	}, nil
-}
-
-func (c *connector) clientOptions(ctx context.Context, ref *repositories.ConnectorConfigSelector) (azuredevops.ClientOptions, error) {
-	opts := azuredevops.ClientOptions{}
-
-	if ref == nil {
-		return opts, errors.New("no ConnectorConfig referenced")
-	}
-
-	cfg := connectorconfigs.ConnectorConfig{}
-	err := c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &cfg)
-	if err != nil {
-		return opts, errors.Wrapf(err, "cannot get %s connector config", ref.Name)
-	}
-
-	csr := cfg.Spec.Credentials.SecretRef
-	if csr == nil {
-		return opts, fmt.Errorf("no credentials secret referenced")
-	}
-
-	sec := corev1.Secret{}
-	err = c.kube.Get(ctx, types.NamespacedName{Namespace: csr.Namespace, Name: csr.Name}, &sec)
-	if err != nil {
-		return opts, errors.Wrapf(err, "cannot get %s secret", ref.Name)
-	}
-
-	token, err := resource.GetSecret(ctx, c.kube, csr.DeepCopy())
-	if err != nil {
-		return opts, err
-	}
-
-	opts.BaseURL = cfg.Spec.ApiUrl
-	opts.Token = token
-	opts.Verbose = false
-
-	return opts, nil
 }
 
 type external struct {
@@ -148,9 +109,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	spec := cr.Spec.DeepCopy()
 
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
+	if err != nil {
+		return managed.ExternalObservation{}, errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+	}
+
 	res, err := e.azCli.GetRepository(ctx, azuredevops.GetRepositoryOptions{
-		Organization: spec.Organization,
-		Project:      spec.Project,
+		Organization: prj.Spec.Organization,
+		Project:      prj.Status.Id,
 		Repository:   meta.GetExternalName(cr),
 	})
 	if err != nil {
@@ -190,9 +156,14 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Creating())
 
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
+	if err != nil {
+		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
+	}
+
 	res, err := e.azCli.CreateRepository(ctx, azuredevops.CreateRepositoryOptions{
-		Organization: cr.Spec.Organization,
-		ProjectId:    cr.Spec.Project,
+		Organization: prj.Spec.Organization,
+		ProjectId:    prj.Status.Id,
 		Name:         cr.Spec.Name,
 	})
 	if err != nil {
@@ -221,23 +192,25 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotGitRepository)
 	}
 
-	spec := cr.Spec.DeepCopy()
-	status := cr.Status.DeepCopy()
-
 	cr.SetConditions(rtv1.Deleting())
 
-	err := e.azCli.DeleteRepository(ctx, azuredevops.DeleteRepositoryOptions{
-		Organization: spec.Organization,
-		Project:      spec.Project,
-		RepositoryId: status.Id,
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
+	if err != nil {
+		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
+	}
+
+	err = e.azCli.DeleteRepository(ctx, azuredevops.DeleteRepositoryOptions{
+		Organization: prj.Spec.Organization,
+		Project:      prj.Status.Id,
+		RepositoryId: cr.Status.Id,
 	})
 	if err != nil {
 		return resource.Ignore(httplib.IsNotFoundError, err)
 	}
 
-	e.log.Debug("GitRepository deleted", "id", status.Id, "url", status.Url)
+	e.log.Debug("GitRepository deleted", "id", cr.Status.Id, "url", cr.Status.Url)
 	e.rec.Eventf(cr, corev1.EventTypeNormal, "GitRepositoryDeleted",
-		"GitRepository '%s' deleted", status.Url)
+		"GitRepository '%s' deleted", cr.Status.Url)
 
 	return nil
 }

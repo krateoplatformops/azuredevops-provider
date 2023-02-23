@@ -5,26 +5,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ConnectorConfigSelectors selects a ConnectorConfig variable.
-type ConnectorConfigSelector struct {
-	// Name is the name of a connector config.
-	Name string `json:"name"`
-	// Namespace is the namespace where the connector config belongs.
-	Namespace string `json:"namespace"`
-}
-
 type GitRepositorySpec struct {
 	rtv1.ManagedSpec `json:",inline"`
 
 	// ConnectorConfigRef: configuration spec for the REST API client.
 	// +immutable
-	ConnectorConfigRef *ConnectorConfigSelector `json:"connectorConfigRef,omitempty"`
+	ConnectorConfigRef *rtv1.Reference `json:"connectorConfigRef,omitempty"`
 
 	// Organization: the organization name.
-	Organization string `json:"organization"`
+	//Organization string `json:"organization"`
 
 	// Project: TeamProject name or ID.
-	Project string `json:"project,omitempty"`
+	// +optional
+	Project *string `json:"project,omitempty"`
 
 	// PojectRef - A reference to a TeamProject.
 	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`

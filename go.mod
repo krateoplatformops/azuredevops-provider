@@ -3,7 +3,7 @@ module github.com/krateoplatformops/azuredevops-provider
 go 1.19
 
 require (
-	github.com/krateoplatformops/provider-runtime v0.4.3
+	github.com/krateoplatformops/provider-runtime v0.4.5
 	github.com/lucasepe/dotenv v0.1.0
 	github.com/lucasepe/httplib v0.1.3
 	github.com/pkg/errors v0.9.1

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/lucasepe/httplib"
 	corev1 "k8s.io/api/core/v1"
@@ -69,7 +70,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.New(errNotTeamProject)
 	}
 
-	opts, err := c.clientOptions(ctx, cr.Spec.ConnectorConfigRef)
+	opts, err := resolvers.ResolveConnectorConfig(ctx, c.kube, cr.Spec.ConnectorConfigRef)
 	if err != nil {
 		return nil, err
 	}

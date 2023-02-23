@@ -61,10 +61,10 @@ spec:
                         description: The key to select.
                         type: string
                       name:
-                        description: Name of the secret.
+                        description: Name of the referenced object.
                         type: string
                       namespace:
-                        description: Namespace of the secret.
+                        description: Namespace of the referenced object.
                         type: string
                     required:
                     - key

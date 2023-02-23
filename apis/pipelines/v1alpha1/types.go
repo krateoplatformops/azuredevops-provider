@@ -5,25 +5,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Selectors selects an object.
-type Selector struct {
-	// Name is the name of a connector config.
-	Name string `json:"name"`
-	// Namespace is the namespace where the connector config belongs.
-	Namespace string `json:"namespace"`
-}
-
 // Pipeline defines the desired state of Pipeline
 type PipelineSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
-
-	// ConnectorConfigRef: configuration spec for the REST API client.
-	// +immutable
-	ConnectorConfigRef *Selector `json:"connectorConfigRef,omitempty"`
-
-	// Organization: the organization name.
-	// +immutable
-	Organization string `json:"organization"`
 
 	// Name: the name of the pipeline.
 	// +immutable
@@ -39,20 +23,20 @@ type PipelineSpec struct {
 	//DefinitionPath: The folder path of the definition.
 	DefinitionPath *string `json:"definitionPath,omitempty"`
 
-	// Project: TeamProject name or ID.
+	// RepositoryRef: reference to the repository.
+	RepositoryRef *rtv1.Reference `json:"repositoryRef,omitempty"`
+
+	// RepositoryType: Type of repository (default: azureReposGit).
 	// +optional
-	Project *string `json:"project,omitempty"`
+	RepositoryType *string `json:"repositoryType,omitempty"`
 
 	// PojectRef - A reference to a TeamProject.
 	// +optional
 	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
 
-	// RepositoryRef: reference to the repository.
-	RepositoryRef *Selector `json:"repositoryRef,omitempty"`
-
-	// RepositoryType: Type of repository (default: azureReposGit).
-	// +optional
-	RepositoryType *string `json:"repositoryType,omitempty"`
+	// ConnectorConfigRef: configuration spec for the REST API client.
+	// +immutable
+	ConnectorConfigRef *rtv1.Reference `json:"connectorConfigRef,omitempty"`
 }
 
 type PipelineStatus struct {

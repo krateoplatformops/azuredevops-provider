@@ -83,11 +83,10 @@ spec:
                   API client.'
                 properties:
                   name:
-                    description: Name is the name of a connector config.
+                    description: Name of the referenced object.
                     type: string
                   namespace:
-                    description: Namespace is the namespace where the connector config
-                      belongs.
+                    description: Namespace of the referenced object.
                     type: string
                 required:
                 - name

@@ -5,6 +5,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// A Reference to a named object.
+type Reference struct {
+	// Name of the referenced object.
+	Name string `json:"name"`
+
+	// Namespace of the referenced object.
+	Namespace string `json:"namespace"`
+}
+
 type ConnectorConfigSpec struct {
 	// ApiUrl: the baseUrl for the REST API provider.
 	// +immutable

@@ -1,21 +1,14 @@
 package teamproject
 
 import (
-	"context"
-	"fmt"
-
-	connectorconfigs "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/krateoplatformops/provider-runtime/pkg/meta"
-	"github.com/krateoplatformops/provider-runtime/pkg/resource"
-	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -23,42 +16,6 @@ const (
 	// async operation for the name of the resource to be created.
 	annotationKeyOperation = "krateo.io/opid"
 )
-
-func (c *connector) clientOptions(ctx context.Context, ref *projects.ConnectorConfigSelector) (azuredevops.ClientOptions, error) {
-	opts := azuredevops.ClientOptions{}
-
-	if ref == nil {
-		return opts, errors.New("no ConnectorConfig referenced")
-	}
-
-	cfg := connectorconfigs.ConnectorConfig{}
-	err := c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &cfg)
-	if err != nil {
-		return opts, errors.Wrapf(err, "cannot get %s connector config", ref.Name)
-	}
-
-	csr := cfg.Spec.Credentials.SecretRef
-	if csr == nil {
-		return opts, fmt.Errorf("no credentials secret referenced")
-	}
-
-	sec := corev1.Secret{}
-	err = c.kube.Get(ctx, types.NamespacedName{Namespace: csr.Namespace, Name: csr.Name}, &sec)
-	if err != nil {
-		return opts, errors.Wrapf(err, "cannot get %s secret", ref.Name)
-	}
-
-	token, err := resource.GetSecret(ctx, c.kube, csr.DeepCopy())
-	if err != nil {
-		return opts, err
-	}
-
-	opts.BaseURL = cfg.Spec.ApiUrl
-	opts.Token = token
-	opts.Verbose = false
-
-	return opts, nil
-}
 
 func teamProjectFromSpec(spec *projects.TeamProjectSpec) *azuredevops.TeamProject {
 	visibility := azuredevops.VisibilityPrivate

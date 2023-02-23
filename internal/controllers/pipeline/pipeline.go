@@ -7,7 +7,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,9 +23,9 @@ import (
 	"github.com/lucasepe/httplib"
 	"github.com/pkg/errors"
 
-	connectorconfigs "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
 	pipelines "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 )
 
 const (
@@ -50,7 +49,6 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		}),
 		managed.WithPollInterval(o.PollInterval),
 		managed.WithLogger(log),
-		managed.WithReferenceResolver(managed.NewAPISimpleReferenceResolver(mgr.GetClient())),
 		managed.WithRecorder(event.NewAPIRecorder(recorder)))
 
 	return ctrl.NewControllerManagedBy(mgr).
@@ -72,7 +70,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, errors.New(errNotPipeline)
 	}
 
-	opts, err := c.clientOptions(ctx, cr.Spec.ConnectorConfigRef)
+	opts, err := resolvers.ResolveConnectorConfig(ctx, c.kube, cr.Spec.ConnectorConfigRef)
 	if err != nil {
 		return nil, err
 	}
@@ -87,42 +85,6 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		azCli: azuredevops.NewClient(opts),
 		rec:   c.recorder,
 	}, nil
-}
-
-func (c *connector) clientOptions(ctx context.Context, ref *pipelines.Selector) (azuredevops.ClientOptions, error) {
-	opts := azuredevops.ClientOptions{}
-
-	if ref == nil {
-		return opts, errors.New("no ConnectorConfig referenced")
-	}
-
-	cfg := connectorconfigs.ConnectorConfig{}
-	err := c.kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &cfg)
-	if err != nil {
-		return opts, errors.Wrapf(err, "cannot get %s connector config", ref.Name)
-	}
-
-	csr := cfg.Spec.Credentials.SecretRef
-	if csr == nil {
-		return opts, fmt.Errorf("no credentials secret referenced")
-	}
-
-	sec := corev1.Secret{}
-	err = c.kube.Get(ctx, types.NamespacedName{Namespace: csr.Namespace, Name: csr.Name}, &sec)
-	if err != nil {
-		return opts, errors.Wrapf(err, "cannot get %s secret", ref.Name)
-	}
-
-	token, err := resource.GetSecret(ctx, c.kube, csr.DeepCopy())
-	if err != nil {
-		return opts, err
-	}
-
-	opts.BaseURL = cfg.Spec.ApiUrl
-	opts.Token = token
-	opts.Verbose = false
-
-	return opts, nil
 }
 
 type external struct {
@@ -147,9 +109,15 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	spec := cr.Spec.DeepCopy()
 
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
+	if err != nil {
+		return managed.ExternalObservation{},
+			errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+	}
+
 	res, err := e.azCli.GetPipeline(ctx, azuredevops.GetPipelineOptions{
-		Organization: spec.Organization,
-		Project:      helpers.String(spec.Project),
+		Organization: prj.Spec.Organization,
+		Project:      prj.Status.Id,
 		PipelineId:   meta.GetExternalName(cr),
 	})
 	if err != nil {
@@ -189,9 +157,19 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
+	if err != nil {
+		return errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+	}
+
+	repo, err := resolvers.ResolveGitRepository(ctx, e.kube, spec.RepositoryRef)
+	if err != nil {
+		return errors.Wrapf(err, "unble to resolve GitRepository: %s", spec.RepositoryRef.Name)
+	}
+
 	res, err := e.azCli.CreatePipeline(ctx, azuredevops.CreatePipelineOptions{
-		Organization: spec.Organization,
-		Project:      helpers.String(spec.Project),
+		Organization: prj.Spec.Organization,
+		Project:      prj.Status.Id,
 		Pipeline: azuredevops.Pipeline{
 			Folder: spec.Folder,
 			Name:   spec.Name,
@@ -199,8 +177,8 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 				Type: azuredevops.ConfigurationType(*spec.ConfigurationType),
 				Path: spec.DefinitionPath,
 				Repository: &azuredevops.BuildRepository{
-					Id:   repo.Id,
-					Name: repo.Name,
+					Id:   repo.Status.Id,
+					Name: repo.Spec.Name,
 					Type: azuredevops.BuildRepositoryType(*spec.RepositoryType),
 				},
 			},
