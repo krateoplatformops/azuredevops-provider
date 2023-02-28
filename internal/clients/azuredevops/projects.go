@@ -120,13 +120,17 @@ func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOptions) (*L
 		params = append(params, "continuationToken", *opts.ContinuationToken)
 	}
 
-	ub := httplib.NewURLBuilder(
+	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
 			BaseURL: c.baseURL,
 			Path:    path.Join(opts.Organization, "_apis/projects"),
 			Params:  params,
-		})
-	req, err := httplib.NewGetRequest(ub)
+		}).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Get(uri.String())
 	if err != nil {
 		return nil, err
 	}
@@ -166,13 +170,16 @@ type GetProjectOptions struct {
 // Get project with the specified id or name, optionally including capabilities.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get?view=azure-devops-rest-7.0
 func (c *Client) GetProject(ctx context.Context, opts GetProjectOptions) (*TeamProject, error) {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
 
-	req, err := httplib.NewGetRequest(ub)
+	req, err := httplib.Get(uri.String())
 	if err != nil {
 		return nil, err
 	}
@@ -201,13 +208,16 @@ type CreateProjectOptions struct {
 // Queues a project to be created. Use the GetOperation to periodically check for create project status.
 // POST https://dev.azure.com/{organization}/_apis/projects?api-version=7.0
 func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOptions) (*OperationReference, error) {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/projects"),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
 
-	req, err := httplib.NewPostRequest(ub, httplib.ToJSON(opts.TeamProject))
+	req, err := httplib.Post(uri.String(), httplib.ToJSON(opts.TeamProject))
 	if err != nil {
 		return nil, err
 	}
@@ -227,6 +237,44 @@ func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOptions) (
 	return val, err
 }
 
+type UpdateProjectOptions struct {
+	Organization string
+	ProjectId    string
+	TeamProject  *TeamProject
+}
+
+// Update an existing project's name, abbreviation, description, or restore a project.
+// PATCH https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
+func (c *Client) UpdateProject(ctx context.Context, opts UpdateProjectOptions) (*OperationReference, error) {
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Patch(uri.String(), httplib.ToJSON(opts.TeamProject))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req = req.WithContext(ctx)
+
+	apiErr := &APIError{}
+	val := &OperationReference{}
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		AuthMethod:      c.authMethod,
+		Verbose:         c.verbose,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK, http.StatusAccepted),
+		},
+	})
+	return val, err
+}
+
 type DeleteProjectOptions struct {
 	Organization string
 	ProjectId    string
@@ -235,13 +283,16 @@ type DeleteProjectOptions struct {
 // Queues a project to be deleted. Use the GetOperation to periodically check for delete project status.
 // DELETE https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
 func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOptions) (*OperationReference, error) {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/projects/", opts.ProjectId),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
 
-	req, err := httplib.NewDeleteRequest(ub)
+	req, err := httplib.Delete(uri.String())
 	if err != nil {
 		return nil, err
 	}

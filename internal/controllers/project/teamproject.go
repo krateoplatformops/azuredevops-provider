@@ -1,4 +1,4 @@
-package teamproject
+package project
 
 import (
 	"context"
@@ -108,58 +108,54 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			return reconciler.ExternalObservation{}, nil
 		}
 
-		prj, err := e.azCli.FindProject(ctx, azuredevops.FindProjectsOptions{
-			Organization: cr.Spec.Organization,
-			Name:         cr.Spec.Name,
-		})
-		if err != nil {
-			return reconciler.ExternalObservation{}, err
-		}
-
-		e.log.Debug("Found Project", "id", *prj.Id, "name", prj.Name)
-
-		deleteOperationAnnotation(cr)
-		meta.SetExternalName(cr, helpers.String(prj.Id))
-
-		cr.Status.Id = helpers.String(prj.Id)
-		cr.Status.Revision = *prj.Revision
-		cr.Status.State = string(*prj.State)
-
-		cr.SetConditions(rtv1.Available())
-
-		//e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreated",
-		//	"TeamProject '%s/%s' created", cr.Spec.Org, cr.Spec.Name)
-
-		return reconciler.ExternalObservation{
-			ResourceExists:   true,
-			ResourceUpToDate: true,
-		}, e.kube.Update(ctx, cr)
+		return reconciler.ExternalObservation{},
+			deleteOperationAnnotation(ctx, e.kube, cr)
 	}
 
+	var prj *azuredevops.TeamProject
 	if meta.GetExternalName(cr) != "" {
-		prj, err := e.azCli.GetProject(ctx, azuredevops.GetProjectOptions{
+		var err error
+		prj, err = e.azCli.GetProject(ctx, azuredevops.GetProjectOptions{
 			Organization: cr.Spec.Organization,
 			ProjectId:    meta.GetExternalName(cr),
 		})
-		if err != nil {
-			return reconciler.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+		if err != nil && !httplib.IsNotFoundError(err) {
+			return reconciler.ExternalObservation{}, err
 		}
+	}
 
-		cr.Status.Id = helpers.String(prj.Id)
-		cr.Status.Revision = *prj.Revision
-		cr.Status.State = string(*prj.State)
+	if prj == nil {
+		var err error
+		prj, err = e.azCli.FindProject(ctx, azuredevops.FindProjectsOptions{
+			Organization: cr.Spec.Organization,
+			Name:         cr.Spec.Name,
+		})
+		if err != nil && !httplib.IsNotFoundError(err) {
+			return reconciler.ExternalObservation{}, err
+		}
+	}
 
-		cr.SetConditions(rtv1.Available())
-
+	if prj == nil {
 		return reconciler.ExternalObservation{
-			ResourceExists:   true,
+			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
 	}
 
+	meta.SetExternalName(cr, helpers.String(prj.Id))
+	if err := e.kube.Update(ctx, cr); err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+
+	cr.Status.Id = helpers.String(prj.Id)
+	cr.Status.Revision = *prj.Revision
+	cr.Status.State = string(*prj.State)
+
+	cr.SetConditions(rtv1.Available())
+
 	return reconciler.ExternalObservation{
-		ResourceExists:   false,
-		ResourceUpToDate: true,
+		ResourceExists:   true,
+		ResourceUpToDate: isUpdate(&cr.Spec, prj),
 	}, nil
 }
 
@@ -201,12 +197,33 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
-	//if !meta.IsActionAllowed(cr, meta.ActionUpdate) {
-	//	e.log.Debug("External resource should not be updated by provider, skip updating.")
-	//	return nil
-	//}
+	cr, ok := mg.(*projects.TeamProject)
+	if !ok {
+		return errors.New(errNotTeamProject)
+	}
 
-	return nil // noop
+	if !meta.IsActionAllowed(cr, meta.ActionUpdate) {
+		e.log.Debug("External resource should not be updated by provider, skip updating.")
+		return nil
+	}
+
+	spec := cr.Spec.DeepCopy()
+
+	op, err := e.azCli.UpdateProject(ctx, azuredevops.UpdateProjectOptions{
+		Organization: spec.Organization,
+		ProjectId:    cr.Status.Id,
+		TeamProject: &azuredevops.TeamProject{
+			Name:        spec.Name,
+			Description: helpers.StringPtr(spec.Description),
+			//Visibility:  azuredevops.ProjectVisibility(*spec.Visibility),
+		},
+	})
+	if err == nil {
+		setOperationAnnotation(cr, op.Id)
+		cr.SetConditions(conditionFromOperationReference(op))
+	}
+
+	return resource.Ignore(httplib.IsNotFoundError, err)
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {

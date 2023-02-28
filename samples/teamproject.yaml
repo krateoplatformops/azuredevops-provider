@@ -5,7 +5,7 @@ metadata:
 spec:
   name: Test project created by Krateo
   organization: kiratech-bancasella
-  description: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  description: Lorem ipsum dolor sit amet, consectetur adipiscing elit olè
   visibility: private
   capabilities:
     versioncontrol:

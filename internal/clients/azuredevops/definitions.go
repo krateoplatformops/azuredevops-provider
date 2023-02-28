@@ -17,13 +17,16 @@ type DeleteDefinitionOptions struct {
 // Delete definition and all associated builds.
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/build/definitions/{definitionId}?api-version=7.0
 func (c *Client) DeleteDefinition(ctx context.Context, opts DeleteDefinitionOptions) error {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/build/definitions/", opts.DefinitionId),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return err
+	}
 
-	req, err := httplib.NewDeleteRequest(ub)
+	req, err := httplib.Delete(uri.String())
 	if err != nil {
 		return err
 	}

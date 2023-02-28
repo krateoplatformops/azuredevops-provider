@@ -73,13 +73,16 @@ type CreatePipelineOptions struct {
 // CreatePipeline creates a pipeline.
 // POST https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.0
 func (c *Client) CreatePipeline(ctx context.Context, opts CreatePipelineOptions) (*Pipeline, error) {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines"),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
 
-	req, err := httplib.NewPostRequest(ub, httplib.ToJSON(&opts.Pipeline))
+	req, err := httplib.Post(uri.String(), httplib.ToJSON(&opts.Pipeline))
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +125,12 @@ func (c *Client) GetPipeline(ctx context.Context, opts GetPipelineOptions) (*Pip
 		ubo.Params = append(ubo.Params, "pipelineVersion", helpers.String(opts.PipelineVersion))
 	}
 
-	req, err := httplib.NewGetRequest(httplib.NewURLBuilder(ubo))
+	uri, err := httplib.NewURLBuilder(ubo).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Get(uri.String())
 	if err != nil {
 		return nil, err
 	}

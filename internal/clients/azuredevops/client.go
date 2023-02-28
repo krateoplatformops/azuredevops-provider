@@ -38,6 +38,10 @@ func NewClient(opts ClientOptions) *Client {
 	}
 }
 
+func (c *Client) SetVerbose(v bool) {
+	c.verbose = v
+}
+
 type APIError struct {
 	Message   string `json:"message"`
 	TypeKey   string `json:"typeKey"`

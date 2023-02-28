@@ -1,11 +1,17 @@
-package teamproject
+package project
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/krateoplatformops/provider-runtime/pkg/meta"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,6 +51,16 @@ func teamProjectFromSpec(spec *projects.TeamProjectSpec) *azuredevops.TeamProjec
 	return res
 }
 
+func isUpdate(desired *projects.TeamProjectSpec, current *azuredevops.TeamProject) bool {
+	ignore := cmpopts.IgnoreFields(azuredevops.TeamProject{},
+		"Id", "Visibility", "Capabilities", "Revision", "State")
+
+	diff := cmp.Diff(teamProjectFromSpec(desired), current, ignore)
+
+	fmt.Printf("\ndiff: => %s\n", diff)
+	return len(diff) == 0
+}
+
 // conditionFromOperationReference returns a condition that indicates
 // the TeamProject resource is not currently available for use.
 func conditionFromOperationReference(opref *azuredevops.OperationReference) rtv1.Condition {
@@ -79,6 +95,7 @@ func setOperationAnnotation(o metav1.Object, identifier string) {
 }
 
 // deleteOperationAnnotation delete the azuredevops operation annotation.
-func deleteOperationAnnotation(o metav1.Object) {
+func deleteOperationAnnotation(ctx context.Context, kube client.Client, o *projects.TeamProject) error {
 	meta.RemoveAnnotations(o, annotationKeyOperation)
+	return kube.Update(ctx, o)
 }

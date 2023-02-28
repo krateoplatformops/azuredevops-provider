@@ -52,13 +52,16 @@ type GetOperationOpts struct {
 // Gets an operation from the operationId using the given pluginId.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/operations/operations/get?view=azure-devops-rest-7.0#operation
 func (c *Client) GetOperation(ctx context.Context, opts GetOperationOpts) (*Operation, error) {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/operations", opts.OperationId),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
 
-	req, err := httplib.NewGetRequest(ub)
+	req, err := httplib.Get(uri.String())
 	if err != nil {
 		return nil, err
 	}

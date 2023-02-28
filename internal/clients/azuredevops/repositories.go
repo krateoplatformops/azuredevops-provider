@@ -28,13 +28,15 @@ type GetRepositoryOptions struct {
 // GetRepository retrieve a git repository.
 // GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
 func (c *Client) GetRepository(ctx context.Context, opts GetRepositoryOptions) (*GitRepository, error) {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories", opts.Repository),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
-
-	req, err := httplib.NewGetRequest(ub)
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
+	req, err := httplib.Get(uri.String())
 	if err != nil {
 		return nil, err
 	}
@@ -64,13 +66,16 @@ type CreateRepositoryOptions struct {
 // CreateRepository creates a git repository in a team project.
 // POST https://dev.azure.com/{organization}/{project}/_apis/git/repositories?api-version=7.0
 func (c *Client) CreateRepository(ctx context.Context, opts CreateRepositoryOptions) (*GitRepository, error) {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories"),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
 
-	req, err := httplib.NewPostRequest(ub, httplib.ToJSON(&GitRepository{
+	req, err := httplib.Post(uri.String(), httplib.ToJSON(&GitRepository{
 		Name: &opts.Name,
 		Project: &TeamProject{
 			Id: helpers.StringPtr(opts.ProjectId),
@@ -104,13 +109,15 @@ type DeleteRepositoryOptions struct {
 // Delete a git repository.
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
 func (c *Client) DeleteRepository(ctx context.Context, opts DeleteRepositoryOptions) error {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories/", opts.RepositoryId),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
-
-	req, err := httplib.NewDeleteRequest(ub)
+	}).Build()
+	if err != nil {
+		return err
+	}
+	req, err := httplib.Delete(uri.String())
 	if err != nil {
 		return err
 	}
@@ -128,13 +135,16 @@ func (c *Client) DeleteRepository(ctx context.Context, opts DeleteRepositoryOpti
 // Destroy (hard delete) a soft-deleted Git repository.
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/git/recycleBin/repositories/{repositoryId}?api-version=7.0
 func (c *Client) DeleteRepositoryFromRecycleBin(ctx context.Context, opts DeleteRepositoryOptions) error {
-	ub := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/recycleBin/repositories", opts.RepositoryId),
 		Params:  []string{apiVersionKey, apiVersionVal},
-	})
+	}).Build()
+	if err != nil {
+		return err
+	}
 
-	req, err := httplib.NewDeleteRequest(ub)
+	req, err := httplib.Delete(uri.String())
 	if err != nil {
 		return err
 	}
