@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -22,34 +21,33 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/logging"
 	"github.com/krateoplatformops/provider-runtime/pkg/meta"
 	"github.com/krateoplatformops/provider-runtime/pkg/ratelimiter"
-	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
+	"github.com/krateoplatformops/provider-runtime/pkg/reconciler"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
 	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 )
 
 const (
-	errNotGitRepository           = "managed resource is not a GitRepository custom resource"
-	annotationKeyConnectorVerbose = "krateo.io/connector-verbose"
+	errNotGitRepository = "managed resource is not a GitRepository custom resource"
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := managed.ControllerName(repositories.GitRepositoryGroupKind)
+	name := reconciler.ControllerName(repositories.GitRepositoryGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
-	r := managed.NewReconciler(mgr,
+	r := reconciler.NewReconciler(mgr,
 		resource.ManagedKind(repositories.GitRepositoryGroupVersionKind),
-		managed.WithExternalConnecter(&connector{
+		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
 			recorder: recorder,
 		}),
-		managed.WithPollInterval(o.PollInterval),
-		managed.WithLogger(log),
-		managed.WithRecorder(event.NewAPIRecorder(recorder)))
+		reconciler.WithPollInterval(o.PollInterval),
+		reconciler.WithLogger(log),
+		reconciler.WithRecorder(event.NewAPIRecorder(recorder)))
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
@@ -64,7 +62,7 @@ type connector struct {
 	recorder record.EventRecorder
 }
 
-func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
+func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
 	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
 		return nil, errors.New(errNotGitRepository)
@@ -74,10 +72,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	if err != nil {
 		return nil, err
 	}
-
-	if strings.EqualFold(cr.GetAnnotations()[annotationKeyConnectorVerbose], "true") {
-		opts.Verbose = true
-	}
+	opts.Verbose = meta.IsVerbose(cr)
 
 	return &external{
 		kube:  c.kube,
@@ -94,14 +89,14 @@ type external struct {
 	rec   record.EventRecorder
 }
 
-func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
+func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
 	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
-		return managed.ExternalObservation{}, errors.New(errNotGitRepository)
+		return reconciler.ExternalObservation{}, errors.New(errNotGitRepository)
 	}
 
 	if meta.GetExternalName(cr) == "" {
-		return managed.ExternalObservation{
+		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
@@ -111,7 +106,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
 	if err != nil {
-		return managed.ExternalObservation{}, errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+		return reconciler.ExternalObservation{}, errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
 	}
 
 	res, err := e.azCli.GetRepository(ctx, azuredevops.GetRepositoryOptions{
@@ -120,10 +115,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		Repository:   meta.GetExternalName(cr),
 	})
 	if err != nil {
-		return managed.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+		return reconciler.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
 	}
 	if res == nil {
-		return managed.ExternalObservation{
+		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
@@ -131,7 +126,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	meta.SetExternalName(cr, helpers.String(res.Id))
 	if err := e.kube.Update(ctx, cr); err != nil {
-		return managed.ExternalObservation{}, err
+		return reconciler.ExternalObservation{}, err
 	}
 
 	cr.Status.Id = helpers.String(res.Id)
@@ -141,7 +136,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	cr.SetConditions(rtv1.Available())
 
-	return managed.ExternalObservation{
+	return reconciler.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: true,
 	}, nil
@@ -152,6 +147,11 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
 		return errors.New(errNotGitRepository)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionCreate) {
+		e.log.Debug("External resource should not be created by provider, skip creating.")
+		return nil
 	}
 
 	cr.SetConditions(rtv1.Creating())
@@ -190,6 +190,11 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	cr, ok := mg.(*repositories.GitRepository)
 	if !ok {
 		return errors.New(errNotGitRepository)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionDelete) {
+		e.log.Debug("External resource should not be deleted by provider, skip deleting.")
+		return nil
 	}
 
 	cr.SetConditions(rtv1.Deleting())

@@ -3,7 +3,6 @@ package pipeline
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -18,7 +17,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/logging"
 	"github.com/krateoplatformops/provider-runtime/pkg/meta"
 	"github.com/krateoplatformops/provider-runtime/pkg/ratelimiter"
-	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
+	"github.com/krateoplatformops/provider-runtime/pkg/reconciler"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 	"github.com/lucasepe/httplib"
 	"github.com/pkg/errors"
@@ -29,27 +28,26 @@ import (
 )
 
 const (
-	errNotPipeline                = "managed resource is not a Pipeline custom resource"
-	annotationKeyConnectorVerbose = "krateo.io/connector-verbose"
+	errNotPipeline = "managed resource is not a Pipeline custom resource"
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := managed.ControllerName(pipelines.PipelineGroupKind)
+	name := reconciler.ControllerName(pipelines.PipelineGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
-	r := managed.NewReconciler(mgr,
+	r := reconciler.NewReconciler(mgr,
 		resource.ManagedKind(pipelines.PipelineGroupVersionKind),
-		managed.WithExternalConnecter(&connector{
+		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
 			recorder: recorder,
 		}),
-		managed.WithPollInterval(o.PollInterval),
-		managed.WithLogger(log),
-		managed.WithRecorder(event.NewAPIRecorder(recorder)))
+		reconciler.WithPollInterval(o.PollInterval),
+		reconciler.WithLogger(log),
+		reconciler.WithRecorder(event.NewAPIRecorder(recorder)))
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
@@ -64,7 +62,7 @@ type connector struct {
 	recorder record.EventRecorder
 }
 
-func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
+func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
 	cr, ok := mg.(*pipelines.Pipeline)
 	if !ok {
 		return nil, errors.New(errNotPipeline)
@@ -75,9 +73,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 		return nil, err
 	}
 
-	if strings.EqualFold(cr.GetAnnotations()[annotationKeyConnectorVerbose], "true") {
-		opts.Verbose = true
-	}
+	opts.Verbose = meta.IsVerbose(cr)
 
 	return &external{
 		kube:  c.kube,
@@ -94,14 +90,14 @@ type external struct {
 	rec   record.EventRecorder
 }
 
-func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
+func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
 	cr, ok := mg.(*pipelines.Pipeline)
 	if !ok {
-		return managed.ExternalObservation{}, errors.New(errNotPipeline)
+		return reconciler.ExternalObservation{}, errors.New(errNotPipeline)
 	}
 
 	if meta.GetExternalName(cr) == "" {
-		return managed.ExternalObservation{
+		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
@@ -111,7 +107,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
 	if err != nil {
-		return managed.ExternalObservation{},
+		return reconciler.ExternalObservation{},
 			errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
 	}
 
@@ -121,10 +117,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		PipelineId:   meta.GetExternalName(cr),
 	})
 	if err != nil {
-		return managed.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+		return reconciler.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
 	}
 	if res == nil {
-		return managed.ExternalObservation{
+		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
@@ -132,7 +128,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	meta.SetExternalName(cr, fmt.Sprintf("%d", *res.Id))
 	if err := e.kube.Update(ctx, cr); err != nil {
-		return managed.ExternalObservation{}, err
+		return reconciler.ExternalObservation{}, err
 	}
 
 	cr.Status.Id = helpers.StringPtr(fmt.Sprintf("%d", *res.Id))
@@ -140,7 +136,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	cr.SetConditions(rtv1.Available())
 
-	return managed.ExternalObservation{
+	return reconciler.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: true,
 	}, nil
@@ -151,6 +147,11 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	cr, ok := mg.(*pipelines.Pipeline)
 	if !ok {
 		return errors.New(errNotPipeline)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionCreate) {
+		e.log.Debug("External resource should not be created by provider, skip creating.")
+		return nil
 	}
 
 	cr.SetConditions(rtv1.Creating())
@@ -209,6 +210,11 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	cr, ok := mg.(*pipelines.Pipeline)
 	if !ok {
 		return errors.New(errNotPipeline)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionDelete) {
+		e.log.Debug("External resource should not be deleted by provider, skip deleting.")
+		return nil
 	}
 
 	cr.SetConditions(rtv1.Deleting())

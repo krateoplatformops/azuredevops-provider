@@ -3,7 +3,6 @@ package teamproject
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
@@ -21,35 +20,34 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/logging"
 	"github.com/krateoplatformops/provider-runtime/pkg/meta"
 	"github.com/krateoplatformops/provider-runtime/pkg/ratelimiter"
-	"github.com/krateoplatformops/provider-runtime/pkg/reconciler/managed"
+	"github.com/krateoplatformops/provider-runtime/pkg/reconciler"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 )
 
 const (
-	errNotTeamProject             = "managed resource is not a TeamProject custom resource"
-	annotationKeyConnectorVerbose = "krateo.io/connector-verbose"
+	errNotTeamProject = "managed resource is not a TeamProject custom resource"
 )
 
 // Setup adds a controller that reconciles Token managed resources.
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := managed.ControllerName(projects.TeamProjectGroupKind)
+	name := reconciler.ControllerName(projects.TeamProjectGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
-	r := managed.NewReconciler(mgr,
+	r := reconciler.NewReconciler(mgr,
 		resource.ManagedKind(projects.TeamProjectGroupVersionKind),
-		managed.WithExternalConnecter(&connector{
+		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
 			recorder: recorder,
 		}),
-		managed.WithPollInterval(o.PollInterval),
-		managed.WithLogger(log),
-		managed.WithRecorder(event.NewAPIRecorder(recorder)))
+		reconciler.WithPollInterval(o.PollInterval),
+		reconciler.WithLogger(log),
+		reconciler.WithRecorder(event.NewAPIRecorder(recorder)))
 
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
@@ -64,7 +62,7 @@ type connector struct {
 	recorder record.EventRecorder
 }
 
-func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.ExternalClient, error) {
+func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
 	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
 		return nil, errors.New(errNotTeamProject)
@@ -74,10 +72,7 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 	if err != nil {
 		return nil, err
 	}
-
-	if strings.EqualFold(cr.GetAnnotations()[annotationKeyConnectorVerbose], "true") {
-		opts.Verbose = true
-	}
+	opts.Verbose = meta.IsVerbose(cr)
 
 	return &external{
 		kube:  c.kube,
@@ -94,10 +89,10 @@ type external struct {
 	rec   record.EventRecorder
 }
 
-func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
+func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
 	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
-		return managed.ExternalObservation{}, errors.New(errNotTeamProject)
+		return reconciler.ExternalObservation{}, errors.New(errNotTeamProject)
 	}
 
 	if getOperationAnnotation(cr) != "" {
@@ -106,11 +101,11 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			OperationId:  getOperationAnnotation(cr),
 		})
 		if err != nil {
-			return managed.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+			return reconciler.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
 		}
 
 		if op.Status != azuredevops.StatusSucceeded {
-			return managed.ExternalObservation{}, nil
+			return reconciler.ExternalObservation{}, nil
 		}
 
 		prj, err := e.azCli.FindProject(ctx, azuredevops.FindProjectsOptions{
@@ -118,7 +113,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			Name:         cr.Spec.Name,
 		})
 		if err != nil {
-			return managed.ExternalObservation{}, err
+			return reconciler.ExternalObservation{}, err
 		}
 
 		e.log.Debug("Found Project", "id", *prj.Id, "name", prj.Name)
@@ -135,7 +130,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		//e.rec.Eventf(cr, corev1.EventTypeNormal, "TeamProjectCreated",
 		//	"TeamProject '%s/%s' created", cr.Spec.Org, cr.Spec.Name)
 
-		return managed.ExternalObservation{
+		return reconciler.ExternalObservation{
 			ResourceExists:   true,
 			ResourceUpToDate: true,
 		}, e.kube.Update(ctx, cr)
@@ -147,7 +142,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 			ProjectId:    meta.GetExternalName(cr),
 		})
 		if err != nil {
-			return managed.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+			return reconciler.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
 		}
 
 		cr.Status.Id = helpers.String(prj.Id)
@@ -156,13 +151,13 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 		cr.SetConditions(rtv1.Available())
 
-		return managed.ExternalObservation{
+		return reconciler.ExternalObservation{
 			ResourceExists:   true,
 			ResourceUpToDate: true,
 		}, nil
 	}
 
-	return managed.ExternalObservation{
+	return reconciler.ExternalObservation{
 		ResourceExists:   false,
 		ResourceUpToDate: true,
 	}, nil
@@ -172,6 +167,11 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
 		return errors.New(errNotTeamProject)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionCreate) {
+		e.log.Debug("External resource should not be created by provider, skip creating.")
+		return nil
 	}
 
 	if getOperationAnnotation(cr) != "" {
@@ -201,6 +201,11 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
+	//if !meta.IsActionAllowed(cr, meta.ActionUpdate) {
+	//	e.log.Debug("External resource should not be updated by provider, skip updating.")
+	//	return nil
+	//}
+
 	return nil // noop
 }
 
@@ -208,6 +213,11 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	cr, ok := mg.(*projects.TeamProject)
 	if !ok {
 		return errors.New(errNotTeamProject)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionDelete) {
+		e.log.Debug("External resource should not be deleted by provider, skip deleting.")
+		return nil
 	}
 
 	cr.SetConditions(rtv1.Deleting())
