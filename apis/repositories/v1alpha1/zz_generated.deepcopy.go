@@ -104,8 +104,8 @@ func (in *GitRepositorySpec) DeepCopyInto(out *GitRepositorySpec) {
 		*out = new(v1.Reference)
 		**out = **in
 	}
-	if in.Init != nil {
-		in, out := &in.Init, &out.Init
+	if in.Initialize != nil {
+		in, out := &in.Initialize, &out.Initialize
 		*out = new(bool)
 		**out = **in
 	}

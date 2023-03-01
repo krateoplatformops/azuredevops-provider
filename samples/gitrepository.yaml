@@ -3,8 +3,8 @@ kind: GitRepository
 metadata:
   name: gitrepository-sample
 spec:
-  name: Test Repo created by Krateo 
-  init: true
+  name: AZ DevOps Krateo Provider Repo 
+  initialize: true
   projectRef:
     name: teamproject-sample
     namespace: default

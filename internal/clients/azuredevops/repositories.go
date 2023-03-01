@@ -2,6 +2,7 @@ package azuredevops
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path"
 	"strconv"
@@ -43,11 +44,52 @@ type GitCommitRef struct {
 	// Author of the commit.
 	Author *GitUserDate `json:"author,omitempty"`
 	// An enumeration of the changes included with the commit.
-	Changes *[]any `json:"changes,omitempty"`
+	Changes []GitChange `json:"changes,omitempty"`
 	// Comment or message of the commit.
 	Comment *string `json:"comment,omitempty"`
 	// Committer of the commit.
 	Committer *GitUserDate `json:"committer,omitempty"`
+}
+
+type VersionControlChangeType string
+
+const (
+	ChangeTypeNone         VersionControlChangeType = "none"
+	ChangeTypeAdd          VersionControlChangeType = "add"
+	ChangeTypeEdit         VersionControlChangeType = "edit"
+	ChangeTypeEncoding     VersionControlChangeType = "encoding"
+	ChangeTypeRename       VersionControlChangeType = "rename"
+	ChangeTypeDelete       VersionControlChangeType = "delete"
+	ChangeTypeUndelete     VersionControlChangeType = "undelete"
+	ChangeTypeBranch       VersionControlChangeType = "branch"
+	ChangeTypeMerge        VersionControlChangeType = "merge"
+	ChangeTypeLock         VersionControlChangeType = "lock"
+	ChangeTypeRollback     VersionControlChangeType = "rollback"
+	ChangeTypeSourceRename VersionControlChangeType = "sourceRename"
+	ChangeTypeTargetRename VersionControlChangeType = "targetRename"
+	ChangeTypeProperty     VersionControlChangeType = "property"
+	ChangeTypeAll          VersionControlChangeType = "all"
+)
+
+type ItemContentType string
+
+const (
+	ContentTypeRawText       ItemContentType = "rawText"
+	ContentTypeBase64Encoded ItemContentType = "base64Encoded"
+)
+
+type ItemContent struct {
+	Content     string          `json:"content,omitempty"`
+	ContentType ItemContentType `json:"contentType,omitempty"`
+}
+
+type GitChange struct {
+	// The type of change that was made to the item.
+	ChangeType VersionControlChangeType `json:"changeType,omitempty"`
+	// Content of the item after the change.
+	NewContent *ItemContent `json:"newContent,omitempty"`
+
+	Item map[string]string `json:"item,omitempty"`
 }
 
 type GitPush struct {
@@ -199,6 +241,11 @@ func (c *Client) DeleteRepositoryFromRecycleBin(ctx context.Context, opts Delete
 	})
 }
 
+type ListRepositoriesResponseValue struct {
+	Count int              `json:"count"`
+	Value []*GitRepository `json:"value,omitempty"`
+}
+
 type ListRepositoriesOptions struct {
 	Organization  string
 	Project       string
@@ -207,7 +254,7 @@ type ListRepositoriesOptions struct {
 
 // List all repositorires in the organization that the authenticated user has access to.
 // GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories?api-version=7.0
-func (c *Client) ListRepositories(ctx context.Context, opts ListRepositoriesOptions) ([]GitRepository, error) {
+func (c *Client) ListRepositories(ctx context.Context, opts ListRepositoriesOptions) (*ListRepositoriesResponseValue, error) {
 	params := []string{apiVersionKey, apiVersionVal}
 	if opts.IncludeHidden {
 		params = append(params, "includeHidden", strconv.FormatBool(opts.IncludeHidden))
@@ -230,18 +277,47 @@ func (c *Client) ListRepositories(ctx context.Context, opts ListRepositoriesOpti
 	req = req.WithContext(ctx)
 
 	apiErr := &APIError{}
-	val := []GitRepository{}
+	val := &ListRepositoriesResponseValue{}
 
 	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
 		AuthMethod:      c.authMethod,
 		Verbose:         c.verbose,
-		ResponseHandler: httplib.FromJSON(&val),
+		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
 
 	return val, err
+}
+
+type FindRepositoryOptions struct {
+	Organization string
+	Project      string
+	Name         string
+}
+
+func (c *Client) FindRepository(ctx context.Context, opts FindRepositoryOptions) (*GitRepository, error) {
+	all, err := c.ListRepositories(ctx, ListRepositoriesOptions{
+		Organization:  opts.Organization,
+		Project:       opts.Project,
+		IncludeHidden: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, el := range all.Value {
+		if helpers.String(el.Name) == opts.Name {
+			return el, nil
+		}
+	}
+
+	return nil, &httplib.StatusError{
+		StatusCode: http.StatusNotFound,
+		Inner: fmt.Errorf("GitRepository not found (organization: %s, project: %s, name: %s)",
+			opts.Organization, opts.Project, opts.Name),
+	}
 }
 
 // Arguments for the CreatePush function

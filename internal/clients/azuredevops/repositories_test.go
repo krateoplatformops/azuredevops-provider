@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
@@ -83,4 +84,21 @@ func TestDeleteRepository(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+}
+
+func TestFindRepository(t *testing.T) {
+	cli := createAzureDevopsClient()
+	cli.verbose = true
+	res, err := cli.FindRepository(context.TODO(), FindRepositoryOptions{
+		Organization: os.Getenv("ORG"),
+		Project:      os.Getenv("PROJECT_ID"),
+		Name:         os.Getenv("REPO_NAME"),
+	})
+	if err != nil {
+		if !httplib.IsNotFoundError(err) {
+			t.Fatal(err)
+		}
+	}
+
+	spew.Dump(res)
 }

@@ -75,7 +75,7 @@ spec:
                 - Orphan
                 - Delete
                 type: string
-              init:
+              initialize:
                 description: 'Init: initialize the Git repository.'
                 type: boolean
               name:

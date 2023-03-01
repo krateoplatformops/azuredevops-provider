@@ -96,13 +96,6 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, errors.New(errNotGitRepository)
 	}
 
-	if meta.GetExternalName(cr) == "" {
-		return reconciler.ExternalObservation{
-			ResourceExists:   false,
-			ResourceUpToDate: true,
-		}, nil
-	}
-
 	spec := cr.Spec.DeepCopy()
 
 	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
@@ -110,30 +103,47 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
 	}
 
-	res, err := e.azCli.GetRepository(ctx, azuredevops.GetRepositoryOptions{
-		Organization: prj.Spec.Organization,
-		Project:      prj.Status.Id,
-		Repository:   meta.GetExternalName(cr),
-	})
-	if err != nil {
-		return reconciler.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+	var repo *azuredevops.GitRepository
+	if repoId := meta.GetExternalName(cr); repoId != "" {
+		var err error
+		repo, err = e.azCli.GetRepository(ctx, azuredevops.GetRepositoryOptions{
+			Organization: prj.Spec.Organization,
+			Project:      prj.Status.Id,
+			Repository:   repoId,
+		})
+		if err != nil && !httplib.IsNotFoundError(err) {
+			return reconciler.ExternalObservation{}, err
+		}
 	}
-	if res == nil {
+
+	if repo == nil {
+		var err error
+		repo, err = e.azCli.FindRepository(ctx, azuredevops.FindRepositoryOptions{
+			Organization: prj.Spec.Organization,
+			Project:      prj.Status.Id,
+			Name:         cr.Spec.Name,
+		})
+		if err != nil && !httplib.IsNotFoundError(err) {
+			return reconciler.ExternalObservation{}, err
+		}
+	}
+
+	if repo == nil {
 		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
 	}
 
-	meta.SetExternalName(cr, helpers.String(res.Id))
+	meta.SetExternalName(cr, helpers.String(repo.Id))
 	if err := e.kube.Update(ctx, cr); err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
 
-	cr.Status.Id = helpers.String(res.Id)
-	cr.Status.DefaultBranch = helpers.String(res.DefaultBranch)
-	cr.Status.SshUrl = helpers.String(res.SshUrl)
-	cr.Status.Url = helpers.String(res.Url)
+	cr.Status.Id = helpers.String(repo.Id)
+	cr.Status.DefaultBranch = helpers.String(repo.DefaultBranch)
+	cr.Status.SshUrl = helpers.String(repo.SshUrl)
+	cr.Status.Url = helpers.String(repo.Url)
 
 	cr.SetConditions(rtv1.Available())
 
@@ -141,7 +151,6 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		ResourceExists:   true,
 		ResourceUpToDate: true,
 	}, nil
-
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
@@ -168,16 +177,18 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		Name:         cr.Spec.Name,
 	})
 	if err != nil {
-		//if !httplib.HasStatusErr(err, http.StatusConflict) {
 		return err
-		//}
 	}
 
-	if helpers.Bool(cr.Spec.Init) {
+	if helpers.Bool(cr.Spec.Initialize) {
+		repoId := meta.GetExternalName(cr)
+		if res != nil {
+			repoId = helpers.String(res.Id)
+		}
 		_, err = e.azCli.CreatePush(ctx, azuredevops.GitPushOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
-			RepositoryId: helpers.String(res.Id),
+			RepositoryId: repoId,
 			Push: &azuredevops.GitPush{
 				RefUpdates: &[]azuredevops.GitRefUpdate{
 					{
@@ -188,15 +199,15 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 				Commits: &[]azuredevops.GitCommitRef{
 					{
 						Comment: helpers.StringPtr("Initial commit."),
-						Changes: &[]any{
-							map[string]any{
-								"changeType": "add",
-								"item": map[string]string{
+						Changes: []azuredevops.GitChange{
+							{
+								ChangeType: azuredevops.ChangeTypeAdd,
+								Item: map[string]string{
 									"path": "/README.md",
 								},
-								"newContent": map[string]string{
-									"content":     fmt.Sprintf("# %s", helpers.String(res.Name)),
-									"contentType": "rawtext",
+								NewContent: &azuredevops.ItemContent{
+									Content:     fmt.Sprintf("# %s", helpers.String(res.Name)),
+									ContentType: azuredevops.ContentTypeRawText,
 								},
 							},
 						},
