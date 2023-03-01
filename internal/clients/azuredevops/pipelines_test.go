@@ -10,6 +10,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
@@ -88,4 +89,19 @@ func TestListPipelines(t *testing.T) {
 			break
 		}
 	}
+}
+
+func TestFindPipeline(t *testing.T) {
+	cli := createAzureDevopsClient()
+
+	res, err := cli.FindPipeline(context.TODO(), FindPipelineOptions{
+		Organization: os.Getenv("ORG"),
+		Project:      os.Getenv("PROJECT_NAME"),
+		Name:         os.Getenv("PIPELINE_NAME"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	spew.Dump(res)
 }

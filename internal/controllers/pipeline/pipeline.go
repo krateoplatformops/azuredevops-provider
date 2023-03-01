@@ -96,13 +96,6 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, errors.New(errNotPipeline)
 	}
 
-	if meta.GetExternalName(cr) == "" {
-		return reconciler.ExternalObservation{
-			ResourceExists:   false,
-			ResourceUpToDate: true,
-		}, nil
-	}
-
 	spec := cr.Spec.DeepCopy()
 
 	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
@@ -111,28 +104,46 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
 	}
 
-	res, err := e.azCli.GetPipeline(ctx, azuredevops.GetPipelineOptions{
-		Organization: prj.Spec.Organization,
-		Project:      prj.Status.Id,
-		PipelineId:   meta.GetExternalName(cr),
-	})
-	if err != nil {
-		return reconciler.ExternalObservation{}, resource.Ignore(httplib.IsNotFoundError, err)
+	var pip *azuredevops.Pipeline
+	if pipId := meta.GetExternalName(cr); pipId != "" {
+		var err error
+		pip, err = e.azCli.GetPipeline(ctx, azuredevops.GetPipelineOptions{
+			Organization: prj.Spec.Organization,
+			Project:      prj.Status.Id,
+			PipelineId:   pipId,
+		})
+		if err != nil && !httplib.IsNotFoundError(err) {
+			return reconciler.ExternalObservation{}, err
+		}
 	}
-	if res == nil {
+
+	if pip == nil {
+		var err error
+		pip, err = e.azCli.FindPipeline(context.TODO(), azuredevops.FindPipelineOptions{
+			Organization: prj.Spec.Organization,
+			Project:      prj.Spec.Name,
+			Name:         spec.Name,
+		})
+		if err != nil && !httplib.IsNotFoundError(err) {
+			return reconciler.ExternalObservation{}, err
+		}
+	}
+
+	if pip == nil {
 		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
 	}
 
-	meta.SetExternalName(cr, fmt.Sprintf("%d", *res.Id))
+	pipId := fmt.Sprintf("%d", *pip.Id)
+	meta.SetExternalName(cr, pipId)
 	if err := e.kube.Update(ctx, cr); err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
 
-	cr.Status.Id = helpers.StringPtr(fmt.Sprintf("%d", *res.Id))
-	cr.Status.Url = helpers.StringPtr(*res.Url)
+	cr.Status.Id = helpers.StringPtr(pipId)
+	cr.Status.Url = helpers.StringPtr(*pip.Url)
 
 	cr.SetConditions(rtv1.Available())
 

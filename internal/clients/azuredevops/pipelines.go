@@ -3,10 +3,12 @@ package azuredevops
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
@@ -230,4 +232,43 @@ func (c *Client) ListPipelines(ctx context.Context, opts ListPipelinesOptions) (
 	})
 
 	return val, err
+}
+
+type FindPipelineOptions struct {
+	Organization string
+	Project      string
+	Name         string
+}
+
+// FindPipeline utility method to look for a specific pipeline.
+func (c *Client) FindPipeline(ctx context.Context, opts FindPipelineOptions) (*Pipeline, error) {
+	var continutationToken string
+	for {
+		top := int(30)
+		res, err := c.ListPipelines(ctx, ListPipelinesOptions{
+			Organization:      opts.Organization,
+			Project:           opts.Project,
+			Top:               &top,
+			ContinuationToken: &continutationToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, el := range res.Value {
+			if strings.EqualFold(el.Name, opts.Name) {
+				return &el, nil
+			}
+		}
+
+		continutationToken = *res.ContinuationToken
+		if continutationToken == "" {
+			break
+		}
+	}
+
+	return nil, &httplib.StatusError{
+		StatusCode: http.StatusNotFound,
+		Inner:      fmt.Errorf("pipeline '%s' not found", opts.Name),
+	}
 }
