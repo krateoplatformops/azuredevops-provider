@@ -2,8 +2,11 @@ package azuredevops
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"path"
+	"strconv"
 
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
@@ -143,6 +146,84 @@ func (c *Client) GetPipeline(ctx context.Context, opts GetPipelineOptions) (*Pip
 		Verbose:         c.verbose,
 		AuthMethod:      c.authMethod,
 		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
+}
+
+type ListPipelinesOptions struct {
+	Organization string
+	Project      string
+	// (optional)
+	OrderBy *string
+	// (optional)
+	Top *int
+	// (optional)
+	Skip *int
+	// (optional)
+	ContinuationToken *string
+}
+
+type ListPipelinesResponseValue struct {
+	Count             int        `json:"count"`
+	Value             []Pipeline `json:"value,omitempty"`
+	ContinuationToken *string    `json:"continuationToken,omitempty"`
+}
+
+// Get a list of pipelines.
+// GET https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.0
+func (c *Client) ListPipelines(ctx context.Context, opts ListPipelinesOptions) (*ListPipelinesResponseValue, error) {
+	params := []string{apiVersionKey, apiVersionVal}
+	if opts.OrderBy != nil {
+		params = append(params, "orderBy", string(*opts.OrderBy))
+	}
+	if opts.Top != nil {
+		params = append(params, "$top", strconv.Itoa(*opts.Top))
+	}
+	if opts.Skip != nil {
+		params = append(params, "$skip", strconv.Itoa(*opts.Skip))
+	}
+	if opts.ContinuationToken != nil {
+		params = append(params, "continuationToken", *opts.ContinuationToken)
+	}
+
+	uri, err := httplib.NewURLBuilder(
+		httplib.URLBuilderOptions{
+			BaseURL: c.baseURL,
+			Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines"),
+			Params:  params,
+		}).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Get(uri.String())
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	apiErr := &APIError{}
+	val := &ListPipelinesResponseValue{}
+
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		AuthMethod: c.authMethod,
+		Verbose:    c.verbose,
+		ResponseHandler: func(res *http.Response) error {
+			data, err := io.ReadAll(res.Body)
+			if err != nil {
+				return err
+			}
+			if err = json.Unmarshal(data, val); err != nil {
+				return err
+			}
+
+			val.ContinuationToken = helpers.StringPtr(res.Header.Get("X-Ms-Continuationtoken"))
+			return nil
+		},
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},

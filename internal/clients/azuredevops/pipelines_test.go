@@ -5,6 +5,7 @@ package azuredevops
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -56,4 +57,35 @@ func TestCreatePipeline(t *testing.T) {
 	}
 
 	fmt.Printf("id: %d\n", *res.Id)
+}
+
+func TestListPipelines(t *testing.T) {
+	cli := createAzureDevopsClient()
+
+	var continutationToken string
+	for {
+		top := int(4)
+		res, err := cli.ListPipelines(context.TODO(), ListPipelinesOptions{
+			Organization:      os.Getenv("ORG"),
+			Project:           os.Getenv("PROJECT_NAME"),
+			Top:               &top,
+			ContinuationToken: &continutationToken,
+		})
+		if err != nil {
+			var apierr *APIError
+			if errors.As(err, &apierr) {
+				fmt.Println(apierr.Error())
+			}
+			break
+		}
+
+		for _, el := range res.Value {
+			t.Logf("%s (id: %d)", el.Name, *el.Id)
+		}
+
+		continutationToken = *res.ContinuationToken
+		if continutationToken == "" {
+			break
+		}
+	}
 }

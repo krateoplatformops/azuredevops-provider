@@ -88,7 +88,7 @@ func TestDeleteRepository(t *testing.T) {
 
 func TestFindRepository(t *testing.T) {
 	cli := createAzureDevopsClient()
-	cli.verbose = true
+
 	res, err := cli.FindRepository(context.TODO(), FindRepositoryOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_ID"),

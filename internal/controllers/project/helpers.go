@@ -2,7 +2,6 @@ package project
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -56,8 +55,6 @@ func isUpdate(desired *projects.TeamProjectSpec, current *azuredevops.TeamProjec
 		"Id", "Visibility", "Capabilities", "Revision", "State")
 
 	diff := cmp.Diff(teamProjectFromSpec(desired), current, ignore)
-
-	fmt.Printf("\ndiff: => %s\n", diff)
 	return len(diff) == 0
 }
 
