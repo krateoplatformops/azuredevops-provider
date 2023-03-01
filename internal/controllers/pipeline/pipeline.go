@@ -151,7 +151,6 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		ResourceExists:   true,
 		ResourceUpToDate: true,
 	}, nil
-
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
