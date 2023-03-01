@@ -4,6 +4,7 @@ metadata:
   name: gitrepository-sample
 spec:
   name: Test Repo created by Krateo 
+  init: true
   projectRef:
     name: teamproject-sample
     namespace: default

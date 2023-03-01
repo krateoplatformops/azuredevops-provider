@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -167,7 +168,45 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		Name:         cr.Spec.Name,
 	})
 	if err != nil {
+		//if !httplib.HasStatusErr(err, http.StatusConflict) {
 		return err
+		//}
+	}
+
+	if helpers.Bool(cr.Spec.Init) {
+		_, err = e.azCli.CreatePush(ctx, azuredevops.GitPushOptions{
+			Organization: prj.Spec.Organization,
+			Project:      prj.Status.Id,
+			RepositoryId: helpers.String(res.Id),
+			Push: &azuredevops.GitPush{
+				RefUpdates: &[]azuredevops.GitRefUpdate{
+					{
+						Name:        helpers.StringPtr("refs/heads/master"),
+						OldObjectId: helpers.StringPtr("0000000000000000000000000000000000000000"),
+					},
+				},
+				Commits: &[]azuredevops.GitCommitRef{
+					{
+						Comment: helpers.StringPtr("Initial commit."),
+						Changes: &[]any{
+							map[string]any{
+								"changeType": "add",
+								"item": map[string]string{
+									"path": "/README.md",
+								},
+								"newContent": map[string]string{
+									"content":     fmt.Sprintf("# %s", helpers.String(res.Name)),
+									"contentType": "rawtext",
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	meta.SetExternalName(cr, helpers.String(res.Id))

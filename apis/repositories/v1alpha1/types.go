@@ -24,6 +24,9 @@ type GitRepositorySpec struct {
 
 	// Name: name of the Git repository.
 	Name string `json:"name,omitempty"`
+
+	// Init: initialize the Git repository.
+	Init *bool `json:"init,omitempty"`
 }
 
 // GitRepositoryStatus defines the observed state of Repository
