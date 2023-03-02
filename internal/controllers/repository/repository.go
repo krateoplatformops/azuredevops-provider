@@ -144,6 +144,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	cr.Status.DefaultBranch = helpers.String(repo.DefaultBranch)
 	cr.Status.SshUrl = helpers.String(repo.SshUrl)
 	cr.Status.Url = helpers.String(repo.Url)
+	cr.Status.RemoteUrl = helpers.String(repo.RemoteUrl)
 
 	cr.SetConditions(rtv1.Available())
 
@@ -192,7 +193,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 			Push: &azuredevops.GitPush{
 				RefUpdates: &[]azuredevops.GitRefUpdate{
 					{
-						Name:        helpers.StringPtr("refs/heads/master"),
+						Name:        res.DefaultBranch,
 						OldObjectId: helpers.StringPtr("0000000000000000000000000000000000000000"),
 					},
 				},

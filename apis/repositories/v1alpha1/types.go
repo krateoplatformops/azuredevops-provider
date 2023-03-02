@@ -37,13 +37,14 @@ type GitRepositoryStatus struct {
 	DefaultBranch string `json:"defaultBranch,omitempty"`
 	SshUrl        string `json:"sshUrl,omitempty"`
 	Url           string `json:"url,omitempty"`
+	RemoteUrl     string `json:"remoteUrl,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster,categories={krateo,azuredevops}
 //+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id",priority=10
-//+kubebuilder:printcolumn:name="SSH_URL",type="string",JSONPath=".status.sshUrl"
+//+kubebuilder:printcolumn:name="REMOTE_URL",type="string",JSONPath=".status.remoteUrl"
 //+kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 //+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status",priority=10
 

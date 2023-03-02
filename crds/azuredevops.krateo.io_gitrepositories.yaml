@@ -23,8 +23,8 @@ spec:
       name: ID
       priority: 10
       type: string
-    - jsonPath: .status.sshUrl
-      name: SSH_URL
+    - jsonPath: .status.remoteUrl
+      name: REMOTE_URL
       type: string
     - jsonPath: .status.conditions[?(@.type=='Ready')].status
       name: READY
@@ -137,6 +137,8 @@ spec:
               defaultBranch:
                 type: string
               id:
+                type: string
+              remoteUrl:
                 type: string
               sshUrl:
                 type: string
