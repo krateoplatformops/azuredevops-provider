@@ -193,7 +193,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 			Push: &azuredevops.GitPush{
 				RefUpdates: &[]azuredevops.GitRefUpdate{
 					{
-						Name:        res.DefaultBranch,
+						Name:        helpers.StringPtr("refs/heads/master"), // TODO(@lucasepe): should be -> res.DefaultBranch,
 						OldObjectId: helpers.StringPtr("0000000000000000000000000000000000000000"),
 					},
 				},
