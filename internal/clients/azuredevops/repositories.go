@@ -176,7 +176,7 @@ func (c *Client) CreateRepository(ctx context.Context, opts CreateRepositoryOpti
 		Verbose:         c.verbose,
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
-			httplib.ErrorJSON(apiErr, http.StatusCreated),
+			httplib.ErrorJSON(apiErr, http.StatusOK, http.StatusCreated),
 		},
 	})
 	return val, err

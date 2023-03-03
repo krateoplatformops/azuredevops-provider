@@ -3,7 +3,7 @@ kind: GitRepository
 metadata:
   name: gitrepository-sample
 spec:
-  name: AZ DevOps Krateo Provider Repo 
+  name: krateo-test-default-branch-param
   initialize: true
   projectRef:
     name: teamproject-sample

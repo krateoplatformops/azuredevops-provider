@@ -186,6 +186,12 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		if res != nil {
 			repoId = helpers.String(res.Id)
 		}
+
+		defaultBranch := helpers.String(res.DefaultBranch)
+		if len(defaultBranch) == 0 {
+			defaultBranch = "refs/heads/master"
+		}
+
 		_, err = e.azCli.CreatePush(ctx, azuredevops.GitPushOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
@@ -193,7 +199,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 			Push: &azuredevops.GitPush{
 				RefUpdates: &[]azuredevops.GitRefUpdate{
 					{
-						Name:        helpers.StringPtr("refs/heads/master"), // TODO(@lucasepe): should be -> res.DefaultBranch,
+						Name:        helpers.StringPtr(defaultBranch),
 						OldObjectId: helpers.StringPtr("0000000000000000000000000000000000000000"),
 					},
 				},
