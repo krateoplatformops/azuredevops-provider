@@ -29,6 +29,45 @@ func TestCreateRepository(t *testing.T) {
 	}
 
 	fmt.Printf("%s\n", helpers.String(res.Id))
+
+	defaultBranch := helpers.String(res.DefaultBranch)
+	if len(defaultBranch) == 0 {
+		defaultBranch = "refs/heads/master"
+	}
+
+	_, err = cli.CreatePush(context.TODO(), GitPushOptions{
+		Organization: os.Getenv("ORG"),
+		Project:      os.Getenv("PROJECT_ID"),
+		RepositoryId: helpers.String(res.Id),
+		Push: &GitPush{
+			RefUpdates: &[]GitRefUpdate{
+				{
+					Name:        helpers.StringPtr(defaultBranch),
+					OldObjectId: helpers.StringPtr("0000000000000000000000000000000000000000"),
+				},
+			},
+			Commits: &[]GitCommitRef{
+				{
+					Comment: helpers.StringPtr("Initial commit."),
+					Changes: []GitChange{
+						{
+							ChangeType: ChangeTypeAdd,
+							Item: map[string]string{
+								"path": "/README.md",
+							},
+							NewContent: &ItemContent{
+								Content:     fmt.Sprintf("# %s", helpers.String(res.Name)),
+								ContentType: ContentTypeRawText,
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestGetRepository(t *testing.T) {
