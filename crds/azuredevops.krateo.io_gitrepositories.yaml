@@ -66,6 +66,9 @@ spec:
                 - name
                 - namespace
                 type: object
+              defaultBranch:
+                description: 'DefaultBranch: repository default branch.'
+                type: string
               deletionPolicy:
                 default: Delete
                 description: DeletionPolicy specifies what will happen to the underlying

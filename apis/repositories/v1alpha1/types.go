@@ -27,6 +27,10 @@ type GitRepositorySpec struct {
 
 	// Init: initialize the Git repository.
 	Initialize *bool `json:"initialize,omitempty"`
+
+	// DefaultBranch: repository default branch.
+	// +optional
+	DefaultBranch *string `json:"defaultBranch,omitempty"`
 }
 
 // GitRepositoryStatus defines the observed state of Repository

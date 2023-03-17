@@ -86,6 +86,8 @@ func TestGetRepository(t *testing.T) {
 	}
 
 	t.Logf("%s (id: %s)\n", *res.Name, *res.Id)
+
+	t.Logf("%+v\n", *res.RemoteUrl)
 }
 
 func TestDeleteRepository(t *testing.T) {

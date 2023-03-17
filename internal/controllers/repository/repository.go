@@ -182,14 +182,13 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	}
 
 	if helpers.Bool(cr.Spec.Initialize) {
-		repoId := meta.GetExternalName(cr)
-		if res != nil {
-			repoId = helpers.String(res.Id)
-		}
-
-		defaultBranch := helpers.String(res.DefaultBranch)
+		//repoId := meta.GetExternalName(cr)
+		//if res != nil {
+		repoId := helpers.String(res.Id)
+		//}
+		defaultBranch := helpers.String(cr.Spec.DefaultBranch)
 		if len(defaultBranch) == 0 {
-			defaultBranch = "refs/heads/master"
+			defaultBranch = "refs/heads/main"
 		}
 
 		_, err = e.azCli.CreatePush(ctx, azuredevops.GitPushOptions{

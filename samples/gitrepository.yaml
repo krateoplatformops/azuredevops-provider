@@ -3,7 +3,7 @@ kind: GitRepository
 metadata:
   name: gitrepository-sample
 spec:
-  name: krateo-test-by-luca
+  name: repo-issue-branch-main
   initialize: true
   projectRef:
     name: teamproject-sample
