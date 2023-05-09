@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/dotenv"
 	"github.com/lucasepe/httplib"
@@ -80,13 +81,13 @@ func TestGetProject(t *testing.T) {
 
 	res, err := cli.GetProject(context.TODO(), GetProjectOptions{
 		Organization: os.Getenv("ORG"),
-		ProjectId:    os.Getenv("PROJECT_ID"),
+		ProjectId:    os.Getenv("PROJECT_NAME"),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("%v\n", res)
+	spew.Dump(res)
 }
 
 func TestDeleteProject(t *testing.T) {

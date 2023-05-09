@@ -44,7 +44,7 @@ func TestCreatePipeline(t *testing.T) {
 			Folder: os.Getenv("PIPELINE_FOLDER"),
 			Configuration: &PipelineConfiguration{
 				Type: ConfigurationYaml,
-				Path: helpers.StringPtr("/azure-pipelines.yml"),
+				Path: helpers.StringPtr("/azure-pipelines-helloworld.yaml"),
 				Repository: &BuildRepository{
 					Id:   os.Getenv("REPO_ID"),
 					Name: os.Getenv("REPO_NAME"),

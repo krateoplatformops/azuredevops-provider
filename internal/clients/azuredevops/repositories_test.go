@@ -75,7 +75,7 @@ func TestGetRepository(t *testing.T) {
 
 	res, err := cli.GetRepository(context.TODO(), GetRepositoryOptions{
 		Organization: os.Getenv("ORG"),
-		Project:      os.Getenv("PROJECT_ID"),
+		Project:      os.Getenv("PROJECT_NAME"),
 		Repository:   os.Getenv("REPO_NAME"),
 	})
 	if err != nil {
