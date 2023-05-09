@@ -143,15 +143,20 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	}
 
 	meta.SetExternalName(cr, helpers.String(prj.Id))
-	if err := e.kube.Update(ctx, cr); err != nil {
-		return reconciler.ExternalObservation{}, err
-	}
 
 	cr.Status.Id = helpers.String(prj.Id)
-	cr.Status.Revision = *prj.Revision
-	cr.Status.State = string(*prj.State)
+	if prj.Revision != nil {
+		cr.Status.Revision = *prj.Revision
+	}
+	if prj.State != nil {
+		cr.Status.State = string(*prj.State)
+	}
 
 	cr.SetConditions(rtv1.Available())
+
+	//if err := e.kube.Update(ctx, cr); err != nil {
+	//	return reconciler.ExternalObservation{}, err
+	//}
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,

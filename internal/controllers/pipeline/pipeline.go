@@ -175,7 +175,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	repo, err := resolvers.ResolveGitRepository(ctx, e.kube, spec.RepositoryRef)
 	if err != nil {
-		return errors.Wrapf(err, "unble to resolve GitRepository: %s", spec.RepositoryRef.Name)
+		return errors.Wrapf(err, "unable to resolve GitRepository: %s", spec.RepositoryRef.Name)
 	}
 
 	res, err := e.azCli.CreatePipeline(ctx, azuredevops.CreatePipelineOptions{

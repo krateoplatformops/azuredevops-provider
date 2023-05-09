@@ -3,8 +3,6 @@ package project
 import (
 	"context"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
@@ -51,11 +49,21 @@ func teamProjectFromSpec(spec *projects.TeamProjectSpec) *azuredevops.TeamProjec
 }
 
 func isUpdate(desired *projects.TeamProjectSpec, current *azuredevops.TeamProject) bool {
-	ignore := cmpopts.IgnoreFields(azuredevops.TeamProject{},
-		"Id", "Visibility", "Capabilities", "Revision", "State")
+	//ignore := cmpopts.IgnoreFields(azuredevops.TeamProject{},
+	//	"Id", "Visibility", "Capabilities", "Revision", "State")
 
-	diff := cmp.Diff(teamProjectFromSpec(desired), current, ignore)
-	return len(diff) == 0
+	//diff := cmp.Diff(teamProjectFromSpec(desired), current, ignore)
+	//return len(diff) == 0
+
+	if desired.Name != current.Name {
+		return false
+	}
+
+	if desired.Description != *current.Description {
+		return false
+	}
+
+	return true
 }
 
 // conditionFromOperationReference returns a condition that indicates

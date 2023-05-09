@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/google/go-cmp v0.5.9
 	github.com/krateoplatformops/provider-runtime v0.4.7
 	github.com/lucasepe/dotenv v0.1.0
 	github.com/lucasepe/httplib v0.2.1
@@ -37,6 +36,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
