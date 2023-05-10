@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package azuredevops
+package projects
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/dotenv"
 	"github.com/lucasepe/httplib"
@@ -23,14 +24,14 @@ func TestListProjects(t *testing.T) {
 	var continutationToken string
 	for {
 		top := int(4)
-		res, err := cli.ListProjects(context.TODO(), ListProjectsOptions{
+		res, err := List(context.TODO(), cli, ListOptions{
 			Organization:      os.Getenv("ORG"),
 			StateFilter:       (*ProjectState)(helpers.StringPtr("all")),
 			Top:               &top,
 			ContinuationToken: &continutationToken,
 		})
 		if err != nil {
-			var apierr *APIError
+			var apierr *azuredevops.APIError
 			if errors.As(err, &apierr) {
 				fmt.Println(apierr.Error())
 			}
@@ -51,7 +52,7 @@ func TestListProjects(t *testing.T) {
 func TestCreateProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.CreateProject(context.TODO(), CreateProjectOptions{
+	res, err := Create(context.TODO(), cli, CreateOptions{
 		Organization: os.Getenv("ORG"),
 		TeamProject: &TeamProject{
 			Name: os.Getenv("PROJECT_NAME"),
@@ -67,7 +68,7 @@ func TestCreateProject(t *testing.T) {
 		},
 	})
 	if err != nil {
-		var apierr *APIError
+		var apierr *azuredevops.APIError
 		if errors.As(err, &apierr) {
 			fmt.Println(apierr.Error())
 		}
@@ -79,7 +80,7 @@ func TestCreateProject(t *testing.T) {
 func TestGetProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.GetProject(context.TODO(), GetProjectOptions{
+	res, err := Get(context.TODO(), cli, GetOptions{
 		Organization: os.Getenv("ORG"),
 		ProjectId:    os.Getenv("PROJECT_NAME"),
 	})
@@ -93,7 +94,7 @@ func TestGetProject(t *testing.T) {
 func TestDeleteProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.DeleteProject(context.TODO(), DeleteProjectOptions{
+	res, err := Delete(context.TODO(), cli, DeleteOptions{
 		Organization: os.Getenv("ORG"),
 		ProjectId:    "de69b1ba-ce86-4275-8d2c-653e4b354a7b", //os.Getenv("PROJECT_ID"),
 	})
@@ -111,7 +112,7 @@ func TestDeleteProject(t *testing.T) {
 func TestFindProject(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.FindProject(context.TODO(), FindProjectsOptions{
+	res, err := Find(context.TODO(), cli, FindOptions{
 		Organization: os.Getenv("ORG"),
 		Name:         os.Getenv("PROJECT_NAME"),
 	})
@@ -126,11 +127,11 @@ func TestFindProject(t *testing.T) {
 	}
 }
 
-func createAzureDevopsClient() *Client {
-	env, _ := dotenv.FromFile("../../../.env")
+func createAzureDevopsClient() *azuredevops.Client {
+	env, _ := dotenv.FromFile("../../../../.env")
 	dotenv.PutInEnv(env, false)
 
-	return NewClient(ClientOptions{
+	return azuredevops.NewClient(azuredevops.ClientOptions{
 		Verbose: false,
 		BaseURL: os.Getenv("BASE_URL"),
 		Token:   os.Getenv("TOKEN"),

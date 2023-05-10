@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package azuredevops
+package repositories
 
 import (
 	"context"
@@ -10,14 +10,16 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
+	"github.com/lucasepe/dotenv"
 	"github.com/lucasepe/httplib"
 )
 
 func TestCreateRepository(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.CreateRepository(context.TODO(), CreateRepositoryOptions{
+	res, err := Create(context.TODO(), cli, CreateOptions{
 		Organization: os.Getenv("ORG"),
 		ProjectId:    os.Getenv("PROJECT_ID"),
 		Name:         os.Getenv("REPO_NAME"),
@@ -35,7 +37,7 @@ func TestCreateRepository(t *testing.T) {
 		defaultBranch = "refs/heads/master"
 	}
 
-	_, err = cli.CreatePush(context.TODO(), GitPushOptions{
+	_, err = CreatePush(context.TODO(), cli, GitPushOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_ID"),
 		RepositoryId: helpers.String(res.Id),
@@ -73,7 +75,7 @@ func TestCreateRepository(t *testing.T) {
 func TestGetRepository(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.GetRepository(context.TODO(), GetRepositoryOptions{
+	res, err := Get(context.TODO(), cli, GetOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_NAME"),
 		Repository:   os.Getenv("REPO_NAME"),
@@ -93,7 +95,7 @@ func TestGetRepository(t *testing.T) {
 func TestDeleteRepository(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	repo, err := cli.GetRepository(context.TODO(), GetRepositoryOptions{
+	repo, err := Get(context.TODO(), cli, GetOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_ID"),
 		Repository:   os.Getenv("REPO_NAME"),
@@ -104,7 +106,7 @@ func TestDeleteRepository(t *testing.T) {
 		}
 	}
 
-	err = cli.DeleteRepository(context.TODO(), DeleteRepositoryOptions{
+	err = Delete(context.TODO(), cli, DeleteOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      helpers.String(repo.Project.Id),
 		RepositoryId: helpers.String(repo.Id),
@@ -115,7 +117,7 @@ func TestDeleteRepository(t *testing.T) {
 		}
 	}
 
-	err = cli.DeleteRepositoryFromRecycleBin(context.TODO(), DeleteRepositoryOptions{
+	err = DeleteFromRecycleBin(context.TODO(), cli, DeleteOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      helpers.String(repo.Project.Id),
 		RepositoryId: helpers.String(repo.Id),
@@ -130,7 +132,7 @@ func TestDeleteRepository(t *testing.T) {
 func TestFindRepository(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.FindRepository(context.TODO(), FindRepositoryOptions{
+	res, err := Find(context.TODO(), cli, FindOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_ID"),
 		Name:         os.Getenv("REPO_NAME"),
@@ -142,4 +144,15 @@ func TestFindRepository(t *testing.T) {
 	}
 
 	spew.Dump(res)
+}
+
+func createAzureDevopsClient() *azuredevops.Client {
+	env, _ := dotenv.FromFile("../../../../.env")
+	dotenv.PutInEnv(env, false)
+
+	return azuredevops.NewClient(azuredevops.ClientOptions{
+		Verbose: false,
+		BaseURL: os.Getenv("BASE_URL"),
+		Token:   os.Getenv("TOKEN"),
+	})
 }

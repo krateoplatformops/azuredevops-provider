@@ -20,7 +20,7 @@ func (c *Client) DeleteDefinition(ctx context.Context, opts DeleteDefinitionOpti
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/build/definitions/", opts.DefinitionId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{ApiVersionKey, ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return err

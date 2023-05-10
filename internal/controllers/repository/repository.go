@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/repositories"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/lucasepe/httplib"
@@ -25,7 +26,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
-	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
+	repositoriesv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 )
 
 const (
@@ -33,14 +34,14 @@ const (
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := reconciler.ControllerName(repositories.GitRepositoryGroupKind)
+	name := reconciler.ControllerName(repositoriesv1alpha1.GitRepositoryGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := reconciler.NewReconciler(mgr,
-		resource.ManagedKind(repositories.GitRepositoryGroupVersionKind),
+		resource.ManagedKind(repositoriesv1alpha1.GitRepositoryGroupVersionKind),
 		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -53,7 +54,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&repositories.GitRepository{}).
+		For(&repositoriesv1alpha1.GitRepository{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -64,7 +65,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
-	cr, ok := mg.(*repositories.GitRepository)
+	cr, ok := mg.(*repositoriesv1alpha1.GitRepository)
 	if !ok {
 		return nil, errors.New(errNotGitRepository)
 	}
@@ -91,7 +92,7 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
-	cr, ok := mg.(*repositories.GitRepository)
+	cr, ok := mg.(*repositoriesv1alpha1.GitRepository)
 	if !ok {
 		return reconciler.ExternalObservation{}, errors.New(errNotGitRepository)
 	}
@@ -103,10 +104,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
 	}
 
-	var repo *azuredevops.GitRepository
+	var repo *repositories.GitRepository
 	if repoId := meta.GetExternalName(cr); repoId != "" {
 		var err error
-		repo, err = e.azCli.GetRepository(ctx, azuredevops.GetRepositoryOptions{
+		repo, err = repositories.Get(ctx, e.azCli, repositories.GetOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
 			Repository:   repoId,
@@ -118,7 +119,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	if repo == nil {
 		var err error
-		repo, err = e.azCli.FindRepository(ctx, azuredevops.FindRepositoryOptions{
+		repo, err = repositories.Find(ctx, e.azCli, repositories.FindOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
 			Name:         cr.Spec.Name,
@@ -155,7 +156,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*repositories.GitRepository)
+	cr, ok := mg.(*repositoriesv1alpha1.GitRepository)
 	if !ok {
 		return errors.New(errNotGitRepository)
 	}
@@ -172,7 +173,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
 	}
 
-	res, err := e.azCli.CreateRepository(ctx, azuredevops.CreateRepositoryOptions{
+	res, err := repositories.Create(ctx, e.azCli, repositories.CreateOptions{
 		Organization: prj.Spec.Organization,
 		ProjectId:    prj.Status.Id,
 		Name:         cr.Spec.Name,
@@ -191,29 +192,29 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 			defaultBranch = "refs/heads/main"
 		}
 
-		_, err = e.azCli.CreatePush(ctx, azuredevops.GitPushOptions{
+		_, err = repositories.CreatePush(ctx, e.azCli, repositories.GitPushOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
 			RepositoryId: repoId,
-			Push: &azuredevops.GitPush{
-				RefUpdates: &[]azuredevops.GitRefUpdate{
+			Push: &repositories.GitPush{
+				RefUpdates: &[]repositories.GitRefUpdate{
 					{
 						Name:        helpers.StringPtr(defaultBranch),
 						OldObjectId: helpers.StringPtr("0000000000000000000000000000000000000000"),
 					},
 				},
-				Commits: &[]azuredevops.GitCommitRef{
+				Commits: &[]repositories.GitCommitRef{
 					{
 						Comment: helpers.StringPtr("Initial commit."),
-						Changes: []azuredevops.GitChange{
+						Changes: []repositories.GitChange{
 							{
-								ChangeType: azuredevops.ChangeTypeAdd,
+								ChangeType: repositories.ChangeTypeAdd,
 								Item: map[string]string{
 									"path": "/README.md",
 								},
-								NewContent: &azuredevops.ItemContent{
+								NewContent: &repositories.ItemContent{
 									Content:     fmt.Sprintf("# %s", helpers.String(res.Name)),
-									ContentType: azuredevops.ContentTypeRawText,
+									ContentType: repositories.ContentTypeRawText,
 								},
 							},
 						},
@@ -243,7 +244,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*repositories.GitRepository)
+	cr, ok := mg.(*repositoriesv1alpha1.GitRepository)
 	if !ok {
 		return errors.New(errNotGitRepository)
 	}
@@ -260,7 +261,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
 	}
 
-	err = e.azCli.DeleteRepository(ctx, azuredevops.DeleteRepositoryOptions{
+	err = repositories.Delete(ctx, e.azCli, repositories.DeleteOptions{
 		Organization: prj.Spec.Organization,
 		Project:      prj.Status.Id,
 		RepositoryId: cr.Status.Id,

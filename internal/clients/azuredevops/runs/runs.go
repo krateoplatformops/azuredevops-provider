@@ -1,4 +1,4 @@
-package azuredevops
+package runs
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
@@ -67,13 +68,13 @@ type RunResources struct {
 	Repositories *map[string]RepositoryResource `json:"repositories,omitempty"`
 }
 
-type Run struct {
+type RunInfo struct {
 	Id                 *int                   `json:"id,omitempty"`
 	Name               *string                `json:"name,omitempty"`
 	Links              interface{}            `json:"_links,omitempty"`
-	CreatedDate        *Time                  `json:"createdDate,omitempty"`
+	CreatedDate        *azuredevops.Time      `json:"createdDate,omitempty"`
 	FinalYaml          *string                `json:"finalYaml,omitempty"`
-	FinishedDate       *Time                  `json:"finishedDate,omitempty"`
+	FinishedDate       *azuredevops.Time      `json:"finishedDate,omitempty"`
 	Pipeline           *PipelineReference     `json:"pipeline,omitempty"`
 	Resources          *RunResources          `json:"resources,omitempty"`
 	Result             *string                `json:"result,omitempty"`
@@ -145,8 +146,8 @@ type RunPipelineParameters struct {
 	YamlOverride *string `json:"yamlOverride,omitempty"`
 }
 
-// Options for the RunPipeline function
-type RunPipelineOptions struct {
+// Options for the Run pipeline function
+type RunOptions struct {
 	// (required) Optional additional parameters for this run.
 	RunParameters *RunPipelineParameters
 
@@ -160,13 +161,13 @@ type RunPipelineOptions struct {
 	PipelineVersion *int
 }
 
-// RunPipeline run Pipeline.
+// Run run Pipeline.
 // POST https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.0
-func (c *Client) RunPipeline(ctx context.Context, opts RunPipelineOptions) (*Run, error) {
+func Run(ctx context.Context, cli *azuredevops.Client, opts RunOptions) (*RunInfo, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", strconv.Itoa(opts.PipelineId), "runs"),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -187,11 +188,11 @@ func (c *Client) RunPipeline(ctx context.Context, opts RunPipelineOptions) (*Run
 	req.Header.Add("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
-	val := &Run{}
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	apiErr := &azuredevops.APIError{}
+	val := &RunInfo{}
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
@@ -200,8 +201,8 @@ func (c *Client) RunPipeline(ctx context.Context, opts RunPipelineOptions) (*Run
 	return val, err
 }
 
-// Options for the GetRun function
-type GetRunOptions struct {
+// Options for the Get run function
+type GetOptions struct {
 	// (required) The name of the Azure DevOps organization.
 	Organization string
 	// (required) Project ID or project name
@@ -214,11 +215,11 @@ type GetRunOptions struct {
 
 // Gets a run for a particular pipeline.
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs/{runId}?api-version=7.0
-func (c *Client) GetRun(ctx context.Context, opts GetRunOptions) (*Run, error) {
+func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*RunInfo, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", strconv.Itoa(opts.PipelineId), "runs", strconv.Itoa(opts.RunId)),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -230,12 +231,12 @@ func (c *Client) GetRun(ctx context.Context, opts GetRunOptions) (*Run, error) {
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
-	val := &Run{}
+	apiErr := &azuredevops.APIError{}
+	val := &RunInfo{}
 
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		Verbose:         c.verbose,
-		AuthMethod:      c.authMethod,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:         cli.Verbose(),
+		AuthMethod:      cli.AuthMethod(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),

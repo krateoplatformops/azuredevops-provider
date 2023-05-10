@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	apiVersionKey = "api-version"
-	apiVersionVal = "7.0"
-	userAgent     = "krateo/azuredevops-provider"
+	ApiVersionKey = "api-version"
+	ApiVersionVal = "7.0"
+	UserAgent     = "krateo/azuredevops-provider"
 )
 
 type ClientOptions struct {
@@ -32,7 +32,7 @@ func NewClient(opts ClientOptions) *Client {
 		baseURL:    opts.BaseURL,
 		verbose:    opts.Verbose,
 		authMethod: &httplib.BasicAuth{
-			Username: userAgent,
+			Username: UserAgent,
 			Password: opts.Token,
 		},
 	}
@@ -40,6 +40,22 @@ func NewClient(opts ClientOptions) *Client {
 
 func (c *Client) SetVerbose(v bool) {
 	c.verbose = v
+}
+
+func (c *Client) Verbose() bool {
+	return c.verbose
+}
+
+func (c *Client) BaseURL() string {
+	return c.baseURL
+}
+
+func (c *Client) AuthMethod() httplib.AuthMethod {
+	return c.authMethod
+}
+
+func (c *Client) HTTPClient() *http.Client {
+	return c.httpClient
 }
 
 type APIError struct {

@@ -3,8 +3,9 @@ package project
 import (
 	"context"
 
-	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
+	projectsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	projects "github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/projects"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/krateoplatformops/provider-runtime/pkg/meta"
@@ -20,27 +21,27 @@ const (
 	annotationKeyOperation = "krateo.io/opid"
 )
 
-func teamProjectFromSpec(spec *projects.TeamProjectSpec) *azuredevops.TeamProject {
-	visibility := azuredevops.VisibilityPrivate
+func teamProjectFromSpec(spec *projectsv1alpha1.TeamProjectSpec) *projects.TeamProject {
+	visibility := projects.VisibilityPrivate
 	if spec.Visibility != nil {
-		visibility = azuredevops.ProjectVisibility(helpers.String(spec.Visibility))
+		visibility = projects.Visibility(helpers.String(spec.Visibility))
 	}
 
-	res := &azuredevops.TeamProject{
+	res := &projects.TeamProject{
 		Name:        spec.Name,
 		Description: helpers.StringPtr(spec.Description),
 		Visibility:  visibility,
 	}
 
-	res.Capabilities = &azuredevops.Capabilities{}
+	res.Capabilities = &projects.Capabilities{}
 	if spec.Capabilities.Versioncontrol != nil {
-		res.Capabilities.Versioncontrol = &azuredevops.Versioncontrol{
+		res.Capabilities.Versioncontrol = &projects.Versioncontrol{
 			SourceControlType: spec.Capabilities.Versioncontrol.SourceControlType,
 		}
 	}
 
 	if spec.Capabilities.ProcessTemplate != nil {
-		res.Capabilities.ProcessTemplate = &azuredevops.ProcessTemplate{
+		res.Capabilities.ProcessTemplate = &projects.ProcessTemplate{
 			TemplateTypeId: spec.Capabilities.ProcessTemplate.TemplateTypeId,
 		}
 	}
@@ -48,7 +49,7 @@ func teamProjectFromSpec(spec *projects.TeamProjectSpec) *azuredevops.TeamProjec
 	return res
 }
 
-func isUpdate(desired *projects.TeamProjectSpec, current *azuredevops.TeamProject) bool {
+func isUpdate(desired *projectsv1alpha1.TeamProjectSpec, current *projects.TeamProject) bool {
 	if desired.Name != current.Name {
 		return false
 	}
@@ -94,7 +95,7 @@ func setOperationAnnotation(o metav1.Object, identifier string) {
 }
 
 // deleteOperationAnnotation delete the azuredevops operation annotation.
-func deleteOperationAnnotation(ctx context.Context, kube client.Client, o *projects.TeamProject) error {
+func deleteOperationAnnotation(ctx context.Context, kube client.Client, o *projectsv1alpha1.TeamProject) error {
 	meta.RemoveAnnotations(o, annotationKeyOperation)
 	return kube.Update(ctx, o)
 }

@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package azuredevops
+package runs
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/lucasepe/dotenv"
 	"github.com/lucasepe/httplib"
 )
 
@@ -22,7 +24,7 @@ func TestRunPipeline(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := cli.RunPipeline(context.TODO(), RunPipelineOptions{
+	res, err := Run(context.TODO(), cli, RunOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_NAME"),
 		PipelineId:   pipelineId,
@@ -47,7 +49,7 @@ func TestGetRun(t *testing.T) {
 		t.Fatal(err)
 	}
 	runId = 3
-	res, err := cli.GetRun(context.TODO(), GetRunOptions{
+	res, err := Get(context.TODO(), cli, GetOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_NAME"),
 		PipelineId:   pipelineId,
@@ -62,4 +64,15 @@ func TestGetRun(t *testing.T) {
 		fmt.Println()
 		fmt.Println("state: ", *res.State)
 	}
+}
+
+func createAzureDevopsClient() *azuredevops.Client {
+	env, _ := dotenv.FromFile("../../../../.env")
+	dotenv.PutInEnv(env, false)
+
+	return azuredevops.NewClient(azuredevops.ClientOptions{
+		Verbose: false,
+		BaseURL: os.Getenv("BASE_URL"),
+		Token:   os.Getenv("TOKEN"),
+	})
 }

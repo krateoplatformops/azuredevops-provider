@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package azuredevops
+package pipelines
 
 import (
 	"context"
@@ -11,14 +11,16 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
+	"github.com/lucasepe/dotenv"
 	"github.com/lucasepe/httplib"
 )
 
 func TestGetPipeline(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.GetPipeline(context.TODO(), GetPipelineOptions{
+	res, err := Get(context.TODO(), cli, GetOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_ID"),
 		PipelineId:   os.Getenv("PIPELINE_ID"),
@@ -36,7 +38,7 @@ func TestGetPipeline(t *testing.T) {
 func TestCreatePipeline(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.CreatePipeline(context.TODO(), CreatePipelineOptions{
+	res, err := Create(context.TODO(), cli, CreateOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_NAME"),
 		Pipeline: Pipeline{
@@ -66,14 +68,14 @@ func TestListPipelines(t *testing.T) {
 	var continutationToken string
 	for {
 		top := int(4)
-		res, err := cli.ListPipelines(context.TODO(), ListPipelinesOptions{
+		res, err := List(context.TODO(), cli, ListOptions{
 			Organization:      os.Getenv("ORG"),
 			Project:           os.Getenv("PROJECT_NAME"),
 			Top:               &top,
 			ContinuationToken: &continutationToken,
 		})
 		if err != nil {
-			var apierr *APIError
+			var apierr *azuredevops.APIError
 			if errors.As(err, &apierr) {
 				fmt.Println(apierr.Error())
 			}
@@ -94,7 +96,7 @@ func TestListPipelines(t *testing.T) {
 func TestFindPipeline(t *testing.T) {
 	cli := createAzureDevopsClient()
 
-	res, err := cli.FindPipeline(context.TODO(), FindPipelineOptions{
+	res, err := Find(context.TODO(), cli, FindOptions{
 		Organization: os.Getenv("ORG"),
 		Project:      os.Getenv("PROJECT_NAME"),
 		Name:         os.Getenv("PIPELINE_NAME"),
@@ -104,4 +106,15 @@ func TestFindPipeline(t *testing.T) {
 	}
 
 	spew.Dump(res)
+}
+
+func createAzureDevopsClient() *azuredevops.Client {
+	env, _ := dotenv.FromFile("../../../../.env")
+	dotenv.PutInEnv(env, false)
+
+	return azuredevops.NewClient(azuredevops.ClientOptions{
+		Verbose: false,
+		BaseURL: os.Getenv("BASE_URL"),
+		Token:   os.Getenv("TOKEN"),
+	})
 }

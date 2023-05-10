@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/lucasepe/dotenv"
 	"github.com/lucasepe/httplib"
 )
 
@@ -25,4 +26,15 @@ func TestDeleteDefinition(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+}
+
+func createAzureDevopsClient() *Client {
+	env, _ := dotenv.FromFile("../../../.env")
+	dotenv.PutInEnv(env, false)
+
+	return NewClient(ClientOptions{
+		Verbose: false,
+		BaseURL: os.Getenv("BASE_URL"),
+		Token:   os.Getenv("TOKEN"),
+	})
 }

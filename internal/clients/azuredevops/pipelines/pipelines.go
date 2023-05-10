@@ -1,4 +1,4 @@
-package azuredevops
+package pipelines
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
@@ -68,20 +69,20 @@ type Pipeline struct {
 	Url *string `json:"url,omitempty"`
 }
 
-// Arguments for the CreatePipeline function
-type CreatePipelineOptions struct {
+// Options for the Create function
+type CreateOptions struct {
 	Organization string
 	Project      string
 	Pipeline     Pipeline
 }
 
-// CreatePipeline creates a pipeline.
+// Create creates a pipeline.
 // POST https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.0
-func (c *Client) CreatePipeline(ctx context.Context, opts CreatePipelineOptions) (*Pipeline, error) {
+func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*Pipeline, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines"),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -94,11 +95,11 @@ func (c *Client) CreatePipeline(ctx context.Context, opts CreatePipelineOptions)
 	req.Header.Add("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &Pipeline{}
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
@@ -107,7 +108,7 @@ func (c *Client) CreatePipeline(ctx context.Context, opts CreatePipelineOptions)
 	return val, err
 }
 
-type GetPipelineOptions struct {
+type GetOptions struct {
 	// (required) The name of the Azure DevOps organization.
 	Organization string
 	// (required) Project ID or project name
@@ -118,13 +119,13 @@ type GetPipelineOptions struct {
 	PipelineVersion *string
 }
 
-// GetPipeline gets a pipeline, optionally at the specified version
+// Get gets a pipeline, optionally at the specified version
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}?api-version=7.0
-func (c *Client) GetPipeline(ctx context.Context, opts GetPipelineOptions) (*Pipeline, error) {
+func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Pipeline, error) {
 	ubo := httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", opts.PipelineId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}
 	if opts.PipelineVersion != nil {
 		ubo.Params = append(ubo.Params, "pipelineVersion", helpers.String(opts.PipelineVersion))
@@ -141,12 +142,12 @@ func (c *Client) GetPipeline(ctx context.Context, opts GetPipelineOptions) (*Pip
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &Pipeline{}
 
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		Verbose:         c.verbose,
-		AuthMethod:      c.authMethod,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:         cli.Verbose(),
+		AuthMethod:      cli.AuthMethod(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
@@ -156,7 +157,7 @@ func (c *Client) GetPipeline(ctx context.Context, opts GetPipelineOptions) (*Pip
 	return val, err
 }
 
-type ListPipelinesOptions struct {
+type ListOptions struct {
 	Organization string
 	Project      string
 	// (optional)
@@ -175,10 +176,10 @@ type ListPipelinesResponseValue struct {
 	ContinuationToken *string    `json:"continuationToken,omitempty"`
 }
 
-// Get a list of pipelines.
+// List get a list of pipelines.
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.0
-func (c *Client) ListPipelines(ctx context.Context, opts ListPipelinesOptions) (*ListPipelinesResponseValue, error) {
-	params := []string{apiVersionKey, apiVersionVal}
+func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListPipelinesResponseValue, error) {
+	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
 	if opts.OrderBy != nil {
 		params = append(params, "orderBy", string(*opts.OrderBy))
 	}
@@ -194,7 +195,7 @@ func (c *Client) ListPipelines(ctx context.Context, opts ListPipelinesOptions) (
 
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
-			BaseURL: c.baseURL,
+			BaseURL: cli.BaseURL(),
 			Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines"),
 			Params:  params,
 		}).Build()
@@ -208,12 +209,12 @@ func (c *Client) ListPipelines(ctx context.Context, opts ListPipelinesOptions) (
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &ListPipelinesResponseValue{}
 
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod: c.authMethod,
-		Verbose:    c.verbose,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod: cli.AuthMethod(),
+		Verbose:    cli.Verbose(),
 		ResponseHandler: func(res *http.Response) error {
 			data, err := io.ReadAll(res.Body)
 			if err != nil {
@@ -234,18 +235,18 @@ func (c *Client) ListPipelines(ctx context.Context, opts ListPipelinesOptions) (
 	return val, err
 }
 
-type FindPipelineOptions struct {
+type FindOptions struct {
 	Organization string
 	Project      string
 	Name         string
 }
 
-// FindPipeline utility method to look for a specific pipeline.
-func (c *Client) FindPipeline(ctx context.Context, opts FindPipelineOptions) (*Pipeline, error) {
+// Find utility method to look for a specific pipeline.
+func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) (*Pipeline, error) {
 	var continutationToken string
 	for {
 		top := int(30)
-		res, err := c.ListPipelines(ctx, ListPipelinesOptions{
+		res, err := List(ctx, cli, ListOptions{
 			Organization:      opts.Organization,
 			Project:           opts.Project,
 			Top:               &top,

@@ -55,7 +55,7 @@ func (c *Client) GetOperation(ctx context.Context, opts GetOperationOpts) (*Oper
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.baseURL,
 		Path:    path.Join(opts.Organization, "_apis/operations", opts.OperationId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{ApiVersionKey, ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err

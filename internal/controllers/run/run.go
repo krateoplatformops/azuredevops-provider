@@ -23,8 +23,9 @@ import (
 	"github.com/lucasepe/httplib"
 	"github.com/pkg/errors"
 
-	runs "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
+	runsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/runs"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 )
 
@@ -33,14 +34,14 @@ const (
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := reconciler.ControllerName(runs.RunGroupKind)
+	name := reconciler.ControllerName(runsv1alpha1.RunGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := reconciler.NewReconciler(mgr,
-		resource.ManagedKind(runs.RunGroupVersionKind),
+		resource.ManagedKind(runsv1alpha1.RunGroupVersionKind),
 		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -53,7 +54,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&runs.Run{}).
+		For(&runsv1alpha1.Run{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -64,7 +65,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
-	cr, ok := mg.(*runs.Run)
+	cr, ok := mg.(*runsv1alpha1.Run)
 	if !ok {
 		return nil, errors.New(errNotCR)
 	}
@@ -92,7 +93,7 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
-	cr, ok := mg.(*runs.Run)
+	cr, ok := mg.(*runsv1alpha1.Run)
 	if !ok {
 		return reconciler.ExternalObservation{}, errors.New(errNotCR)
 	}
@@ -116,14 +117,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.PojectRef.Name)
 	}
 
-	var run *azuredevops.Run
+	var run *runs.RunInfo
 	if runId := meta.GetExternalName(cr); runId != "" {
 		id, err := strconv.Atoi(runId)
 		if err != nil {
 			return reconciler.ExternalObservation{}, err
 		}
 
-		run, err = e.azCli.GetRun(ctx, azuredevops.GetRunOptions{
+		run, err = runs.Get(ctx, e.azCli, runs.GetOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
 			PipelineId:   pipelineId,
@@ -159,7 +160,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*runs.Run)
+	cr, ok := mg.(*runsv1alpha1.Run)
 	if !ok {
 		return errors.New(errNotCR)
 	}
@@ -188,7 +189,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.PojectRef.Name)
 	}
 
-	run, err := e.azCli.RunPipeline(ctx, azuredevops.RunPipelineOptions{
+	run, err := runs.Run(ctx, e.azCli, runs.RunOptions{
 		Organization: prj.Spec.Organization,
 		Project:      prj.Status.Id,
 		PipelineId:   pipelineId,

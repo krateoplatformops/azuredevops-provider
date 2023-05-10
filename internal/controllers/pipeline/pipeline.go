@@ -22,8 +22,9 @@ import (
 	"github.com/lucasepe/httplib"
 	"github.com/pkg/errors"
 
-	pipelines "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
+	pipelinesv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	pipelines "github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/pipelines"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 )
 
@@ -32,14 +33,14 @@ const (
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := reconciler.ControllerName(pipelines.PipelineGroupKind)
+	name := reconciler.ControllerName(pipelinesv1alpha1.PipelineGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := reconciler.NewReconciler(mgr,
-		resource.ManagedKind(pipelines.PipelineGroupVersionKind),
+		resource.ManagedKind(pipelinesv1alpha1.PipelineGroupVersionKind),
 		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -52,7 +53,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&pipelines.Pipeline{}).
+		For(&pipelinesv1alpha1.Pipeline{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -63,7 +64,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
-	cr, ok := mg.(*pipelines.Pipeline)
+	cr, ok := mg.(*pipelinesv1alpha1.Pipeline)
 	if !ok {
 		return nil, errors.New(errNotPipeline)
 	}
@@ -91,7 +92,7 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
-	cr, ok := mg.(*pipelines.Pipeline)
+	cr, ok := mg.(*pipelinesv1alpha1.Pipeline)
 	if !ok {
 		return reconciler.ExternalObservation{}, errors.New(errNotPipeline)
 	}
@@ -104,10 +105,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
 	}
 
-	var pip *azuredevops.Pipeline
+	var pip *pipelines.Pipeline
 	if pipId := meta.GetExternalName(cr); pipId != "" {
 		var err error
-		pip, err = e.azCli.GetPipeline(ctx, azuredevops.GetPipelineOptions{
+		pip, err = pipelines.Get(ctx, e.azCli, pipelines.GetOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
 			PipelineId:   pipId,
@@ -119,7 +120,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	if pip == nil {
 		var err error
-		pip, err = e.azCli.FindPipeline(context.TODO(), azuredevops.FindPipelineOptions{
+		pip, err = pipelines.Find(ctx, e.azCli, pipelines.FindOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Spec.Name,
 			Name:         spec.Name,
@@ -161,7 +162,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*pipelines.Pipeline)
+	cr, ok := mg.(*pipelinesv1alpha1.Pipeline)
 	if !ok {
 		return errors.New(errNotPipeline)
 	}
@@ -185,19 +186,19 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.Wrapf(err, "unable to resolve GitRepository: %s", spec.RepositoryRef.Name)
 	}
 
-	res, err := e.azCli.CreatePipeline(ctx, azuredevops.CreatePipelineOptions{
+	res, err := pipelines.Create(ctx, e.azCli, pipelines.CreateOptions{
 		Organization: prj.Spec.Organization,
 		Project:      prj.Status.Id,
-		Pipeline: azuredevops.Pipeline{
+		Pipeline: pipelines.Pipeline{
 			Folder: spec.Folder,
 			Name:   spec.Name,
-			Configuration: &azuredevops.PipelineConfiguration{
-				Type: azuredevops.ConfigurationType(*spec.ConfigurationType),
+			Configuration: &pipelines.PipelineConfiguration{
+				Type: pipelines.ConfigurationType(*spec.ConfigurationType),
 				Path: spec.DefinitionPath,
-				Repository: &azuredevops.BuildRepository{
+				Repository: &pipelines.BuildRepository{
 					Id:   repo.Status.Id,
 					Name: repo.Spec.Name,
-					Type: azuredevops.BuildRepositoryType(*spec.RepositoryType),
+					Type: pipelines.BuildRepositoryType(*spec.RepositoryType),
 				},
 			},
 		},
@@ -224,7 +225,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*pipelines.Pipeline)
+	cr, ok := mg.(*pipelinesv1alpha1.Pipeline)
 	if !ok {
 		return errors.New(errNotPipeline)
 	}

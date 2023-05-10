@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/projects"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/lucasepe/httplib"
@@ -23,7 +24,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
 
-	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
+	projectsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 )
 
 const (
@@ -32,14 +33,14 @@ const (
 
 // Setup adds a controller that reconciles Token managed resources.
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := reconciler.ControllerName(projects.TeamProjectGroupKind)
+	name := reconciler.ControllerName(projectsv1alpha1.TeamProjectGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := reconciler.NewReconciler(mgr,
-		resource.ManagedKind(projects.TeamProjectGroupVersionKind),
+		resource.ManagedKind(projectsv1alpha1.TeamProjectGroupVersionKind),
 		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -52,7 +53,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&projects.TeamProject{}).
+		For(&projectsv1alpha1.TeamProject{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -63,7 +64,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
-	cr, ok := mg.(*projects.TeamProject)
+	cr, ok := mg.(*projectsv1alpha1.TeamProject)
 	if !ok {
 		return nil, errors.New(errNotTeamProject)
 	}
@@ -90,7 +91,7 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
-	cr, ok := mg.(*projects.TeamProject)
+	cr, ok := mg.(*projectsv1alpha1.TeamProject)
 	if !ok {
 		return reconciler.ExternalObservation{}, errors.New(errNotTeamProject)
 	}
@@ -112,10 +113,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			deleteOperationAnnotation(ctx, e.kube, cr)
 	}
 
-	var prj *azuredevops.TeamProject
+	var prj *projects.TeamProject
 	if meta.GetExternalName(cr) != "" {
 		var err error
-		prj, err = e.azCli.GetProject(ctx, azuredevops.GetProjectOptions{
+		prj, err = projects.Get(ctx, e.azCli, projects.GetOptions{
 			Organization: cr.Spec.Organization,
 			ProjectId:    meta.GetExternalName(cr),
 		})
@@ -126,7 +127,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	if prj == nil {
 		var err error
-		prj, err = e.azCli.FindProject(ctx, azuredevops.FindProjectsOptions{
+		prj, err = projects.Find(ctx, e.azCli, projects.FindOptions{
 			Organization: cr.Spec.Organization,
 			Name:         cr.Spec.Name,
 		})
@@ -154,10 +155,6 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	cr.SetConditions(rtv1.Available())
 
-	//if err := e.kube.Update(ctx, cr); err != nil {
-	//	return reconciler.ExternalObservation{}, err
-	//}
-
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: isUpdate(&cr.Spec, prj),
@@ -165,7 +162,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*projects.TeamProject)
+	cr, ok := mg.(*projectsv1alpha1.TeamProject)
 	if !ok {
 		return errors.New(errNotTeamProject)
 	}
@@ -183,7 +180,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
-	op, err := e.azCli.CreateProject(ctx, azuredevops.CreateProjectOptions{
+	op, err := projects.Create(ctx, e.azCli, projects.CreateOptions{
 		Organization: spec.Organization,
 		TeamProject:  teamProjectFromSpec(spec),
 	})
@@ -202,7 +199,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*projects.TeamProject)
+	cr, ok := mg.(*projectsv1alpha1.TeamProject)
 	if !ok {
 		return errors.New(errNotTeamProject)
 	}
@@ -214,10 +211,10 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
-	op, err := e.azCli.UpdateProject(ctx, azuredevops.UpdateProjectOptions{
+	op, err := projects.Update(ctx, e.azCli, projects.UpdateOptions{
 		Organization: spec.Organization,
 		ProjectId:    cr.Status.Id,
-		TeamProject: &azuredevops.TeamProject{
+		TeamProject: &projects.TeamProject{
 			Name:        spec.Name,
 			Description: helpers.StringPtr(spec.Description),
 			//Visibility:  azuredevops.ProjectVisibility(*spec.Visibility),
@@ -232,7 +229,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*projects.TeamProject)
+	cr, ok := mg.(*projectsv1alpha1.TeamProject)
 	if !ok {
 		return errors.New(errNotTeamProject)
 	}
@@ -244,7 +241,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Deleting())
 
-	_, err := e.azCli.DeleteProject(ctx, azuredevops.DeleteProjectOptions{
+	_, err := projects.Delete(ctx, e.azCli, projects.DeleteOptions{
 		Organization: cr.Spec.Organization,
 		ProjectId:    cr.Status.Id,
 	})

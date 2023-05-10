@@ -1,4 +1,4 @@
-package azuredevops
+package projects
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
@@ -34,11 +35,11 @@ const (
 	StateDeleted ProjectState = "deleted"
 )
 
-type ProjectVisibility string
+type Visibility string
 
 const (
-	VisibilityPrivate ProjectVisibility = "private"
-	VisibilityPublic  ProjectVisibility = "public"
+	VisibilityPrivate Visibility = "private"
+	VisibilityPublic  Visibility = "public"
 )
 
 type Versioncontrol struct {
@@ -71,7 +72,7 @@ type TeamProject struct {
 	Description *string `json:"description,omitempty"`
 
 	// Project visibility.
-	Visibility ProjectVisibility `json:"visibility,omitempty"`
+	Visibility Visibility `json:"visibility,omitempty"`
 
 	// Set of capabilities this project has (such as process template & version control).
 	Capabilities *Capabilities `json:"capabilities,omitempty"`
@@ -83,8 +84,8 @@ type TeamProject struct {
 	State *ProjectState `json:"state,omitempty"`
 }
 
-// Arguments for the ListProjects function
-type ListProjectsOptions struct {
+// Options for the List function
+type ListOptions struct {
 	Organization string
 	// (optional) Filter on team projects in a specific team project state (default: WellFormed).
 	StateFilter *ProjectState
@@ -105,8 +106,8 @@ type ListProjectsResponseValue struct {
 
 // Get all projects in the organization that the authenticated user has access to.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.0&tabs=HTTP#teamprojectreference
-func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOptions) (*ListProjectsResponseValue, error) {
-	params := []string{apiVersionKey, apiVersionVal}
+func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListProjectsResponseValue, error) {
+	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
 	if opts.StateFilter != nil {
 		params = append(params, "stateFilter", string(*opts.StateFilter))
 	}
@@ -122,7 +123,7 @@ func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOptions) (*L
 
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
-			BaseURL: c.baseURL,
+			BaseURL: cli.BaseURL(),
 			Path:    path.Join(opts.Organization, "_apis/projects"),
 			Params:  params,
 		}).Build()
@@ -136,12 +137,12 @@ func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOptions) (*L
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &ListProjectsResponseValue{}
 
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod: c.authMethod,
-		Verbose:    c.verbose,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod: cli.AuthMethod(),
+		Verbose:    cli.Verbose(),
 		ResponseHandler: func(res *http.Response) error {
 			data, err := io.ReadAll(res.Body)
 			if err != nil {
@@ -162,18 +163,18 @@ func (c *Client) ListProjects(ctx context.Context, opts ListProjectsOptions) (*L
 	return val, err
 }
 
-type GetProjectOptions struct {
+type GetOptions struct {
 	Organization string
 	ProjectId    string
 }
 
 // Get project with the specified id or name, optionally including capabilities.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get?view=azure-devops-rest-7.0
-func (c *Client) GetProject(ctx context.Context, opts GetProjectOptions) (*TeamProject, error) {
+func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*TeamProject, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -185,12 +186,12 @@ func (c *Client) GetProject(ctx context.Context, opts GetProjectOptions) (*TeamP
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &TeamProject{}
 
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		Verbose:         c.verbose,
-		AuthMethod:      c.authMethod,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:         cli.Verbose(),
+		AuthMethod:      cli.AuthMethod(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
@@ -200,18 +201,18 @@ func (c *Client) GetProject(ctx context.Context, opts GetProjectOptions) (*TeamP
 	return val, err
 }
 
-type CreateProjectOptions struct {
+type CreateOptions struct {
 	Organization string
 	TeamProject  *TeamProject
 }
 
 // Queues a project to be created. Use the GetOperation to periodically check for create project status.
 // POST https://dev.azure.com/{organization}/_apis/projects?api-version=7.0
-func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOptions) (*OperationReference, error) {
+func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*azuredevops.OperationReference, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, "_apis/projects"),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -224,11 +225,11 @@ func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOptions) (
 	req.Header.Add("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
-	val := &OperationReference{}
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	apiErr := &azuredevops.APIError{}
+	val := &azuredevops.OperationReference{}
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusAccepted),
@@ -237,7 +238,7 @@ func (c *Client) CreateProject(ctx context.Context, opts CreateProjectOptions) (
 	return val, err
 }
 
-type UpdateProjectOptions struct {
+type UpdateOptions struct {
 	Organization string
 	ProjectId    string
 	TeamProject  *TeamProject
@@ -245,11 +246,11 @@ type UpdateProjectOptions struct {
 
 // Update an existing project's name, abbreviation, description, or restore a project.
 // PATCH https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
-func (c *Client) UpdateProject(ctx context.Context, opts UpdateProjectOptions) (*OperationReference, error) {
+func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*azuredevops.OperationReference, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -262,11 +263,11 @@ func (c *Client) UpdateProject(ctx context.Context, opts UpdateProjectOptions) (
 	req.Header.Add("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
-	val := &OperationReference{}
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	apiErr := &azuredevops.APIError{}
+	val := &azuredevops.OperationReference{}
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK, http.StatusAccepted),
@@ -275,18 +276,18 @@ func (c *Client) UpdateProject(ctx context.Context, opts UpdateProjectOptions) (
 	return val, err
 }
 
-type DeleteProjectOptions struct {
+type DeleteOptions struct {
 	Organization string
 	ProjectId    string
 }
 
 // Queues a project to be deleted. Use the GetOperation to periodically check for delete project status.
 // DELETE https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
-func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOptions) (*OperationReference, error) {
+func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) (*azuredevops.OperationReference, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, "_apis/projects/", opts.ProjectId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -298,11 +299,11 @@ func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOptions) (
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
-	val := &OperationReference{}
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	apiErr := &azuredevops.APIError{}
+	val := &azuredevops.OperationReference{}
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusAccepted),
@@ -312,18 +313,18 @@ func (c *Client) DeleteProject(ctx context.Context, opts DeleteProjectOptions) (
 }
 
 // Arguments for the FindProjects function
-type FindProjectsOptions struct {
+type FindOptions struct {
 	Organization string
 	Name         string
 }
 
-// FindProject utility method to look for a specific project.
-func (c *Client) FindProject(ctx context.Context, opts FindProjectsOptions) (*TeamProject, error) {
+// Find utility method to look for a specific project.
+func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) (*TeamProject, error) {
 	var continutationToken string
 	for {
 		top := int(30)
 		//filter := StateWellFormed
-		res, err := c.ListProjects(ctx, ListProjectsOptions{
+		res, err := List(ctx, cli, ListOptions{
 			Organization: opts.Organization,
 			//StateFilter:       &filter,
 			Top:               &top,

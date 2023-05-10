@@ -1,4 +1,4 @@
-package azuredevops
+package repositories
 
 import (
 	"context"
@@ -7,18 +7,20 @@ import (
 	"path"
 	"strconv"
 
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/projects"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
 type GitRepository struct {
-	Id            *string      `json:"id,omitempty"`
-	Name          *string      `json:"name,omitempty"`
-	Project       *TeamProject `json:"project,omitempty"`
-	DefaultBranch *string      `json:"defaultBranch,omitempty"`
-	RemoteUrl     *string      `json:"remoteUrl,omitempty"`
-	SshUrl        *string      `json:"sshUrl,omitempty"`
-	Url           *string      `json:"url,omitempty"`
+	Id            *string               `json:"id,omitempty"`
+	Name          *string               `json:"name,omitempty"`
+	Project       *projects.TeamProject `json:"project,omitempty"`
+	DefaultBranch *string               `json:"defaultBranch,omitempty"`
+	RemoteUrl     *string               `json:"remoteUrl,omitempty"`
+	SshUrl        *string               `json:"sshUrl,omitempty"`
+	Url           *string               `json:"url,omitempty"`
 }
 
 type GitRefUpdate struct {
@@ -32,7 +34,7 @@ type GitRefUpdate struct {
 // User info and date for Git operations.
 type GitUserDate struct {
 	// Date of the Git operation.
-	Date *Time `json:"date,omitempty"`
+	Date *azuredevops.Time `json:"date,omitempty"`
 	// Email address of the user performing the Git operation.
 	Email *string `json:"email,omitempty"`
 	// Name of the user performing the Git operation.
@@ -93,27 +95,27 @@ type GitChange struct {
 }
 
 type GitPush struct {
-	Date       *Time           `json:"date,omitempty"`
-	PushId     *int            `json:"pushId,omitempty"`
-	Url        *string         `json:"url,omitempty"`
-	Commits    *[]GitCommitRef `json:"commits,omitempty"`
-	RefUpdates *[]GitRefUpdate `json:"refUpdates,omitempty"`
-	Repository *GitRepository  `json:"repository,omitempty"`
+	Date       *azuredevops.Time `json:"date,omitempty"`
+	PushId     *int              `json:"pushId,omitempty"`
+	Url        *string           `json:"url,omitempty"`
+	Commits    *[]GitCommitRef   `json:"commits,omitempty"`
+	RefUpdates *[]GitRefUpdate   `json:"refUpdates,omitempty"`
+	Repository *GitRepository    `json:"repository,omitempty"`
 }
 
-type GetRepositoryOptions struct {
+type GetOptions struct {
 	Organization string
 	Project      string
 	Repository   string
 }
 
-// GetRepository retrieve a git repository.
+// Get retrieve a git repository.
 // GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
-func (c *Client) GetRepository(ctx context.Context, opts GetRepositoryOptions) (*GitRepository, error) {
+func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*GitRepository, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories", opts.Repository),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -124,12 +126,12 @@ func (c *Client) GetRepository(ctx context.Context, opts GetRepositoryOptions) (
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &GitRepository{}
 
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		Verbose:         c.verbose,
-		AuthMethod:      c.authMethod,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:         cli.Verbose(),
+		AuthMethod:      cli.AuthMethod(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
@@ -139,19 +141,19 @@ func (c *Client) GetRepository(ctx context.Context, opts GetRepositoryOptions) (
 	return val, err
 }
 
-type CreateRepositoryOptions struct {
+type CreateOptions struct {
 	Organization string
 	ProjectId    string
 	Name         string
 }
 
-// CreateRepository creates a git repository in a team project.
+// Create creates a git repository in a team project.
 // POST https://dev.azure.com/{organization}/{project}/_apis/git/repositories?api-version=7.0
-func (c *Client) CreateRepository(ctx context.Context, opts CreateRepositoryOptions) (*GitRepository, error) {
+func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*GitRepository, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories"),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -159,7 +161,7 @@ func (c *Client) CreateRepository(ctx context.Context, opts CreateRepositoryOpti
 
 	req, err := httplib.Post(uri.String(), httplib.ToJSON(&GitRepository{
 		Name: &opts.Name,
-		Project: &TeamProject{
+		Project: &projects.TeamProject{
 			Id: helpers.StringPtr(opts.ProjectId),
 		},
 	}))
@@ -169,11 +171,11 @@ func (c *Client) CreateRepository(ctx context.Context, opts CreateRepositoryOpti
 	req.Header.Add("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &GitRepository{}
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK, http.StatusCreated),
@@ -182,7 +184,7 @@ func (c *Client) CreateRepository(ctx context.Context, opts CreateRepositoryOpti
 	return val, err
 }
 
-type DeleteRepositoryOptions struct {
+type DeleteOptions struct {
 	Organization string
 	Project      string
 	RepositoryId string
@@ -190,11 +192,11 @@ type DeleteRepositoryOptions struct {
 
 // Delete a git repository.
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
-func (c *Client) DeleteRepository(ctx context.Context, opts DeleteRepositoryOptions) error {
+func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories/", opts.RepositoryId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return err
@@ -205,9 +207,9 @@ func (c *Client) DeleteRepository(ctx context.Context, opts DeleteRepositoryOpti
 	}
 	req = req.WithContext(ctx)
 
-	return httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod: c.authMethod,
-		Verbose:    c.verbose,
+	return httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod: cli.AuthMethod(),
+		Verbose:    cli.Verbose(),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.CheckStatus(http.StatusOK, http.StatusNoContent),
 		},
@@ -216,11 +218,11 @@ func (c *Client) DeleteRepository(ctx context.Context, opts DeleteRepositoryOpti
 
 // Destroy (hard delete) a soft-deleted Git repository.
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/git/recycleBin/repositories/{repositoryId}?api-version=7.0
-func (c *Client) DeleteRepositoryFromRecycleBin(ctx context.Context, opts DeleteRepositoryOptions) error {
+func DeleteFromRecycleBin(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/recycleBin/repositories", opts.RepositoryId),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return err
@@ -232,21 +234,21 @@ func (c *Client) DeleteRepositoryFromRecycleBin(ctx context.Context, opts Delete
 	}
 	req = req.WithContext(ctx)
 
-	return httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod: c.authMethod,
-		Verbose:    c.verbose,
+	return httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod: cli.AuthMethod(),
+		Verbose:    cli.Verbose(),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.CheckStatus(http.StatusOK, http.StatusNoContent),
 		},
 	})
 }
 
-type ListRepositoriesResponseValue struct {
+type ListResponseValue struct {
 	Count int              `json:"count"`
 	Value []*GitRepository `json:"value,omitempty"`
 }
 
-type ListRepositoriesOptions struct {
+type ListOptions struct {
 	Organization  string
 	Project       string
 	IncludeHidden bool
@@ -254,15 +256,15 @@ type ListRepositoriesOptions struct {
 
 // List all repositorires in the organization that the authenticated user has access to.
 // GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories?api-version=7.0
-func (c *Client) ListRepositories(ctx context.Context, opts ListRepositoriesOptions) (*ListRepositoriesResponseValue, error) {
-	params := []string{apiVersionKey, apiVersionVal}
+func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListResponseValue, error) {
+	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
 	if opts.IncludeHidden {
 		params = append(params, "includeHidden", strconv.FormatBool(opts.IncludeHidden))
 	}
 
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
-			BaseURL: c.baseURL,
+			BaseURL: cli.BaseURL(),
 			Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories"),
 			Params:  params,
 		}).Build()
@@ -276,12 +278,12 @@ func (c *Client) ListRepositories(ctx context.Context, opts ListRepositoriesOpti
 	}
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
-	val := &ListRepositoriesResponseValue{}
+	apiErr := &azuredevops.APIError{}
+	val := &ListResponseValue{}
 
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
@@ -291,14 +293,14 @@ func (c *Client) ListRepositories(ctx context.Context, opts ListRepositoriesOpti
 	return val, err
 }
 
-type FindRepositoryOptions struct {
+type FindOptions struct {
 	Organization string
 	Project      string
 	Name         string
 }
 
-func (c *Client) FindRepository(ctx context.Context, opts FindRepositoryOptions) (*GitRepository, error) {
-	all, err := c.ListRepositories(ctx, ListRepositoriesOptions{
+func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) (*GitRepository, error) {
+	all, err := List(ctx, cli, ListOptions{
 		Organization:  opts.Organization,
 		Project:       opts.Project,
 		IncludeHidden: true,
@@ -334,11 +336,11 @@ type GitPushOptions struct {
 
 // Push changes to the repository.
 // POST https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=7.0
-func (c *Client) CreatePush(ctx context.Context, opts GitPushOptions) (*GitPush, error) {
+func CreatePush(ctx context.Context, cli *azuredevops.Client, opts GitPushOptions) (*GitPush, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: cli.BaseURL(),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories", opts.RepositoryId, "pushes"),
-		Params:  []string{apiVersionKey, apiVersionVal},
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -351,11 +353,11 @@ func (c *Client) CreatePush(ctx context.Context, opts GitPushOptions) (*GitPush,
 	req.Header.Add("Content-Type", "application/json")
 	req = req.WithContext(ctx)
 
-	apiErr := &APIError{}
+	apiErr := &azuredevops.APIError{}
 	val := &GitPush{}
-	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
-		AuthMethod:      c.authMethod,
-		Verbose:         c.verbose,
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		AuthMethod:      cli.AuthMethod(),
+		Verbose:         cli.Verbose(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK, http.StatusCreated),
