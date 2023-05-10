@@ -1,8 +1,9 @@
-package pipeline
+package run
 
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -22,24 +23,24 @@ import (
 	"github.com/lucasepe/httplib"
 	"github.com/pkg/errors"
 
-	pipelines "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
+	runs "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 )
 
 const (
-	errNotPipeline = "managed resource is not a Pipeline custom resource"
+	errNotCR = "managed resource is not a Run custom resource"
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := reconciler.ControllerName(pipelines.PipelineGroupKind)
+	name := reconciler.ControllerName(runs.RunGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := reconciler.NewReconciler(mgr,
-		resource.ManagedKind(pipelines.PipelineGroupVersionKind),
+		resource.ManagedKind(runs.RunGroupVersionKind),
 		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -52,7 +53,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&pipelines.Pipeline{}).
+		For(&runs.Run{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -63,9 +64,9 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
-	cr, ok := mg.(*pipelines.Pipeline)
+	cr, ok := mg.(*runs.Run)
 	if !ok {
-		return nil, errors.New(errNotPipeline)
+		return nil, errors.New(errNotCR)
 	}
 
 	opts, err := resolvers.ResolveConnectorConfig(ctx, c.kube, cr.Spec.ConnectorConfigRef)
@@ -91,68 +92,65 @@ type external struct {
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
-	cr, ok := mg.(*pipelines.Pipeline)
+	cr, ok := mg.(*runs.Run)
 	if !ok {
-		return reconciler.ExternalObservation{}, errors.New(errNotPipeline)
+		return reconciler.ExternalObservation{}, errors.New(errNotCR)
 	}
 
 	spec := cr.Spec.DeepCopy()
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
+	pip, err := resolvers.ResolvePipeline(ctx, e.kube, spec.PipelineRef)
+	if err != nil || pip == nil {
+		return reconciler.ExternalObservation{},
+			errors.Wrapf(err, "unble to resolve Pipeline: %s", spec.PipelineRef.Name)
+	}
+
+	pipelineId, err := strconv.Atoi(helpers.String(pip.Status.Id))
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, pip.Spec.PojectRef)
 	if err != nil || prj == nil {
 		return reconciler.ExternalObservation{},
-			errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+			errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.PojectRef.Name)
 	}
 
-	var pip *azuredevops.Pipeline
-	if pipId := meta.GetExternalName(cr); pipId != "" {
-		var err error
-		pip, err = e.azCli.GetPipeline(ctx, azuredevops.GetPipelineOptions{
+	var run *azuredevops.Run
+	if runId := meta.GetExternalName(cr); runId != "" {
+		id, err := strconv.Atoi(runId)
+		if err != nil {
+			return reconciler.ExternalObservation{}, err
+		}
+
+		run, err = e.azCli.GetRun(ctx, azuredevops.GetRunOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
-			PipelineId:   pipId,
+			PipelineId:   pipelineId,
+			RunId:        id,
 		})
 		if err != nil && !httplib.IsNotFoundError(err) {
 			return reconciler.ExternalObservation{}, err
 		}
 	}
 
-	if pip == nil {
-		var err error
-		pip, err = e.azCli.FindPipeline(context.TODO(), azuredevops.FindPipelineOptions{
-			Organization: prj.Spec.Organization,
-			Project:      prj.Spec.Name,
-			Name:         spec.Name,
-		})
-		if err != nil && !httplib.IsNotFoundError(err) {
-			return reconciler.ExternalObservation{}, err
-		}
-	}
-
-	if pip == nil {
+	if run == nil {
 		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
 	}
 
-	if pip.Id == nil {
-		return reconciler.ExternalObservation{
-			ResourceExists:   true,
-			ResourceUpToDate: true,
-		}, nil
-	}
-
-	pipId := fmt.Sprintf("%d", *pip.Id)
-	meta.SetExternalName(cr, pipId)
-	if err := e.kube.Update(ctx, cr); err != nil {
-		return reconciler.ExternalObservation{}, err
-	}
-
-	cr.Status.Id = helpers.StringPtr(pipId)
-	cr.Status.Url = helpers.StringPtr(*pip.Url)
-
 	cr.SetConditions(rtv1.Available())
+
+	cr.Status.Id = helpers.IntPtr(*run.Id)
+	cr.Status.PipelineId = helpers.IntPtr(pipelineId)
+	cr.Status.State = helpers.StringPtr(*run.State)
+	cr.Status.Url = helpers.StringPtr(*run.Url)
+
+	//if err := e.kube.Update(ctx, cr); err != nil {
+	//	return reconciler.ExternalObservation{}, err
+	//}
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
@@ -161,9 +159,9 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*pipelines.Pipeline)
+	cr, ok := mg.(*runs.Run)
 	if !ok {
-		return errors.New(errNotPipeline)
+		return errors.New(errNotCR)
 	}
 
 	if !meta.IsActionAllowed(cr, meta.ActionCreate) {
@@ -175,46 +173,45 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
-	if err != nil {
-		return errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+	pip, err := resolvers.ResolvePipeline(ctx, e.kube, spec.PipelineRef)
+	if err != nil || pip == nil {
+		return errors.Wrapf(err, "unble to resolve Pipeline: %s", spec.PipelineRef.Name)
 	}
 
-	repo, err := resolvers.ResolveGitRepository(ctx, e.kube, spec.RepositoryRef)
+	pipelineId, err := strconv.Atoi(helpers.String(pip.Status.Id))
 	if err != nil {
-		return errors.Wrapf(err, "unable to resolve GitRepository: %s", spec.RepositoryRef.Name)
+		return err
 	}
 
-	res, err := e.azCli.CreatePipeline(ctx, azuredevops.CreatePipelineOptions{
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, pip.Spec.PojectRef)
+	if err != nil || prj == nil {
+		return errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.PojectRef.Name)
+	}
+
+	run, err := e.azCli.RunPipeline(ctx, azuredevops.RunPipelineOptions{
 		Organization: prj.Spec.Organization,
 		Project:      prj.Status.Id,
-		Pipeline: azuredevops.Pipeline{
-			Folder: spec.Folder,
-			Name:   spec.Name,
-			Configuration: &azuredevops.PipelineConfiguration{
-				Type: azuredevops.ConfigurationType(*spec.ConfigurationType),
-				Path: spec.DefinitionPath,
-				Repository: &azuredevops.BuildRepository{
-					Id:   repo.Status.Id,
-					Name: repo.Spec.Name,
-					Type: azuredevops.BuildRepositoryType(*spec.RepositoryType),
-				},
-			},
-		},
+		PipelineId:   pipelineId,
 	})
 	if err != nil {
 		return err
 	}
 
-	pipelineId := fmt.Sprintf("%d", *res.Id)
-	meta.SetExternalName(cr, pipelineId)
+	runId := fmt.Sprintf("%d", helpers.Int(run.Id))
+	meta.SetExternalName(cr, runId)
+
+	cr.Status.Id = helpers.IntPtr(*run.Id)
+	cr.Status.PipelineId = helpers.IntPtr(pipelineId)
+	cr.Status.State = helpers.StringPtr(*run.State)
+	cr.Status.Url = helpers.StringPtr(*run.Url)
+
 	if err := e.kube.Update(ctx, cr); err != nil {
 		return err
 	}
 
-	e.log.Debug("Pipeline created", "id", pipelineId, "url", helpers.String(res.Url))
-	e.rec.Eventf(cr, corev1.EventTypeNormal, "GitRepositoryCreated",
-		"Pipeline '%s' created", helpers.String(res.Url))
+	e.log.Debug("Pipeline run issued", "id", runId, "url", helpers.String(run.Url))
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "PipelineRunIssued",
+		"Run '%s' issued", helpers.String(run.Url))
 
 	return nil
 }
@@ -224,16 +221,5 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*pipelines.Pipeline)
-	if !ok {
-		return errors.New(errNotPipeline)
-	}
-
-	if !meta.IsActionAllowed(cr, meta.ActionDelete) {
-		e.log.Debug("External resource should not be deleted by provider, skip deleting.")
-		return nil
-	}
-
-	cr.SetConditions(rtv1.Deleting())
 	return nil // noop
 }

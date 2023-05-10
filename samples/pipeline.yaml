@@ -3,10 +3,10 @@ kind: Pipeline
 metadata:
   name: pipeline-sample
 spec:
-  name: Krateo Provider Pipeline
-  folder: Test Folder
+  name: test-pipeline-helloworld
+  folder: test-folder
   configurationType: yaml
-  definitionPath: /azure-pipelines.yml
+  definitionPath: azure-pipelines-helloworld.yaml
   repositoryType: azureReposGit
   repositoryRef:
     name: gitrepository-sample

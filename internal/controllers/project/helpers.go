@@ -49,17 +49,11 @@ func teamProjectFromSpec(spec *projects.TeamProjectSpec) *azuredevops.TeamProjec
 }
 
 func isUpdate(desired *projects.TeamProjectSpec, current *azuredevops.TeamProject) bool {
-	//ignore := cmpopts.IgnoreFields(azuredevops.TeamProject{},
-	//	"Id", "Visibility", "Capabilities", "Revision", "State")
-
-	//diff := cmp.Diff(teamProjectFromSpec(desired), current, ignore)
-	//return len(diff) == 0
-
 	if desired.Name != current.Name {
 		return false
 	}
 
-	if desired.Description != *current.Description {
+	if current.Description != nil && (desired.Description != *current.Description) {
 		return false
 	}
 

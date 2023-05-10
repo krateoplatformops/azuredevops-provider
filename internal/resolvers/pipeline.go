@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
+	pipelines "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func ResolveTeamProject(ctx context.Context, kube client.Client, ref *rtv1.Reference) (*projects.TeamProject, error) {
-	res := &projects.TeamProject{}
+func ResolvePipeline(ctx context.Context, kube client.Client, ref *rtv1.Reference) (*pipelines.Pipeline, error) {
+	res := &pipelines.Pipeline{}
 	if ref == nil {
 		return res, fmt.Errorf("no %s referenced", res.Kind)
 	}

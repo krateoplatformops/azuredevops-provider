@@ -313,11 +313,6 @@ func (in *RunSpec) DeepCopyInto(out *RunSpec) {
 		*out = new(v1.Reference)
 		**out = **in
 	}
-	if in.PojectRef != nil {
-		in, out := &in.PojectRef, &out.PojectRef
-		*out = new(v1.Reference)
-		**out = **in
-	}
 	if in.ConnectorConfigRef != nil {
 		in, out := &in.ConnectorConfigRef, &out.ConnectorConfigRef
 		*out = new(v1.Reference)

@@ -1,12 +1,10 @@
 apiVersion: azuredevops.krateo.io/v1alpha1
-kind: GitRepository
+kind: Run
 metadata:
-  name: gitrepository-sample
+  name: run-sample
 spec:
-  name: test-project-1
-  initialize: true
-  projectRef:
-    name: teamproject-sample
+  pipelineRef:
+    name: pipeline-sample
     namespace: default
   connectorConfigRef:
     namespace: default

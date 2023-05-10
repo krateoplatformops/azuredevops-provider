@@ -7,6 +7,7 @@ import (
 	pipelines "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
+	runs "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
 )
 
 func init() {
@@ -16,6 +17,7 @@ func init() {
 		projects.SchemeBuilder.AddToScheme,
 		repositories.SchemeBuilder.AddToScheme,
 		pipelines.SchemeBuilder.AddToScheme,
+		runs.SchemeBuilder.AddToScheme,
 	)
 }
 

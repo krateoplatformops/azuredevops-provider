@@ -92,19 +92,6 @@ spec:
                 description: If true, don't actually create a new run. Instead, return
                   the final YAML document after parsing templates.
                 type: boolean
-              projectRef:
-                description: PojectRef - A reference to a TeamProject.
-                properties:
-                  name:
-                    description: Name of the referenced object.
-                    type: string
-                  namespace:
-                    description: Namespace of the referenced object.
-                    type: string
-                required:
-                - name
-                - namespace
-                type: object
               resources:
                 description: The resources the run requires.
                 properties:

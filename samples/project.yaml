@@ -3,7 +3,7 @@ kind: TeamProject
 metadata:
   name: teamproject-sample
 spec:
-  name: Test project created by Krateo
+  name: Test Project n.1
   organization: kiratech-bancasella
   description: Lorem ipsum dolor sit amet, consectetur adipiscing elit olè
   visibility: private

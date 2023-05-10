@@ -199,3 +199,50 @@ func (c *Client) RunPipeline(ctx context.Context, opts RunPipelineOptions) (*Run
 	})
 	return val, err
 }
+
+// Options for the GetRun function
+type GetRunOptions struct {
+	// (required) The name of the Azure DevOps organization.
+	Organization string
+	// (required) Project ID or project name
+	Project string
+	// (required) The pipeline id
+	PipelineId int
+	// (required) The run id
+	RunId int
+}
+
+// Gets a run for a particular pipeline.
+// GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs/{runId}?api-version=7.0
+func (c *Client) GetRun(ctx context.Context, opts GetRunOptions) (*Run, error) {
+	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
+		BaseURL: c.baseURL,
+		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", strconv.Itoa(opts.PipelineId), "runs", strconv.Itoa(opts.RunId)),
+		Params:  []string{apiVersionKey, apiVersionVal},
+	}).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Get(uri.String())
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	apiErr := &APIError{}
+	val := &Run{}
+
+	err = httplib.Fire(c.httpClient, req, httplib.FireOptions{
+		Verbose:         c.verbose,
+		AuthMethod:      c.authMethod,
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return val, nil
+}

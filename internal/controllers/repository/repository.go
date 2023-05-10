@@ -168,7 +168,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	cr.SetConditions(rtv1.Creating())
 
 	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
-	if err != nil {
+	if err != nil || prj == nil {
 		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
 	}
 

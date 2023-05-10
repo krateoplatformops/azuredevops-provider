@@ -64,6 +64,10 @@ install: ## Install this provider using Helm
 demo: ## Run the demo examples
 	@$(KUBECTL) create secret generic azuredevops-secret --from-literal=token=$(TOKEN) || true
 	@$(KUBECTL) apply -f samples/connector-config.yaml
+	@$(KUBECTL) apply -f samples/project.yaml
+	@$(KUBECTL) apply -f samples/gitrepository.yaml
+	@$(KUBECTL) apply -f samples/pipeline.yaml
+	@$(KUBECTL) apply -f samples/run.yaml
 
 .PHONY: help
 help: ## Print this help.

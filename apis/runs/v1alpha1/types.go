@@ -71,15 +71,12 @@ type RunPipelineParameters struct {
 type RunSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
 
-	// (required) Optional additional parameters for this run.
-	RunParameters *RunPipelineParameters `json:",inline"`
+	// Optional additional parameters for this run.
+	// +optional
+	RunParameters *RunPipelineParameters `json:"runParameters,inline"`
 
 	// PipelineRef: reference to the pipeline.
 	PipelineRef *rtv1.Reference `json:"pipelineRef,omitempty"`
-
-	// PojectRef - A reference to a TeamProject.
-	// +optional
-	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
 
 	// ConnectorConfigRef: configuration spec for the REST API client.
 	// +immutable
