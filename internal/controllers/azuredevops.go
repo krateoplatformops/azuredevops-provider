@@ -5,6 +5,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipeline"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipelinepermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/project"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repository"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/run"
@@ -18,6 +19,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		repository.Setup,
 		pipeline.Setup,
 		run.Setup,
+		pipelinepermissions.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err

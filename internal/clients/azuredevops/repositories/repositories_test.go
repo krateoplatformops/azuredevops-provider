@@ -16,6 +16,22 @@ import (
 	"github.com/lucasepe/httplib"
 )
 
+func TestListRepositorires(t *testing.T) {
+	cli := createAzureDevopsClient()
+
+	res, err := List(context.TODO(), cli, ListOptions{
+		Organization: os.Getenv("ORG"),
+		Project:      os.Getenv("PROJECT_NAME"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, el := range res.Value {
+		t.Logf("%s (id: %s)", *el.Name, *el.Id)
+	}
+}
+
 func TestCreateRepository(t *testing.T) {
 	cli := createAzureDevopsClient()
 

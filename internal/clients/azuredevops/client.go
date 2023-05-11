@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	ApiVersionKey = "api-version"
-	ApiVersionVal = "7.0"
-	UserAgent     = "krateo/azuredevops-provider"
+	ApiVersionKey  = "api-version"
+	ApiVersionVal  = "7.0"
+	ApiPreviewFlag = "-preview"
+	UserAgent      = "krateo/azuredevops-provider"
 )
 
 type ClientOptions struct {
