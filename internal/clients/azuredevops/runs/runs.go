@@ -165,7 +165,7 @@ type RunOptions struct {
 // POST https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.0
 func Run(ctx context.Context, cli *azuredevops.Client, opts RunOptions) (*RunInfo, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", strconv.Itoa(opts.PipelineId), "runs"),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -217,7 +217,7 @@ type GetOptions struct {
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs/{runId}?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*RunInfo, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", strconv.Itoa(opts.PipelineId), "runs", strconv.Itoa(opts.RunId)),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()

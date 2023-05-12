@@ -123,7 +123,7 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*List
 
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
-			BaseURL: cli.BaseURL(),
+			BaseURL: cli.BaseURL(azuredevops.Default),
 			Path:    path.Join(opts.Organization, "_apis/projects"),
 			Params:  params,
 		}).Build()
@@ -172,7 +172,7 @@ type GetOptions struct {
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get?view=azure-devops-rest-7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*TeamProject, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -210,7 +210,7 @@ type CreateOptions struct {
 // POST https://dev.azure.com/{organization}/_apis/projects?api-version=7.0
 func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*azuredevops.OperationReference, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, "_apis/projects"),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -248,7 +248,7 @@ type UpdateOptions struct {
 // PATCH https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
 func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*azuredevops.OperationReference, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, "_apis/projects", opts.ProjectId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -285,7 +285,7 @@ type DeleteOptions struct {
 // DELETE https://dev.azure.com/{organization}/_apis/projects/{projectId}?api-version=7.0
 func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) (*azuredevops.OperationReference, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, "_apis/projects/", opts.ProjectId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()

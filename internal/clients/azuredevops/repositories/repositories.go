@@ -113,7 +113,7 @@ type GetOptions struct {
 // GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*GitRepository, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories", opts.Repository),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -151,7 +151,7 @@ type CreateOptions struct {
 // POST https://dev.azure.com/{organization}/{project}/_apis/git/repositories?api-version=7.0
 func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*GitRepository, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories"),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -194,7 +194,7 @@ type DeleteOptions struct {
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}?api-version=7.0
 func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories/", opts.RepositoryId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -220,7 +220,7 @@ func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) er
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/git/recycleBin/repositories/{repositoryId}?api-version=7.0
 func DeleteFromRecycleBin(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/recycleBin/repositories", opts.RepositoryId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -264,7 +264,7 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*List
 
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
-			BaseURL: cli.BaseURL(),
+			BaseURL: cli.BaseURL(azuredevops.Default),
 			Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories"),
 			Params:  params,
 		}).Build()
@@ -338,7 +338,7 @@ type GitPushOptions struct {
 // POST https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=7.0
 func CreatePush(ctx context.Context, cli *azuredevops.Client, opts GitPushOptions) (*GitPush, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/git/repositories", opts.RepositoryId, "pushes"),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()

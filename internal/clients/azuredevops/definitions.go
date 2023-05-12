@@ -18,7 +18,7 @@ type DeleteDefinitionOptions struct {
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/build/definitions/{definitionId}?api-version=7.0
 func (c *Client) DeleteDefinition(ctx context.Context, opts DeleteDefinitionOptions) error {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: c.BaseURL(Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/build/definitions/", opts.DefinitionId),
 		Params:  []string{ApiVersionKey, ApiVersionVal},
 	}).Build()

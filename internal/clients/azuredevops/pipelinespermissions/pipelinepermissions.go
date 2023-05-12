@@ -44,7 +44,7 @@ type GetOptions struct {
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/pipelinepermissions/{resourceType}/{resourceId}?api-version=7.0-preview.1
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*ResourcePipelinePermissions, error) {
 	ubo := httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines/pipelinepermissions", opts.ResourceType, opts.ResourceId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag},
 	}
@@ -96,7 +96,7 @@ type UpdateOptions struct {
 // PATCH https://dev.azure.com/{organization}/{project}/_apis/pipelines/pipelinepermissions/{resourceType}/{resourceId}?api-version=7.0-preview.1
 func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*ResourcePipelinePermissions, error) {
 	ubo := httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines/pipelinepermissions", opts.ResourceType, opts.ResourceId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag},
 	}

@@ -44,7 +44,6 @@ func ResolveConnectorConfig(ctx context.Context, kube client.Client, ref *rtv1.R
 		return opts, err
 	}
 
-	opts.BaseURL = cfg.Spec.ApiUrl
 	opts.Token = token
 	opts.Verbose = false
 

@@ -34,7 +34,6 @@ func createAzureDevopsClient() *Client {
 
 	return NewClient(ClientOptions{
 		Verbose: false,
-		BaseURL: os.Getenv("BASE_URL"),
 		Token:   os.Getenv("TOKEN"),
 	})
 }

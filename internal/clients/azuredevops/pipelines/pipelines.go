@@ -80,7 +80,7 @@ type CreateOptions struct {
 // POST https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.0
 func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*Pipeline, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines"),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}).Build()
@@ -123,7 +123,7 @@ type GetOptions struct {
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Pipeline, error) {
 	ubo := httplib.URLBuilderOptions{
-		BaseURL: cli.BaseURL(),
+		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", opts.PipelineId),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}
@@ -195,7 +195,7 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*List
 
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
-			BaseURL: cli.BaseURL(),
+			BaseURL: cli.BaseURL(azuredevops.Default),
 			Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines"),
 			Params:  params,
 		}).Build()

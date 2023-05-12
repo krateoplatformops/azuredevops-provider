@@ -53,7 +53,7 @@ type GetOperationOpts struct {
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/operations/operations/get?view=azure-devops-rest-7.0#operation
 func (c *Client) GetOperation(ctx context.Context, opts GetOperationOpts) (*Operation, error) {
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
-		BaseURL: c.baseURL,
+		BaseURL: c.BaseURL(Default),
 		Path:    path.Join(opts.Organization, "_apis/operations", opts.OperationId),
 		Params:  []string{ApiVersionKey, ApiVersionVal},
 	}).Build()
