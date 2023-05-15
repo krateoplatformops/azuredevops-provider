@@ -1,0 +1,13 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Feed
+metadata:
+  name: feed-sample
+spec:
+  #name: test-feed-1
+  organization: kiratech-bancasella
+  project: Test Project n.1
+  #projectRef: if you set this, comment the two lines above
+  #isReadOnly: false
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

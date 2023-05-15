@@ -278,7 +278,7 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) ([]Fee
 	req = req.WithContext(ctx)
 
 	apiErr := &azuredevops.APIError{}
-	val := make([]Feed, 0)
+	val := []Feed{}
 
 	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
 		AuthMethod: cli.AuthMethod(),
@@ -289,12 +289,12 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) ([]Fee
 				return err
 			}
 
-			var result ListResult
-			if err = json.Unmarshal(data, &result); err != nil {
+			all := &ListResult{}
+			if err = json.Unmarshal(data, &all); err != nil {
 				return err
 			}
 
-			val = append(val, result.Feeds...)
+			val = append(val, all.Feeds...)
 
 			return nil
 		},
@@ -305,6 +305,31 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) ([]Fee
 	})
 
 	return val, err
+}
+
+type FindOptions struct {
+	// Name of the organization
+	Organization string
+	Project      string
+	FeedName     string
+}
+
+func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) (*Feed, error) {
+	all, err := List(ctx, cli, ListOptions{
+		Organization: opts.Organization,
+		Project:      opts.Project,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, el := range all {
+		if el.Name == opts.FeedName {
+			return &el, nil
+		}
+	}
+
+	return nil, nil
 }
 
 // Options for the Create feed function
@@ -435,4 +460,12 @@ func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) er
 			httplib.CheckStatus(http.StatusOK, http.StatusNoContent),
 		},
 	})
+}
+
+func IsAlreadyExists(err error) bool {
+	return httplib.HasStatusErr(err, http.StatusConflict)
+}
+
+func IsNotFound(err error) bool {
+	return httplib.HasStatusErr(err, http.StatusNotFound)
 }

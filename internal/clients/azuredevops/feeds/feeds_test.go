@@ -2,6 +2,7 @@ package feeds
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -12,13 +13,28 @@ import (
 	"github.com/lucasepe/httplib"
 )
 
+func TestFind(t *testing.T) {
+	cli := createAzureDevopsClient()
+
+	res, err := Find(context.TODO(), cli, FindOptions{
+		Organization: os.Getenv("ORG"),
+		//Project:      os.Getenv("PROJECT_ID"),
+		FeedName: "feed-sample",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	spew.Dump(res)
+
+}
 func TestList(t *testing.T) {
 	cli := createAzureDevopsClient()
 	//cli.SetVerbose(true)
 
-	res, err := List(context.TODO(), cli, ListOptions{
+	all, err := List(context.TODO(), cli, ListOptions{
 		Organization: os.Getenv("ORG"),
-		Project:      os.Getenv("PROJECT_ID"),
+		//Project:      os.Getenv("PROJECT_NAME"),
 	})
 	if err != nil {
 		if httplib.IsNotFoundError(err) {
@@ -27,9 +43,12 @@ func TestList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if res != nil {
-		spew.Dump(res)
+	for _, el := range all {
+		fmt.Printf("Name: %s\n", el.Name)
+		fmt.Printf("Id: %s\n", *el.Id)
+		fmt.Println("---------------")
 	}
+
 }
 
 func TestGet(t *testing.T) {
