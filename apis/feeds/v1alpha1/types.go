@@ -45,7 +45,7 @@ type FeedStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster,categories={krateo,azuredevops}
 //+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id"
-//+kubebuilder:printcolumn:name="URL",type="string",JSONPath=".status.url"
+//+kubebuilder:printcolumn:name="URL",type="string",JSONPath=".status.url",priority=10
 //+kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 //+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status",priority=10
 

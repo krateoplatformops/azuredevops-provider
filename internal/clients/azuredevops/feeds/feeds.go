@@ -318,6 +318,7 @@ func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) (*Feed
 	all, err := List(ctx, cli, ListOptions{
 		Organization: opts.Organization,
 		Project:      opts.Project,
+		IncludeUrls:  true,
 	})
 	if err != nil {
 		return nil, err

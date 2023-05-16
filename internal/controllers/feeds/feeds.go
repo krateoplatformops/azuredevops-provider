@@ -1,9 +1,7 @@
 package feeds
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"fmt"
 
 	"k8s.io/client-go/tools/record"
@@ -100,26 +98,23 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, err
 	}
 
-	var current *feeds.Feed
+	var observed *feeds.Feed
 	if cr.Status.Id == nil {
-		current, err = e.findFeed(ctx, cr)
-		if err != nil {
-			return reconciler.ExternalObservation{}, err
-		}
+		observed, err = e.findFeed(ctx, cr)
 	} else {
-		current, err = feeds.Get(ctx, e.azCli, feeds.GetOptions{
+		observed, err = feeds.Get(ctx, e.azCli, feeds.GetOptions{
 			Organization: organization,
 			Project:      project,
 			FeedId:       helpers.String(cr.Status.Id),
 		})
-		if err != nil {
-			if !feeds.IsNotFound(err) {
-				return reconciler.ExternalObservation{}, err
-			}
+	}
+	if err != nil {
+		if !feeds.IsNotFound(err) {
+			return reconciler.ExternalObservation{}, err
 		}
 	}
 
-	if current == nil {
+	if observed == nil {
 		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
@@ -128,8 +123,8 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	cr.SetConditions(rtv1.Available())
 
-	cr.Status.Id = helpers.StringPtr(helpers.String(current.Id))
-	cr.Status.Url = helpers.StringPtr(helpers.String(current.Url))
+	cr.Status.Id = helpers.StringPtr(*observed.Id)
+	cr.Status.Url = helpers.StringPtr(*observed.Url)
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
@@ -169,18 +164,11 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		},
 	})
 	if err != nil {
-		if !feeds.IsAlreadyExists(err) {
-			return err
-		}
-
-		res, err = e.findFeed(ctx, cr)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
-	cr.Status.Id = helpers.StringPtr(helpers.String(res.Id))
-	cr.Status.Url = helpers.StringPtr(helpers.String(res.Url))
+	cr.Status.Id = helpers.StringPtr(*res.Id)
+	cr.Status.Url = helpers.StringPtr(*res.Url)
 
 	return e.kube.Status().Update(ctx, cr)
 }
@@ -223,7 +211,7 @@ func (e *external) resolveProjectAndOrg(ctx context.Context, cr *feedsv1alpha1.F
 	organization := helpers.StringOrDefault(cr.Spec.Organization, "")
 	project := helpers.StringOrDefault(cr.Spec.Project, "")
 
-	if len(project) == 0 && len(organization) == 0 {
+	if cr.Spec.PojectRef != nil {
 		prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
 		if err != nil {
 			return "", "", errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
@@ -261,12 +249,4 @@ func (e *external) findFeed(ctx context.Context, cr *feedsv1alpha1.Feed) (*feeds
 		Project:      prj,
 		FeedName:     name,
 	})
-}
-
-func deepCopy(src, dist interface{}) (err error) {
-	buf := bytes.Buffer{}
-	if err = gob.NewEncoder(&buf).Encode(src); err != nil {
-		return
-	}
-	return gob.NewDecoder(&buf).Decode(dist)
 }

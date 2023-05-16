@@ -24,6 +24,7 @@ spec:
       type: string
     - jsonPath: .status.url
       name: URL
+      priority: 10
       type: string
     - jsonPath: .status.conditions[?(@.type=='Ready')].status
       name: READY

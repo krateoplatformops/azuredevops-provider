@@ -3,7 +3,6 @@ package feeds
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
@@ -18,14 +17,20 @@ func TestFind(t *testing.T) {
 
 	res, err := Find(context.TODO(), cli, FindOptions{
 		Organization: os.Getenv("ORG"),
-		//Project:      os.Getenv("PROJECT_ID"),
-		FeedName: "feed-sample",
+		Project:      os.Getenv("PROJECT_NAME"),
+		FeedName:     "test-feed-3",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	spew.Dump(res)
+	if res == nil {
+		return
+	}
+
+	fmt.Printf("Name: %s\n", res.Name)
+	fmt.Printf("Id: %s\n", *res.Id)
+	fmt.Printf("Url: %s\n", *res.Url)
 
 }
 func TestList(t *testing.T) {
@@ -34,7 +39,8 @@ func TestList(t *testing.T) {
 
 	all, err := List(context.TODO(), cli, ListOptions{
 		Organization: os.Getenv("ORG"),
-		//Project:      os.Getenv("PROJECT_NAME"),
+		Project:      os.Getenv("PROJECT_NAME"),
+		IncludeUrls:  true,
 	})
 	if err != nil {
 		if httplib.IsNotFoundError(err) {
@@ -46,6 +52,7 @@ func TestList(t *testing.T) {
 	for _, el := range all {
 		fmt.Printf("Name: %s\n", el.Name)
 		fmt.Printf("Id: %s\n", *el.Id)
+		fmt.Printf("Url: %s\n", *el.Url)
 		fmt.Println("---------------")
 	}
 
@@ -80,18 +87,18 @@ func TestCreate(t *testing.T) {
 		Project:      os.Getenv("PROJECT_NAME"),
 
 		Feed: &Feed{
-			Name: "test-feed-2",
+			Name: "test-feed-3",
 		},
 	})
 	if err != nil {
-		if !httplib.HasStatusErr(err, http.StatusConflict) {
-			t.Fatal(err)
-		}
+		t.Fatal(err)
 	}
 
-	if res != nil {
-		spew.Dump(res)
+	if res == nil {
+		return
 	}
+	spew.Dump(res)
+
 }
 
 func TestUpdate(t *testing.T) {
