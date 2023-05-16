@@ -109,7 +109,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		})
 	}
 	if err != nil {
-		if !feeds.IsNotFound(err) {
+		if !azuredevops.IsNotFound(err) {
 			return reconciler.ExternalObservation{}, err
 		}
 	}

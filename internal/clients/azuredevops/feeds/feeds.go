@@ -462,11 +462,3 @@ func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) er
 		},
 	})
 }
-
-func IsAlreadyExists(err error) bool {
-	return httplib.HasStatusErr(err, http.StatusConflict)
-}
-
-func IsNotFound(err error) bool {
-	return httplib.HasStatusErr(err, http.StatusNotFound)
-}
