@@ -9,12 +9,12 @@ import (
 
 	feeds "github.com/krateoplatformops/azuredevops-provider/apis/feeds/v1alpha1"
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
+	queues "github.com/krateoplatformops/azuredevops-provider/apis/queues/v1alpha1"
 	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 	runs "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
 )
 
 func init() {
-	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
 	AddToSchemes = append(AddToSchemes,
 		connectorconfigs.SchemeBuilder.AddToScheme,
 		projects.SchemeBuilder.AddToScheme,
@@ -23,6 +23,7 @@ func init() {
 		runs.SchemeBuilder.AddToScheme,
 		pipelinepermissions.SchemeBuilder.AddToScheme,
 		feeds.SchemeBuilder.AddToScheme,
+		queues.SchemeBuilder.AddToScheme,
 	)
 }
 

@@ -345,6 +345,13 @@ func FindByNames(ctx context.Context, cli *azuredevops.Client, opts FindByNamesO
 		},
 	})
 
+	if len(val) == 0 {
+		return nil, &httplib.StatusError{
+			StatusCode: http.StatusNotFound,
+			Inner:      fmt.Errorf("queue(s) [%s] not found", strings.Join(opts.QueueNames, ",")),
+		}
+	}
+
 	return val, err
 }
 

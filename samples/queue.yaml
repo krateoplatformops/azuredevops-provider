@@ -1,0 +1,12 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Queue
+metadata:
+  name: queue-sample
+spec:
+  pool: test
+  organization: kiratech-bancasella
+  project: Test Project n.1
+  #projectRef: if you set this, comment the two lines above
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

@@ -29,9 +29,9 @@ type QueueSpec struct {
 	// +optional
 	Name *string `json:"name,omitempty"`
 
-	// Pool ID
-	// +optional
-	PoolId *int `json:"poolId,omitempty"`
+	// Pool Name
+	// +immutable
+	Pool string `json:"pool"`
 }
 
 // QueueStatus defines the observed state of a Queue

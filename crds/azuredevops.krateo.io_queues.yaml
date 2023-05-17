@@ -78,9 +78,9 @@ spec:
               organization:
                 description: Organization
                 type: string
-              poolId:
-                description: Pool ID
-                type: integer
+              pool:
+                description: Pool Name
+                type: string
               project:
                 description: 'Project: TeamProject name or ID.'
                 type: string
@@ -97,6 +97,8 @@ spec:
                 - name
                 - namespace
                 type: object
+            required:
+            - pool
             type: object
           status:
             description: QueueStatus defines the observed state of a Queue
