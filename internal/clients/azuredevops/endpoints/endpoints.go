@@ -114,7 +114,7 @@ func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) ([]Ser
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
 			BaseURL: cli.BaseURL(azuredevops.Default),
-			Path:    path.Join(opts.Organization, "_apis/serviceendpoint/endpoints"),
+			Path:    path.Join(opts.Organization, opts.Project, "_apis/serviceendpoint/endpoints"),
 			Params:  params,
 		}).Build()
 	if err != nil {
@@ -341,4 +341,47 @@ func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) er
 			httplib.CheckStatus(http.StatusOK, http.StatusNoContent),
 		},
 	})
+}
+
+type GetOptions struct {
+	// (required) Name of the organization
+	Organization string
+	// (optional) Project ID or project name
+	Project string
+	// (required) The agent queue to get information about
+	EndpointId string
+}
+
+// GET https://dev.azure.com/{organization}/{project}/_apis/serviceendpoint/endpoints/{endpointId}?api-version=7.0
+func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*ServiceEndpoint, error) {
+	ubo := httplib.URLBuilderOptions{
+		BaseURL: cli.BaseURL(azuredevops.Default),
+		Path:    path.Join(opts.Organization, opts.Project, "_apis/serviceendpoint/endpoints", opts.EndpointId),
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+	}
+
+	uri, err := httplib.NewURLBuilder(ubo).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Get(uri.String())
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	apiErr := &azuredevops.APIError{}
+	val := &ServiceEndpoint{}
+
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:         cli.Verbose(),
+		AuthMethod:      cli.AuthMethod(),
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
 }

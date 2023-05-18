@@ -1,0 +1,31 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Endpoint
+metadata:
+  name: endpoint-sample
+  annotations:
+    krateo.io/connector-verbose: "false"
+spec:
+  organization: kiratech-bancasella
+  project: Test Project n.1
+  #projectRef: if you set this, comment the two lines above
+  authorization:
+    parameters:
+      tenantid: 91b02abd-daec-432a-8ee4-b5137910aca6
+      #serviceprincipalId: 
+      #serviceprincipalKey:
+      authenticationType: spnKey
+      scope: /subscriptions/97624910-2b37-4b00-8b9b-5155fd1daeda/resourcegroups/centrico
+    scheme: ServicePrincipal
+  data:
+    environment: AzureCloud
+    scopeLevel: Subscription
+    subscriptionId: 0fe98abc-6028-4c53-9e43-200b66fac644
+    subscriptionName: Microsoft Azure Sponsorship
+    creationMode: Automatic
+  isShared: true
+  owner: library
+  type: azurerm
+  url: https://management.azure.com/
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample
