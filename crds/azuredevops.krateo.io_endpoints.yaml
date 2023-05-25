@@ -60,9 +60,15 @@ spec:
                     description: Gets or sets the parameters for the selected authorization
                       scheme.
                     properties:
+                      apitoken:
+                        type: string
                       authenticationType:
                         type: string
+                      isCreatedFromSecretYaml:
+                        type: string
                       scope:
+                        type: string
+                      serviceAccountCertificate:
                         type: string
                       serviceprincipalId:
                         type: string
@@ -93,6 +99,10 @@ spec:
               data:
                 description: 'Data:'
                 properties:
+                  acceptUntrustedCerts:
+                    type: string
+                  authorizationType:
+                    type: string
                   creationMode:
                     type: string
                   environment:

@@ -110,11 +110,14 @@ func asAzureDevopsServiceEndpoint(ref *ProjectReference, cr *endpointsv1alpha1.E
 		}
 		if aut.Parameters != nil {
 			res.Authorization.Parameters = map[string]string{
-				"tenantid":            helpers.String(aut.Parameters.Tenantid),
-				"serviceprincipalId":  helpers.String(aut.Parameters.ServiceprincipalId),
-				"authenticationType":  helpers.String(aut.Parameters.AuthenticationType),
-				"serviceprincipalKey": helpers.String(aut.Parameters.ServiceprincipalKey),
-				"scope":               helpers.String(aut.Parameters.Scope),
+				"tenantid":                  helpers.String(aut.Parameters.Tenantid),
+				"serviceprincipalId":        helpers.String(aut.Parameters.ServiceprincipalId),
+				"authenticationType":        helpers.String(aut.Parameters.AuthenticationType),
+				"serviceprincipalKey":       helpers.String(aut.Parameters.ServiceprincipalKey),
+				"scope":                     helpers.String(aut.Parameters.Scope),
+				"serviceAccountCertificate": helpers.String(aut.Parameters.ServiceAccountCertificate),
+				"isCreatedFromSecretYaml":   helpers.String(aut.Parameters.IsCreatedFromSecretYaml),
+				"apitoken":                  helpers.String(aut.Parameters.Apitoken),
 			}
 		}
 	}
@@ -125,6 +128,8 @@ func asAzureDevopsServiceEndpoint(ref *ProjectReference, cr *endpointsv1alpha1.E
 		res.Data["subscriptionId"] = helpers.String(dt.SubscriptionId)
 		res.Data["subscriptionName"] = helpers.String(dt.SubscriptionName)
 		res.Data["creationMode"] = helpers.String(dt.CreationMode)
+		res.Data["authorizationType"] = helpers.String(dt.AuthorizationType)
+		res.Data["acceptUntrustedCerts"] = helpers.String(dt.AcceptUntrustedCerts)
 	}
 
 	for _, el := range cr.Spec.ServiceEndpointProjectReferences {

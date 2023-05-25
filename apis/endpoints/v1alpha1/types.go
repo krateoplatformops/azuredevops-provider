@@ -6,11 +6,14 @@ import (
 )
 
 type EndpointAuthorizationParams struct {
-	Tenantid            *string `json:"tenantid,omitempty"`
-	ServiceprincipalId  *string `json:"serviceprincipalId,omitempty"`
-	AuthenticationType  *string `json:"authenticationType,omitempty"`
-	ServiceprincipalKey *string `json:"serviceprincipalKey,omitempty"`
-	Scope               *string `json:"scope,omitempty"`
+	Tenantid                  *string `json:"tenantid,omitempty"`
+	ServiceprincipalId        *string `json:"serviceprincipalId,omitempty"`
+	AuthenticationType        *string `json:"authenticationType,omitempty"`
+	ServiceprincipalKey       *string `json:"serviceprincipalKey,omitempty"`
+	Scope                     *string `json:"scope,omitempty"`
+	ServiceAccountCertificate *string `json:"serviceAccountCertificate,omitempty"`
+	IsCreatedFromSecretYaml   *string `json:"isCreatedFromSecretYaml,omitempty"`
+	Apitoken                  *string `json:"apitoken,omitempty"`
 }
 
 // Represents the authorization used for service endpoint.
@@ -22,11 +25,13 @@ type EndpointAuthorization struct {
 }
 
 type Data struct {
-	Environment      *string `json:"environment,omitempty"`
-	ScopeLevel       *string `json:"scopeLevel,omitempty"`
-	SubscriptionId   *string `json:"subscriptionId,omitempty"`
-	SubscriptionName *string `json:"subscriptionName,omitempty"`
-	CreationMode     *string `json:"creationMode,omitempty"`
+	Environment          *string `json:"environment,omitempty"`
+	ScopeLevel           *string `json:"scopeLevel,omitempty"`
+	SubscriptionId       *string `json:"subscriptionId,omitempty"`
+	SubscriptionName     *string `json:"subscriptionName,omitempty"`
+	CreationMode         *string `json:"creationMode,omitempty"`
+	AuthorizationType    *string `json:"authorizationType,omitempty"`
+	AcceptUntrustedCerts *string `json:"acceptUntrustedCerts,omitempty"`
 }
 
 type ProjectReference struct {
