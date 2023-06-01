@@ -109,27 +109,26 @@ func asAzureDevopsServiceEndpoint(ref *ProjectReference, cr *endpointsv1alpha1.E
 			res.Authorization.Scheme = aut.Scheme
 		}
 		if aut.Parameters != nil {
-			res.Authorization.Parameters = map[string]string{
-				"tenantid":                  helpers.String(aut.Parameters.Tenantid),
-				"serviceprincipalId":        helpers.String(aut.Parameters.ServiceprincipalId),
-				"authenticationType":        helpers.String(aut.Parameters.AuthenticationType),
-				"serviceprincipalKey":       helpers.String(aut.Parameters.ServiceprincipalKey),
-				"scope":                     helpers.String(aut.Parameters.Scope),
-				"serviceAccountCertificate": helpers.String(aut.Parameters.ServiceAccountCertificate),
-				"isCreatedFromSecretYaml":   helpers.String(aut.Parameters.IsCreatedFromSecretYaml),
-				"apitoken":                  helpers.String(aut.Parameters.Apitoken),
-			}
+			res.Authorization.Parameters = map[string]string{}
+			addEventually(res.Authorization.Parameters, "tenantid", aut.Parameters.Tenantid)
+			addEventually(res.Authorization.Parameters, "serviceprincipalId", aut.Parameters.ServiceprincipalId)
+			addEventually(res.Authorization.Parameters, "authenticationType", aut.Parameters.AuthenticationType)
+			addEventually(res.Authorization.Parameters, "serviceprincipalKey", aut.Parameters.ServiceprincipalKey)
+			addEventually(res.Authorization.Parameters, "scope", aut.Parameters.Scope)
+			addEventually(res.Authorization.Parameters, "serviceAccountCertificate", aut.Parameters.ServiceAccountCertificate)
+			addEventually(res.Authorization.Parameters, "isCreatedFromSecretYaml", aut.Parameters.IsCreatedFromSecretYaml)
+			addEventually(res.Authorization.Parameters, "apitoken", aut.Parameters.Apitoken)
 		}
 	}
 
 	if dt := cr.Spec.Data; dt != nil {
-		res.Data["environment"] = helpers.String(dt.Environment)
-		res.Data["scopeLevel"] = helpers.String(dt.ScopeLevel)
-		res.Data["subscriptionId"] = helpers.String(dt.SubscriptionId)
-		res.Data["subscriptionName"] = helpers.String(dt.SubscriptionName)
-		res.Data["creationMode"] = helpers.String(dt.CreationMode)
-		res.Data["authorizationType"] = helpers.String(dt.AuthorizationType)
-		res.Data["acceptUntrustedCerts"] = helpers.String(dt.AcceptUntrustedCerts)
+		addEventually(res.Data, "environment", dt.Environment)
+		addEventually(res.Data, "scopeLevel", dt.ScopeLevel)
+		addEventually(res.Data, "subscriptionId", dt.SubscriptionId)
+		addEventually(res.Data, "subscriptionName", dt.SubscriptionName)
+		addEventually(res.Data, "creationMode", dt.CreationMode)
+		addEventually(res.Data, "authorizationType", dt.AuthorizationType)
+		addEventually(res.Data, "acceptUntrustedCerts", dt.AcceptUntrustedCerts)
 	}
 
 	for _, el := range cr.Spec.ServiceEndpointProjectReferences {
@@ -154,4 +153,14 @@ func asAzureDevopsServiceEndpoint(ref *ProjectReference, cr *endpointsv1alpha1.E
 	}
 
 	return res
+}
+
+func addEventually(dict map[string]string, key string, val *string) {
+	if val == nil {
+		return
+	}
+
+	if s := helpers.String(val); len(s) > 0 {
+		dict[key] = s
+	}
 }
