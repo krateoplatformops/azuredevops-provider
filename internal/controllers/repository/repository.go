@@ -119,6 +119,9 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	if repo == nil {
 		var err error
+		if len(prj.Status.Id) == 0 {
+			return reconciler.ExternalObservation{}, errors.New("TeamProject is not initialized")
+		}
 		repo, err = repositories.Find(ctx, e.azCli, repositories.FindOptions{
 			Organization: prj.Spec.Organization,
 			Project:      prj.Status.Id,
