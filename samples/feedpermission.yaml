@@ -1,0 +1,16 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: FeedPermission
+metadata:
+  name: feedpermission-sample
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  organization: matteogastaldello
+  project: teamproject
+  feed: test-feed-4
+  user:
+    type: build-service
+    role: reader
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

@@ -5,6 +5,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/endpoints"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/feedpermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/feeds"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipeline"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipelinepermissions"
@@ -26,6 +27,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		feeds.Setup,
 		queues.Setup,
 		endpoints.Setup,
+		feedpermissions.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err
