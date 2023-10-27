@@ -19,6 +19,7 @@ type URIKey string
 const (
 	Default URIKey = "default"
 	Feeds   URIKey = "feeds"
+	Vssps   URIKey = "vssps"
 )
 
 type ClientOptions struct {
@@ -39,6 +40,7 @@ func NewClient(opts ClientOptions) *Client {
 		uriMap: map[URIKey]string{
 			Default: "https://dev.azure.com",
 			Feeds:   "https://feeds.dev.azure.com",
+			Vssps:   "https://vssps.dev.azure.com",
 		},
 		verbose: opts.Verbose,
 		authMethod: &httplib.BasicAuth{
