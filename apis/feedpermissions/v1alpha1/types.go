@@ -12,6 +12,9 @@ type UserResource struct {
 	// The role for this identity on a feed.
 	// [custom, none, reader, contributor, administrator, collaborator]
 	Role *string `json:"role"`
+
+	// PojectRef - A reference to a TeamProject.
+	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
 }
 
 // FeedPermission defines the desired state of FeedPermission

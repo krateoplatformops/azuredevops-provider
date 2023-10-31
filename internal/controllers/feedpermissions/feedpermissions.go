@@ -146,14 +146,14 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	spec := cr.Spec.DeepCopy()
 
 	project, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
-		Name:      spec.Poject,
-		Namespace: spec.Organization,
+		Name:      *&spec.User.PojectRef.Name,
+		Namespace: spec.User.PojectRef.Namespace,
 	})
 	if err != nil {
 		return err
 	}
 	if project == nil {
-		return errors.Errorf("Project with name %s and namespace %s not found", spec.Poject, spec.Organization)
+		return errors.Errorf("Project with name %s and namespace %s not found", spec.Poject, spec.User.PojectRef.Namespace)
 	}
 
 	projectStatus := project.Status.DeepCopy()

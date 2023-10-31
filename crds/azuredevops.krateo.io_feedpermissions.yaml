@@ -84,6 +84,19 @@ spec:
               user:
                 description: User Permissions and type
                 properties:
+                  projectRef:
+                    description: PojectRef - A reference to a TeamProject.
+                    properties:
+                      name:
+                        description: Name of the referenced object.
+                        type: string
+                      namespace:
+                        description: Namespace of the referenced object.
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
                   role:
                     description: The role for this identity on a feed. [custom, none,
                       reader, contributor, administrator, collaborator]
