@@ -76,7 +76,7 @@ spec:
                 description: Name or ID of the feed
                 type: string
               projectRef:
-                description: PojectRef - A reference to a TeamProject that owns the
+                description: ProjectRef - A reference to a TeamProject that owns the
                   feed.
                 properties:
                   name:
@@ -93,8 +93,8 @@ spec:
                 description: User Permissions and type
                 properties:
                   projectRef:
-                    description: PojectRef - A reference to the teamproject that owns
-                      the user
+                    description: ProjectRef - A reference to the teamproject that
+                      owns the user
                     properties:
                       name:
                         description: Name of the referenced object.

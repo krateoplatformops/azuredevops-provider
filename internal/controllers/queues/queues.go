@@ -222,10 +222,10 @@ func (e *external) resolveProjectAndOrg(ctx context.Context, cr *queuesv1alpha1.
 	organization := helpers.StringOrDefault(cr.Spec.Organization, "")
 	project := helpers.StringOrDefault(cr.Spec.Project, "")
 
-	if cr.Spec.PojectRef != nil {
-		prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
+	if cr.Spec.ProjectRef != nil {
+		prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 		if err != nil {
-			return "", "", errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
+			return "", "", errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
 		}
 		if prj != nil {
 			project = prj.Spec.Name

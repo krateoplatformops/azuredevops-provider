@@ -99,9 +99,9 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	spec := cr.Spec.DeepCopy()
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.ProjectRef)
 	if err != nil {
-		return reconciler.ExternalObservation{}, errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+		return reconciler.ExternalObservation{}, errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.ProjectRef.Name)
 	}
 
 	var repo *repositories.GitRepository
@@ -171,9 +171,9 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Creating())
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 	if err != nil || prj == nil {
-		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
+		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
 	}
 
 	res, err := repositories.Create(ctx, e.azCli, repositories.CreateOptions{
@@ -259,9 +259,9 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Deleting())
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 	if err != nil {
-		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
+		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
 	}
 
 	err = repositories.Delete(ctx, e.azCli, repositories.DeleteOptions{

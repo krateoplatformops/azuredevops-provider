@@ -101,7 +101,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	res, err := pipelinespermissions.Get(ctx, e.azCli, pipelinespermissions.GetOptions{
 		Organization: cr.Spec.Organization,
-		Project:      cr.Spec.Poject,
+		Project:      cr.Spec.Project,
 		ResourceType: helpers.String(cr.Spec.Resource.Type),
 		ResourceId:   helpers.String(cr.Spec.Resource.Id),
 	})
@@ -145,7 +145,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 
 	_, err := pipelinespermissions.Update(ctx, e.azCli, pipelinespermissions.UpdateOptions{
 		Organization: spec.Organization,
-		Project:      spec.Poject,
+		Project:      spec.Project,
 		ResourceType: helpers.String(spec.Resource.Type),
 		ResourceId:   resourceId,
 		ResourceAuthorization: &pipelinespermissions.ResourcePipelinePermissions{

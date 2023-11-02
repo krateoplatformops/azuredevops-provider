@@ -111,10 +111,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, err
 	}
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, pip.Spec.PojectRef)
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, pip.Spec.ProjectRef)
 	if err != nil || prj == nil {
 		return reconciler.ExternalObservation{},
-			errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.PojectRef.Name)
+			errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.ProjectRef.Name)
 	}
 
 	var run *runs.RunInfo
@@ -184,9 +184,9 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return err
 	}
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, pip.Spec.PojectRef)
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, pip.Spec.ProjectRef)
 	if err != nil || prj == nil {
-		return errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.PojectRef.Name)
+		return errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.ProjectRef.Name)
 	}
 
 	run, err := runs.Run(ctx, e.azCli, runs.RunOptions{

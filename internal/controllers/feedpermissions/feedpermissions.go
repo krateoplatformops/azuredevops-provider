@@ -101,14 +101,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	}
 
 	projectFeed, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
-		Name:      cr.Spec.PojectRef.Name,
-		Namespace: cr.Spec.PojectRef.Namespace,
+		Name:      cr.Spec.ProjectRef.Name,
+		Namespace: cr.Spec.ProjectRef.Namespace,
 	})
 	if err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
 	if projectFeed == nil {
-		return reconciler.ExternalObservation{}, errors.Errorf("Project with name %s and namespace %s not found", cr.Spec.PojectRef.Name, cr.Spec.PojectRef.Namespace)
+		return reconciler.ExternalObservation{}, errors.Errorf("Project with name %s and namespace %s not found", cr.Spec.ProjectRef.Name, cr.Spec.ProjectRef.Namespace)
 	}
 	projectFeedSpec := projectFeed.Spec.DeepCopy()
 
@@ -157,27 +157,27 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	spec := cr.Spec.DeepCopy()
 
 	projectUser, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
-		Name:      spec.User.PojectRef.Name,
-		Namespace: spec.User.PojectRef.Namespace,
+		Name:      spec.User.ProjectRef.Name,
+		Namespace: spec.User.ProjectRef.Namespace,
 	})
 	if err != nil {
 		return err
 	}
 	if projectUser == nil {
-		return errors.Errorf("Project with name %s and namespace %s not found", spec.User.PojectRef.Name, spec.User.PojectRef.Namespace)
+		return errors.Errorf("Project with name %s and namespace %s not found", spec.User.ProjectRef.Name, spec.User.ProjectRef.Namespace)
 	}
 	projectUserStatus := projectUser.Status.DeepCopy()
 	projectUserSpec := projectUser.Spec.DeepCopy()
 
 	projectFeed, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
-		Name:      spec.PojectRef.Name,
-		Namespace: spec.PojectRef.Namespace,
+		Name:      spec.ProjectRef.Name,
+		Namespace: spec.ProjectRef.Namespace,
 	})
 	if err != nil {
 		return err
 	}
 	if projectUser == nil {
-		return errors.Errorf("Project with name %s and namespace %s not found", spec.PojectRef.Name, spec.PojectRef.Namespace)
+		return errors.Errorf("Project with name %s and namespace %s not found", spec.ProjectRef.Name, spec.ProjectRef.Namespace)
 	}
 	projectFeedSpec := projectFeed.Spec.DeepCopy()
 

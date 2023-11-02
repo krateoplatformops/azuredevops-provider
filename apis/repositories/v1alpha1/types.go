@@ -19,8 +19,8 @@ type GitRepositorySpec struct {
 	// +optional
 	Project *string `json:"project,omitempty"`
 
-	// PojectRef - A reference to a TeamProject.
-	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
+	// ProjectRef - A reference to a TeamProject.
+	ProjectRef *rtv1.Reference `json:"projectRef,omitempty"`
 
 	// Name: name of the Git repository.
 	Name string `json:"name,omitempty"`

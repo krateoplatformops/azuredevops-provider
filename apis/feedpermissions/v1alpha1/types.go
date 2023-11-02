@@ -12,16 +12,16 @@ type UserResource struct {
 	// The role for this identity on a feed.
 	// [custom, none, reader, contributor, administrator, collaborator]
 	Role *string `json:"role"`
-	// PojectRef - A reference to the teamproject that owns the user
-	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
+	// ProjectRef - A reference to the teamproject that owns the user
+	ProjectRef *rtv1.Reference `json:"projectRef,omitempty"`
 }
 
 // FeedPermission defines the desired state of FeedPermission
 type FeedPermissionSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
 
-	// PojectRef - A reference to a TeamProject that owns the feed.
-	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
+	// ProjectRef - A reference to a TeamProject that owns the feed.
+	ProjectRef *rtv1.Reference `json:"projectRef,omitempty"`
 
 	// Name or ID of the feed
 	Feed *string `json:"feed,omitempty"`

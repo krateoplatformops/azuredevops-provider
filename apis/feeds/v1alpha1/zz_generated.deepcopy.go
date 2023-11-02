@@ -99,8 +99,8 @@ func (in *FeedSpec) DeepCopyInto(out *FeedSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.PojectRef != nil {
-		in, out := &in.PojectRef, &out.PojectRef
+	if in.ProjectRef != nil {
+		in, out := &in.ProjectRef, &out.ProjectRef
 		*out = new(v1.Reference)
 		**out = **in
 	}
