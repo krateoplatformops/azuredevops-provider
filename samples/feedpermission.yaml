@@ -5,12 +5,17 @@ metadata:
   annotations:
     krateo.io/connector-verbose: "true"
 spec:
-  organization: matteogastaldello
-  project: teamproject
+  deletionPolicy: Orphan
+  projectRef:
+    name: teamproject
+    namespace: default
   feed: test-feed-4
   user:
     type: build-service
     role: reader
+    projectRef:
+      name: teamproject-sample
+      namespace: default
   connectorConfigRef:
     namespace: default
     name: connectorconfig-sample

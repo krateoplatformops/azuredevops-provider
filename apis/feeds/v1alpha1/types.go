@@ -17,9 +17,9 @@ type FeedSpec struct {
 	// +optional
 	Project *string `json:"project,omitempty"`
 
-	// PojectRef - A reference to a TeamProject.
+	// ProjectRef - A reference to a TeamProject.
 	// +optional
-	PojectRef *rtv1.Reference `json:"projectRef,omitempty"`
+	ProjectRef *rtv1.Reference `json:"projectRef,omitempty"`
 
 	// Name of the feed.
 	// +optional

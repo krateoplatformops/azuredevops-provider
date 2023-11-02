@@ -99,10 +99,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	spec := cr.Spec.DeepCopy()
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.ProjectRef)
 	if err != nil || prj == nil {
 		return reconciler.ExternalObservation{},
-			errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+			errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.ProjectRef.Name)
 	}
 
 	var pip *pipelines.Pipeline
@@ -176,9 +176,9 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
-	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.PojectRef)
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, spec.ProjectRef)
 	if err != nil {
-		return errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.PojectRef.Name)
+		return errors.Wrapf(err, "unble to resolve TeamProject: %s", spec.ProjectRef.Name)
 	}
 
 	repo, err := resolvers.ResolveGitRepository(ctx, e.kube, spec.RepositoryRef)

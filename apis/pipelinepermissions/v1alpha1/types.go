@@ -18,8 +18,8 @@ type Resource struct {
 type PipelinePermissionSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
 
-	// Poject - TeamProject NAME OR ID.
-	Poject string `json:"project"`
+	// Project - TeamProject NAME OR ID.
+	Project string `json:"project"`
 
 	// Organization -  Organization NAME.
 	Organization string `json:"organization"`

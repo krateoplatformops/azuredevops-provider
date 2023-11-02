@@ -85,7 +85,7 @@ spec:
                 description: 'Project: TeamProject name or ID.'
                 type: string
               projectRef:
-                description: PojectRef - A reference to a TeamProject.
+                description: ProjectRef - A reference to a TeamProject.
                 properties:
                   name:
                     description: Name of the referenced object.

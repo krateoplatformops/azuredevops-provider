@@ -24,10 +24,10 @@ func (e *external) resolveProjectRef(ctx context.Context, cr *endpointsv1alpha1.
 		Name:         helpers.StringOrDefault(cr.Spec.Project, ""),
 	}
 
-	if cr.Spec.PojectRef != nil {
-		prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.PojectRef)
+	if cr.Spec.ProjectRef != nil {
+		prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 		if err != nil {
-			return ref, errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.PojectRef.Name)
+			return ref, errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
 		}
 		if prj != nil {
 			ref.Id = prj.Status.Id

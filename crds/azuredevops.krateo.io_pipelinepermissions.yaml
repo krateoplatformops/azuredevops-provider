@@ -76,7 +76,7 @@ spec:
                 description: Organization -  Organization NAME.
                 type: string
               project:
-                description: Poject - TeamProject NAME OR ID.
+                description: Project - TeamProject NAME OR ID.
                 type: string
               resource:
                 properties:
