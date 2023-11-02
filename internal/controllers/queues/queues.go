@@ -138,8 +138,8 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.New(errNotCR)
 	}
 
-	if !meta.IsActionAllowed(cr, meta.ActionUpdate) {
-		e.log.Debug("External resource should not be updated by provider, skip updating.")
+	if !meta.IsActionAllowed(cr, meta.ActionCreate) {
+		e.log.Debug("External resource should not be created by provider, skip creating.")
 		return nil
 	}
 
