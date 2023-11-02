@@ -75,17 +75,26 @@ spec:
               feed:
                 description: Name or ID of the feed
                 type: string
-              organization:
-                description: Organization -  Organization NAME.
-                type: string
-              project:
-                description: Poject - TeamProject NAME OR ID.
-                type: string
+              projectRef:
+                description: PojectRef - A reference to a TeamProject that owns the
+                  feed.
+                properties:
+                  name:
+                    description: Name of the referenced object.
+                    type: string
+                  namespace:
+                    description: Namespace of the referenced object.
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
               user:
                 description: User Permissions and type
                 properties:
                   projectRef:
-                    description: PojectRef - A reference to a TeamProject.
+                    description: PojectRef - A reference to the teamproject that owns
+                      the user
                     properties:
                       name:
                         description: Name of the referenced object.
@@ -108,9 +117,6 @@ spec:
                 - role
                 - type
                 type: object
-            required:
-            - organization
-            - project
             type: object
           status:
             properties:

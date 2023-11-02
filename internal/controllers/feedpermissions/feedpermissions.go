@@ -96,14 +96,25 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	if !ok {
 		return reconciler.ExternalObservation{}, errors.New(errNotFeed)
 	}
-
 	if cr.Spec.User == nil {
 		return reconciler.ExternalObservation{}, errors.New(errUnspecifiedResource)
 	}
 
+	projectFeed, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
+		Name:      cr.Spec.PojectRef.Name,
+		Namespace: cr.Spec.PojectRef.Namespace,
+	})
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+	if projectFeed == nil {
+		return reconciler.ExternalObservation{}, errors.Errorf("Project with name %s and namespace %s not found", cr.Spec.PojectRef.Name, cr.Spec.PojectRef.Namespace)
+	}
+	projectFeedSpec := projectFeed.Spec.DeepCopy()
+
 	res, err := feedspermissions.Get(ctx, e.azCli, feedspermissions.GetOptions{
-		Organization: cr.Spec.Organization,
-		Project:      cr.Spec.Poject,
+		Organization: projectFeedSpec.Organization,
+		Project:      projectFeedSpec.Name,
 		FeedId:       helpers.String(cr.Spec.Feed),
 	})
 	if err != nil {
@@ -145,18 +156,30 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 
 	spec := cr.Spec.DeepCopy()
 
-	project, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
-		Name:      *&spec.User.PojectRef.Name,
+	projectUser, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
+		Name:      spec.User.PojectRef.Name,
 		Namespace: spec.User.PojectRef.Namespace,
 	})
 	if err != nil {
 		return err
 	}
-	if project == nil {
-		return errors.Errorf("Project with name %s and namespace %s not found", spec.Poject, spec.User.PojectRef.Namespace)
+	if projectUser == nil {
+		return errors.Errorf("Project with name %s and namespace %s not found", spec.User.PojectRef.Name, spec.User.PojectRef.Namespace)
 	}
+	projectUserStatus := projectUser.Status.DeepCopy()
+	projectUserSpec := projectUser.Spec.DeepCopy()
 
-	projectStatus := project.Status.DeepCopy()
+	projectFeed, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
+		Name:      spec.PojectRef.Name,
+		Namespace: spec.PojectRef.Namespace,
+	})
+	if err != nil {
+		return err
+	}
+	if projectUser == nil {
+		return errors.Errorf("Project with name %s and namespace %s not found", spec.PojectRef.Name, spec.PojectRef.Namespace)
+	}
+	projectFeedSpec := projectFeed.Spec.DeepCopy()
 
 	// match descriptor with Resource type
 	userType := identities.UserType(*spec.User.Type)
@@ -165,14 +188,14 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	}
 
 	ids, err := identities.Get(ctx, e.azCli, identities.GetOptions{
-		Organization: spec.Organization,
-		ProjectID:    projectStatus.Id,
+		Organization: projectUserSpec.Organization,
+		ProjectID:    projectUserStatus.Id,
 	})
 	if err != nil {
 		return err
 	}
 
-	identity, err := ids.IdentityMatch(userType, project)
+	identity, err := ids.IdentityMatch(userType, projectUser)
 	if err != nil {
 		return err
 	}
@@ -189,8 +212,8 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		Role:               spec.User.Role,
 	})
 	_, err = feedspermissions.Update(ctx, e.azCli, feedspermissions.UpdateOptions{
-		Organization:    spec.Organization,
-		Project:         spec.Poject,
+		Organization:    projectFeedSpec.Organization,
+		Project:         projectFeedSpec.Name,
 		ResourceRole:    helpers.String(spec.User.Role),
 		ResourceId:      resourceId,
 		FeedPermissions: feedPerm,

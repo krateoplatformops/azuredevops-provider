@@ -89,6 +89,11 @@ func (in *FeedPermissionList) DeepCopyObject() runtime.Object {
 func (in *FeedPermissionSpec) DeepCopyInto(out *FeedPermissionSpec) {
 	*out = *in
 	out.ManagedSpec = in.ManagedSpec
+	if in.PojectRef != nil {
+		in, out := &in.PojectRef, &out.PojectRef
+		*out = new(v1.Reference)
+		**out = **in
+	}
 	if in.Feed != nil {
 		in, out := &in.Feed, &out.Feed
 		*out = new(string)
