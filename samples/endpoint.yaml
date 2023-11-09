@@ -5,9 +5,10 @@ metadata:
   annotations:
     krateo.io/connector-verbose: "false"
 spec:
-  organization: kiratech-bancasella
-  project: Test Project n.1
-  #projectRef: if you set this, comment the two lines above
+  name: endpoint-sample
+  projectRef: 
+    name: pipeline-proj
+    namespace: yournamespace
   authorization:
     parameters:
       tenantid: 91b02abd-daec-432a-8ee4-b5137910aca6
@@ -24,6 +25,17 @@ spec:
   owner: library
   type: azurerm
   url: https://management.azure.com/
+  serviceEndpointProjectReferences:
+    - description: description of the share
+      name: prova2
+      projectRef: 
+        name: teamproject
+        namespace: yournamespace
+    - description: description of the share
+      name: prova1
+      projectRef: 
+        name: anotherproject
+        namespace: yournamespace
   connectorConfigRef:
-    namespace: default
+    namespace: yournamespace
     name: connectorconfig-sample
