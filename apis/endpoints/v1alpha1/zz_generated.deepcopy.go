@@ -357,10 +357,10 @@ func (in *ServiceEndpointProjectReference) DeepCopyInto(out *ServiceEndpointProj
 		*out = new(string)
 		**out = **in
 	}
-	if in.ProjectReference != nil {
-		in, out := &in.ProjectReference, &out.ProjectReference
-		*out = new(ProjectReference)
-		(*in).DeepCopyInto(*out)
+	if in.ProjectRef != nil {
+		in, out := &in.ProjectRef, &out.ProjectRef
+		*out = new(v1.Reference)
+		**out = **in
 	}
 }
 

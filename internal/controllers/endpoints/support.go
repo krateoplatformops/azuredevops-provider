@@ -8,8 +8,10 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/endpoints"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/projects"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
+	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/pkg/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type ProjectReference struct {
@@ -78,7 +80,7 @@ func (e *external) findEndpoint(ctx context.Context, ref *ProjectReference, cr *
 	return &all[0], nil
 }
 
-func asAzureDevopsServiceEndpoint(ref *ProjectReference, cr *endpointsv1alpha1.Endpoint) *endpoints.ServiceEndpoint {
+func asAzureDevopsServiceEndpoint(ctx context.Context, kube client.Client, ref *ProjectReference, cr *endpointsv1alpha1.Endpoint) (*endpoints.ServiceEndpoint, error) {
 	if cr.Spec.Name == nil {
 		cr.Spec.Name = helpers.StringPtr(cr.GetName())
 	}
@@ -132,11 +134,15 @@ func asAzureDevopsServiceEndpoint(ref *ProjectReference, cr *endpointsv1alpha1.E
 	}
 
 	for _, el := range cr.Spec.ServiceEndpointProjectReferences {
-		if el.ProjectReference == nil {
-			continue
+		projectUser, err := resolvers.ResolveTeamProject(ctx, kube, &rtv1.Reference{
+			Name:      el.ProjectRef.Name,
+			Namespace: el.ProjectRef.Namespace,
+		})
+		if err != nil {
+			return nil, err
 		}
-		if helpers.String(el.ProjectReference.Id) == ref.Id {
-			continue
+		if projectUser == nil {
+			return nil, errors.Errorf("Project with name %s and namespace %s not found", el.ProjectRef.Name, el.ProjectRef.Namespace)
 		}
 
 		spr := endpoints.ServiceEndpointProjectReference{
@@ -144,15 +150,13 @@ func asAzureDevopsServiceEndpoint(ref *ProjectReference, cr *endpointsv1alpha1.E
 			Name:             el.Name,
 			ProjectReference: &endpoints.ProjectReference{},
 		}
-		if pr := el.ProjectReference; pr != nil {
-			spr.ProjectReference.Id = pr.Id
-			spr.ProjectReference.Name = pr.Name
-		}
+		spr.ProjectReference.Id = helpers.StringPtr(projectUser.Status.Id)
+		spr.ProjectReference.Name = projectUser.Spec.Name
 
 		res.ServiceEndpointProjectReferences = append(res.ServiceEndpointProjectReferences, spr)
 	}
 
-	return res
+	return res, nil
 }
 
 func addEventually(dict map[string]string, key string, val *string) {

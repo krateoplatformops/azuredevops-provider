@@ -44,8 +44,8 @@ type ServiceEndpointProjectReference struct {
 	Description *string `json:"description,omitempty"`
 	// Gets or sets name of the service endpoint.
 	Name *string `json:"name,omitempty"`
-	// Gets or sets project reference of the service endpoint.
-	ProjectReference *ProjectReference `json:"projectReference,omitempty"`
+	// ProjectRef - A reference to the teamproject that owns the user
+	ProjectRef *rtv1.Reference `json:"projectRef,omitempty"`
 }
 
 // EndpointSpec defines the desired state of Endpoint
