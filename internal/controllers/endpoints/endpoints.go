@@ -150,9 +150,13 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Creating())
 
+	endopoint, err := asAzureDevopsServiceEndpoint(ctx, e.kube, &ref, cr)
+	if err != nil {
+		return err
+	}
 	res, err := endpoints.Create(ctx, e.azCli, endpoints.CreateOptions{
 		Organization: ref.Organization,
-		Endpoint:     asAzureDevopsServiceEndpoint(&ref, cr),
+		Endpoint:     endopoint,
 	})
 	if err != nil {
 		return err

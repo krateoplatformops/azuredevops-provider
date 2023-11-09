@@ -167,13 +167,19 @@ spec:
                     name:
                       description: Gets or sets name of the service endpoint.
                       type: string
-                    projectReference:
-                      description: Gets or sets project reference of the service endpoint.
+                    projectRef:
+                      description: ProjectRef - A reference to the teamproject that
+                        owns the user
                       properties:
-                        id:
-                          type: string
                         name:
+                          description: Name of the referenced object.
                           type: string
+                        namespace:
+                          description: Namespace of the referenced object.
+                          type: string
+                      required:
+                      - name
+                      - namespace
                       type: object
                   type: object
                 type: array
