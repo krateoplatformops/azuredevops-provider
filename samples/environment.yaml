@@ -1,0 +1,16 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Environment
+metadata:
+  name: environment-sample-1
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  name: test-enviroment-1
+  description: descrizione di prova, update
+  deletionPolicy: Delete
+  projectRef:
+    namespace: default
+    name: pipeline-proj
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample
