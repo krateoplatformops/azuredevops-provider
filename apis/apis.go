@@ -5,6 +5,7 @@ import (
 
 	connectorconfigs "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
 	endpoints "github.com/krateoplatformops/azuredevops-provider/apis/endpoints/v1alpha1"
+	environments "github.com/krateoplatformops/azuredevops-provider/apis/environments/v1alpha1"
 	feedpermissions "github.com/krateoplatformops/azuredevops-provider/apis/feedpermissions/v1alpha1"
 	feeds "github.com/krateoplatformops/azuredevops-provider/apis/feeds/v1alpha1"
 	pipelinepermissions "github.com/krateoplatformops/azuredevops-provider/apis/pipelinepermissions/v1alpha1"
@@ -27,6 +28,7 @@ func init() {
 		queues.SchemeBuilder.AddToScheme,
 		endpoints.SchemeBuilder.AddToScheme,
 		feedpermissions.SchemeBuilder.AddToScheme,
+		environments.SchemeBuilder.AddToScheme,
 	)
 }
 
