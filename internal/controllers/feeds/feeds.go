@@ -121,10 +121,17 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 
+	if !compareFeed(ctx, cr, observed) {
+		return reconciler.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
+
 	cr.SetConditions(rtv1.Available())
 
-	cr.Status.Id = helpers.StringPtr(*observed.Id)
-	cr.Status.Url = helpers.StringPtr(*observed.Url)
+	cr.Status.Id = observed.Id
+	cr.Status.Url = observed.Url
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
@@ -155,12 +162,23 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		name = cr.GetName()
 	}
 
+	var upstreams []feeds.UpstreamSource
+	for _, v := range cr.Spec.UpstreamSources {
+		upstreams = append(upstreams, feeds.UpstreamSource{
+			Name:               v.Name,
+			Location:           v.Location,
+			Protocol:           v.Protocol,
+			UpstreamSourceType: v.UpstreamSourceType,
+		})
+	}
+
 	res, err := feeds.Create(ctx, e.azCli, feeds.CreateOptions{
 		Organization: organization,
 		Project:      project,
 		Feed: &feeds.Feed{
-			Name:       name,
-			IsReadOnly: helpers.BoolOrDefault(cr.Spec.IsReadOnly, false),
+			Name:            name,
+			IsReadOnly:      helpers.BoolOrDefault(cr.Spec.IsReadOnly, false),
+			UpstreamSources: upstreams,
 		},
 	})
 	if err != nil {
@@ -174,7 +192,43 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
-	return nil // NOOP
+
+	cr, ok := mg.(*feedsv1alpha1.Feed)
+	if !ok {
+		return errors.New(errNotCR)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionUpdate) {
+		e.log.Debug("External resource should not be updated by provider, skip updating.")
+		return nil
+	}
+
+	organization, project, err := e.resolveProjectAndOrg(ctx, cr)
+	if err != nil {
+		return err
+	}
+
+	feed, err := e.localFeedUpdate(ctx, cr, organization, project)
+	if err != nil {
+		return err
+	}
+
+	_, err = feeds.Update(ctx, e.azCli, feeds.UpdateOptions{
+		Organization: organization,
+		Project:      project,
+		FeedId:       helpers.String(cr.Status.Id),
+		FeedUpdate: &feeds.FeedUpdate{
+			Name:                       feed.Name,
+			Description:                feed.Description,
+			UpstreamEnabled:            feed.UpstreamEnabled,
+			UpstreamSources:            feed.UpstreamSources,
+			HideDeletedPackageVersions: feed.HideDeletedPackageVersions,
+			DefaultViewId:              feed.DefaultViewId,
+			BadgesEnabled:              feed.BadgesEnabled,
+		},
+	})
+
+	return err
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
@@ -249,4 +303,59 @@ func (e *external) findFeed(ctx context.Context, cr *feedsv1alpha1.Feed) (*feeds
 		Project:      prj,
 		FeedName:     name,
 	})
+}
+func findUpstream(upstream feeds.UpstreamSource, upstreams []feeds.UpstreamSource) bool {
+	for _, v := range upstreams {
+		if helpers.String(upstream.Name) == helpers.String(v.Name) && helpers.String(upstream.Location) == helpers.String(v.DisplayLocation) && helpers.String(upstream.Protocol) == helpers.String(v.Protocol) && helpers.String(upstream.UpstreamSourceType) == helpers.String(v.UpstreamSourceType) {
+			return true
+		}
+	}
+	return false
+}
+func compareFeed(ctx context.Context, cr *feedsv1alpha1.Feed, feed *feeds.Feed) bool {
+	name := helpers.StringOrDefault(cr.Spec.Name, cr.GetName())
+
+	if name != feed.Name {
+		return false
+	}
+	for _, e := range cr.Spec.UpstreamSources {
+		upstream := feeds.UpstreamSource{
+			Name:               e.Name,
+			Location:           e.Location,
+			Protocol:           e.Protocol,
+			UpstreamSourceType: e.UpstreamSourceType,
+		}
+		if !findUpstream(upstream, feed.UpstreamSources) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (e *external) localFeedUpdate(ctx context.Context, cr *feedsv1alpha1.Feed, organization string, project string) (*feeds.Feed, error) {
+	feed, err := feeds.Get(ctx, e.azCli, feeds.GetOptions{
+		Organization: organization,
+		Project:      project,
+		FeedId:       helpers.String(cr.Status.Id),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	feed.Name = helpers.StringOrDefault(cr.Spec.Name, feed.Name)
+	feed.IsReadOnly = helpers.BoolOrDefault(cr.Spec.IsReadOnly, feed.IsReadOnly)
+	for _, v := range cr.Spec.UpstreamSources {
+		f := feeds.UpstreamSource{
+			Name:               v.Name,
+			Location:           v.Location,
+			Protocol:           v.Protocol,
+			UpstreamSourceType: v.UpstreamSourceType,
+		}
+		if !findUpstream(f, feed.UpstreamSources) {
+			feed.UpstreamSources = append(feed.UpstreamSources, f)
+		}
+
+	}
+	return feed, nil
 }

@@ -1,13 +1,29 @@
 apiVersion: azuredevops.krateo.io/v1alpha1
 kind: Feed
 metadata:
-  name: feed-sample
+  name: feed-sample-3
 spec:
-  name: test-feed-4
-  organization: kiratech-bancasella
-  project: Test Project n.1
-  #projectRef: if you set this, comment the two lines above
-  #isReadOnly: false
+  deletionPolicy: Orphan
+  projectRef:
+    namespace: default
+    name: teamproject
+  upstreamSources:
+    - name: upstream-prova
+      protocol: npm
+      upstreamSourceType: internal
+      location: azure-feed://matteogastaldello/pipelineProj/feed-prova@Local
+    - name: upstream-prova
+      protocol: pypi
+      upstreamSourceType: internal
+      location: azure-feed://matteogastaldello/pipelineProj/feed-prova@Local
+    - name: upstream-feed
+      protocol: npm
+      upstreamSourceType: internal
+      location: azure-feed://matteogastaldello/teamproject/TestFeed@Local
+    - name: upstream-feed
+      protocol: maven
+      upstreamSourceType: internal
+      location: azure-feed://matteogastaldello/teamproject/TestFeed@Local
   connectorConfigRef:
     namespace: default
     name: connectorconfig-sample

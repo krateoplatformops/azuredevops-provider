@@ -5,6 +5,46 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type UpstreamStatus string
+
+const (
+	Disabled UpstreamStatus = "disabled"
+	Ok       UpstreamStatus = "ok"
+)
+
+type UpstreamStatusDetail struct {
+	Reason string `json:"reason,omitempty"`
+}
+
+// type UpstreamSource struct {
+// 	DeletedDate                  string                 `json:"deletedDate,omitempty"`
+// 	DisplayLocation              string                 `json:"displayLocation,omitempty"`
+// 	ID                           string                 `json:"id,omitempty"`
+// 	InternalUpstreamCollectionId string                 `json:"internalUpstreamCollectionId,omitempty"`
+// 	InternalUpstreamFeedId       string                 `json:"internalUpstreamFeedId,omitempty"`
+// 	InternalUpstreamProjectId    string                 `json:"internalUpstreamProjectId,omitempty"`
+// 	InternalUpstreamViewId       string                 `json:"internalUpstreamViewId,omitempty"`
+// 	Location                     string                 `json:"location,omitempty"`
+// 	Name                         string                 `json:"name,omitempty"`
+// 	Protocol                     string                 `json:"protocol,omitempty"`
+// 	ServiceEndpointId            string                 `json:"serviceEndpointId,omitempty"`
+// 	ServiceEndpointProjectId     string                 `json:"serviceEndpointProjectId,omitempty"`
+// 	Status                       UpstreamStatus         `json:"status,omitempty"`
+// 	StatusDetails                []UpstreamStatusDetail `json:"statusDetails,omitempty"`
+// 	UpstreamSourceType           UpstreamSourceType     `json:"upstreamSourceType,omitempty"`
+// }
+
+type UpstreamSource struct {
+	// Location: The location of the upstream source.
+	Location *string `json:"location,omitempty"`
+	// Name: The name of the upstream source.
+	Name *string `json:"name,omitempty"`
+	// Protocol: The protocol of the upstream source. Possible values are: [NuGet, Npm, Maven, PyPi, Powershell, Docker].
+	Protocol *string `json:"protocol,omitempty"`
+	// UpstraemSourceType: The type of the upstream source. Possible values are: [internal, public].
+	UpstreamSourceType *string `json:"upstreamSourceType,omitempty"`
+}
+
 // Feed defines the desired state of Feed
 type FeedSpec struct {
 	rtv1.ManagedSpec `json:",inline"`
@@ -31,6 +71,11 @@ type FeedSpec struct {
 	// ConnectorConfigRef: configuration spec for the REST API client.
 	// +immutable
 	ConnectorConfigRef *rtv1.Reference `json:"connectorConfigRef,omitempty"`
+
+	// A list of sources that this feed will fetch packages from. An empty list indicates that this feed will not search any additional sources for packages.
+	// UpstreamSources with the same "location" field MUST have the same "name" field.
+	// +optional
+	UpstreamSources []UpstreamSource `json:"upstreamSources,omitempty"`
 }
 
 type FeedStatus struct {

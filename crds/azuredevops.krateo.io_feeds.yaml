@@ -100,6 +100,30 @@ spec:
                 - name
                 - namespace
                 type: object
+              upstreamSources:
+                description: A list of sources that this feed will fetch packages
+                  from. An empty list indicates that this feed will not search any
+                  additional sources for packages. UpstreamSources with the same "location"
+                  field MUST have the same "name" field.
+                items:
+                  properties:
+                    location:
+                      description: 'Location: The location of the upstream source.'
+                      type: string
+                    name:
+                      description: 'Name: The name of the upstream source.'
+                      type: string
+                    protocol:
+                      description: 'Protocol: The protocol of the upstream source.
+                        Possible values are: [NuGet, Npm, Maven, PyPi, Powershell,
+                        Docker].'
+                      type: string
+                    upstreamSourceType:
+                      description: 'UpstraemSourceType: The type of the upstream source.
+                        Possible values are: [internal, public].'
+                      type: string
+                  type: object
+                type: array
             type: object
           status:
             properties:
