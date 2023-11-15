@@ -21,7 +21,9 @@ type Permissions struct {
 	// Identity - The identity who has these permissions.
 	Identity *Identity `json:"identity,omitempty"`
 
-	// Merge - If true, the permissions are added to existing permissions. If false, the permissions are set to exactly what is specified. Default is true.
+	// Merge
+	// If true, the permissions are added to existing permissions and only the setted perms are mantained by the controller.
+	// If false, the permissions are the only permissions for this identity and are mantained exaclty as the CR by the controller.
 	// +required
 	Merge bool `json:"merge,omitempty"`
 
