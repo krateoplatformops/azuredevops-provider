@@ -13,6 +13,7 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/project"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/queues"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repository"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repositorypermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/run"
 )
 
@@ -30,6 +31,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		endpoints.Setup,
 		feedpermissions.Setup,
 		environments.Setup,
+		repositorypermissions.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err
