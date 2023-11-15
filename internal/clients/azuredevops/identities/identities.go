@@ -32,37 +32,47 @@ type Identity struct {
 }
 
 type GetOptions struct {
+	IdentityParams
 	// (required) The name of the Azure DevOps organization.
 	Organization string
-	// (required) Project ID or project name
-	ProjectID string
 }
 
 type UserType string
 
 const (
 	BuildService UserType = "build-service"
+	AzureGroup   UserType = "azure-group"
 )
 
 func (u *UserType) ResolveIdentityDescriptorFromUserType() (string, error) {
 	switch *u {
 	case BuildService:
 		return "Microsoft.TeamFoundation.ServiceIdentity", nil
+	case AzureGroup:
+		return "Microsoft.TeamFoundation.Identity", nil
 	}
 	return " ", errors.Errorf("The specified usertype is not valid")
 }
 
-func (resp *IdentityResponse) IdentityMatch(userType UserType, proj *teamprojects.TeamProject) (*Identity, error) {
+type IdentityParams struct {
+	Type    UserType
+	Project *teamprojects.TeamProject
+	// Name is ignored if Type is build-service
+	Name string
+}
+
+func (resp *IdentityResponse) IdentityMatch(identity *IdentityParams) (*Identity, error) {
 	for _, v := range resp.Value {
-		resolvedId, err := userType.ResolveIdentityDescriptorFromUserType()
+		resolvedId, err := identity.Type.ResolveIdentityDescriptorFromUserType()
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("ProviderName:", v.ProviderDisplayName)
-		fmt.Println("Pj id:", proj.Status.Id)
 		if strings.Contains(v.Descriptor, resolvedId) {
+			if identity.Type == BuildService && v.ProviderDisplayName == identity.Project.Status.Id {
+				return &v, nil
+			}
 
-			if userType == BuildService && v.ProviderDisplayName == proj.Status.Id {
+			if identity.Type == AzureGroup && v.ProviderDisplayName == fmt.Sprintf("[%s]\\%s", identity.Project.Spec.Name, identity.Name) {
 				return &v, nil
 			}
 		}
@@ -71,10 +81,19 @@ func (resp *IdentityResponse) IdentityMatch(userType UserType, proj *teamproject
 }
 
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*IdentityResponse, error) {
+
+	var filterValue string
+	switch opts.Type {
+	case BuildService:
+		filterValue = opts.Project.Status.Id
+	case AzureGroup:
+		filterValue = fmt.Sprint("[", opts.Project.Spec.Name, "]", "\\", opts.Name)
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/identities"),
-		Params:  []string{"searchFilter", "General", "filterValue", opts.ProjectID, azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  []string{"searchFilter", "General", "filterValue", filterValue, "queryMembership", "None", azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()

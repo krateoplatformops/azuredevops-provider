@@ -7,13 +7,15 @@ import (
 
 type UserResource struct {
 	// The user identity type to add
-	// [build-service]
+	// [build-service, azure-group]
 	Type *string `json:"type"`
 	// The role for this identity on a feed.
 	// [custom, none, reader, contributor, administrator, collaborator]
 	Role *string `json:"role"`
 	// ProjectRef - A reference to the teamproject that owns the user
 	ProjectRef *rtv1.Reference `json:"projectRef,omitempty"`
+	// Name - The name of the group. This parameter is ignored if Type is build-service.
+	Name *string `json:"name,omitempty"`
 }
 
 // FeedPermission defines the desired state of FeedPermission

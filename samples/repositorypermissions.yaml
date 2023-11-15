@@ -1,0 +1,27 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: RepositoryPermission
+metadata:
+  name: repopermission-sample
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Orphan
+  repositoryRef:
+    name: repo-perms-sample
+    namespace: default
+  permissions: 
+    merge: false
+    identity: 
+      type: build-service
+      projectRef:
+        name: teamproject
+        namespace: default
+      name: Contributors
+    # allowList:
+    #   - genericContribute
+    #   - forcePush
+    # denyList:
+    #   - createTag
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

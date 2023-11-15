@@ -166,7 +166,6 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	if projectUser == nil {
 		return errors.Errorf("Project with name %s and namespace %s not found", spec.User.ProjectRef.Name, spec.User.ProjectRef.Namespace)
 	}
-	projectUserStatus := projectUser.Status.DeepCopy()
 	projectUserSpec := projectUser.Spec.DeepCopy()
 
 	projectFeed, err := resolvers.ResolveTeamProject(ctx, e.kube, &rtv1.Reference{
@@ -181,21 +180,28 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	}
 	projectFeedSpec := projectFeed.Spec.DeepCopy()
 
-	// match descriptor with Resource type
 	userType := identities.UserType(*spec.User.Type)
-	if userType != identities.BuildService {
-		return errors.Errorf("identities of type %s are not supported", string(userType))
-	}
+	// if userType != identities.BuildService {
+	// 	return errors.Errorf("identities of type %s are not supported", string(userType))
+	// }
 
 	ids, err := identities.Get(ctx, e.azCli, identities.GetOptions{
 		Organization: projectUserSpec.Organization,
-		ProjectID:    projectUserStatus.Id,
+		IdentityParams: identities.IdentityParams{
+			Type:    userType,
+			Name:    helpers.String(spec.User.Name),
+			Project: projectUser,
+		},
 	})
 	if err != nil {
 		return err
 	}
 
-	identity, err := ids.IdentityMatch(userType, projectUser)
+	identity, err := ids.IdentityMatch(&identities.IdentityParams{
+		Type:    userType,
+		Project: projectUser,
+		Name:    helpers.String(spec.User.Name),
+	})
 	if err != nil {
 		return err
 	}
