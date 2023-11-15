@@ -3,7 +3,7 @@ kind: FeedPermission
 metadata:
   name: feedpermission-sample
   annotations:
-    krateo.io/connector-verbose: "true"
+    krateo.io/connector-verbose: "false"
 spec:
   deletionPolicy: Orphan
   projectRef:
@@ -11,10 +11,11 @@ spec:
     namespace: default
   feed: test-feed-4
   user:
-    type: build-service
+    type: azure-group
     role: reader
+    name: Contributors
     projectRef:
-      name: teamproject-sample
+      name: pipeline-proj
       namespace: default
   connectorConfigRef:
     namespace: default

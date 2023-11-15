@@ -92,6 +92,10 @@ spec:
               user:
                 description: User Permissions and type
                 properties:
+                  name:
+                    description: Name - The name of the group. This parameter is ignored
+                      if Type is build-service.
+                    type: string
                   projectRef:
                     description: ProjectRef - A reference to the teamproject that
                       owns the user
@@ -111,7 +115,7 @@ spec:
                       reader, contributor, administrator, collaborator]
                     type: string
                   type:
-                    description: The user identity type to add [build-service]
+                    description: The user identity type to add [build-service, azure-group]
                     type: string
                 required:
                 - role
