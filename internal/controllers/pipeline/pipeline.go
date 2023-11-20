@@ -106,6 +106,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	}
 
 	var pip *pipelines.Pipeline
+
 	if pipId := meta.GetExternalName(cr); pipId != "" {
 		var err error
 		pip, err = pipelines.Get(ctx, e.azCli, pipelines.GetOptions{
@@ -113,7 +114,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			Project:      prj.Status.Id,
 			PipelineId:   pipId,
 		})
-		if err != nil && !httplib.IsNotFoundError(err) {
+		if err != nil && !azuredevops.IsNotFound(err) {
 			return reconciler.ExternalObservation{}, err
 		}
 	}
@@ -125,7 +126,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			Project:      prj.Spec.Name,
 			Name:         spec.Name,
 		})
-		if err != nil && !httplib.IsNotFoundError(err) {
+		if err != nil && !azuredevops.IsNotFound(err) {
 			return reconciler.ExternalObservation{}, err
 		}
 	}
@@ -214,7 +215,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	}
 
 	e.log.Debug("Pipeline created", "id", pipelineId, "url", helpers.String(res.Url))
-	e.rec.Eventf(cr, corev1.EventTypeNormal, "GitRepositoryCreated",
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "PipelineCreated",
 		"Pipeline '%s' created", helpers.String(res.Url))
 
 	return nil
@@ -234,7 +235,25 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		e.log.Debug("External resource should not be deleted by provider, skip deleting.")
 		return nil
 	}
-
 	cr.SetConditions(rtv1.Deleting())
+
+	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
+	if err != nil {
+		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
+	}
+
+	err = e.azCli.DeleteDefinition(ctx, azuredevops.DeleteDefinitionOptions{
+		Organization: prj.Spec.Organization,
+		Project:      prj.Status.Id,
+		DefinitionId: helpers.String(cr.Status.Id),
+	})
+	if err != nil {
+		return resource.Ignore(httplib.IsNotFoundError, err)
+	}
+
+	e.log.Debug("Pipeline deleted", "id", cr.Status.Id, "url", helpers.String(cr.Status.Url))
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "PipelineDeleted",
+		"Pipeline '%s' deleted", helpers.String(cr.Status.Url))
+
 	return nil // noop
 }
