@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -153,6 +154,10 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Pipeli
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+
+	if val != nil && reflect.DeepEqual(*val, Pipeline{}) {
+		return nil, err
+	}
 
 	return val, err
 }

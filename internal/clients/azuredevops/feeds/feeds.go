@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"reflect"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/lucasepe/httplib"
@@ -224,6 +225,10 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Feed, 
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+
+	if val != nil && reflect.DeepEqual(*val, Feed{}) {
+		return nil, err
+	}
 
 	return val, err
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -124,7 +125,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	cr.SetConditions(rtv1.Available())
 
-	cr.Status.Id = helpers.IntPtr(*observed.Id)
+	cr.Status.Id = observed.Id
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
@@ -211,11 +212,21 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Deleting())
 
-	return queues.Delete(ctx, e.azCli, queues.DeleteOptions{
+	err = queues.Delete(ctx, e.azCli, queues.DeleteOptions{
 		Organization: organization,
 		Project:      project,
 		QueueId:      helpers.Int(cr.Status.Id),
 	})
+	if err != nil {
+		return resource.Ignore(azuredevops.IsNotFound, err)
+	}
+
+	e.log.Debug("Queue deleted",
+		"id", helpers.Int(cr.Status.Id), "org", helpers.String(cr.Spec.Organization), "name", helpers.String(cr.Spec.Name))
+	e.rec.Eventf(cr, corev1.EventTypeNormal, "QueueDeleted",
+		"Queue with id '%s' '%s/%s' deleted", helpers.Int(cr.Status.Id), helpers.String(cr.Spec.Organization), helpers.String(cr.Spec.Name))
+
+	return nil
 }
 
 func (e *external) resolveProjectAndOrg(ctx context.Context, cr *queuesv1alpha1.Queue) (string, string, error) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"reflect"
 	"strconv"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
@@ -137,6 +138,10 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*GitRep
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+
+	if val != nil && reflect.DeepEqual(*val, GitRepository{}) {
+		return nil, err
+	}
 
 	return val, err
 }

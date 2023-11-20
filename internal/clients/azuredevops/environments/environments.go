@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"reflect"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
@@ -87,6 +88,10 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Enviro
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+
+	if val != nil && reflect.DeepEqual(*val, Environment{}) {
+		return nil, err
+	}
 
 	return val, err
 }

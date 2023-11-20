@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"reflect"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/feeds"
@@ -72,6 +73,12 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*FeedPe
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+
+	if val != nil && reflect.DeepEqual(*val, &FeedPermissionResponse{
+		Value: []feeds.FeedPermission{},
+	}) {
+		return nil, err
+	}
 
 	return val, err
 }

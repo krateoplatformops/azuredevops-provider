@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
@@ -382,6 +383,9 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Servic
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+	if val != nil && reflect.DeepEqual(*val, ServiceEndpoint{}) {
+		return nil, err
+	}
 
 	return val, err
 }
