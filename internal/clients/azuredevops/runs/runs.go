@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"reflect"
 	"strconv"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
@@ -245,5 +246,9 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*RunInf
 	if err != nil {
 		return nil, err
 	}
+	if val != nil && reflect.DeepEqual(*val, RunInfo{}) {
+		return nil, err
+	}
+
 	return val, nil
 }

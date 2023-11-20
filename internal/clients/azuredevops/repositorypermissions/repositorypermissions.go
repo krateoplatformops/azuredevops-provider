@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
@@ -204,6 +205,10 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Permis
 			httplib.ErrorJSON(apiErr, http.StatusOK, http.StatusAccepted),
 		},
 	})
+	if val != nil && reflect.DeepEqual(*val, PermissionResponse{Count: 0, Value: []IdentityPermission{}}) {
+		return nil, err
+	}
+
 	return val, err
 }
 

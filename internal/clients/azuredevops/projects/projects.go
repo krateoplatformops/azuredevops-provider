@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -197,6 +198,9 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*TeamPr
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+	if val != nil && reflect.DeepEqual(*val, TeamProject{}) {
+		return nil, err
+	}
 
 	return val, err
 }

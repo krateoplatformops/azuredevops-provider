@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
@@ -403,6 +404,9 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*TaskAg
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
 	})
+	if val != nil && reflect.DeepEqual(*val, TaskAgentQueue{}) {
+		return nil, err
+	}
 
 	return val, err
 }
