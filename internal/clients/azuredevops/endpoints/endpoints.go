@@ -389,3 +389,91 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Servic
 
 	return val, err
 }
+
+type UpdateOptions struct {
+	// (required) Name of the organization
+	Organization string
+	// (required) The agent queue to update
+	EndpointId string
+	// (required) Service endpoint to update
+	Endpoint *ServiceEndpoint
+}
+
+// PUT https://dev.azure.com/{organization}/_apis/serviceendpoint/endpoints/{endpointId}?api-version=7.0
+func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*ServiceEndpoint, error) {
+	ubo := httplib.URLBuilderOptions{
+		BaseURL: cli.BaseURL(azuredevops.Default),
+		Path:    path.Join(opts.Organization, "_apis/serviceendpoint/endpoints", opts.EndpointId),
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+	}
+
+	uri, err := httplib.NewURLBuilder(ubo).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Put(uri.String(), httplib.ToJSON(opts.Endpoint))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req = req.WithContext(ctx)
+
+	apiErr := &azuredevops.APIError{}
+	val := &ServiceEndpoint{}
+
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:         cli.Verbose(),
+		AuthMethod:      cli.AuthMethod(),
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
+}
+
+type ShareOptions struct {
+	// (required) Name of the organization
+	Organization string
+	// (required) The agent queue to update
+	EndpointId string
+	// (required) Service endpoints to share
+	Endpoints []ServiceEndpointProjectReference
+}
+
+// PATCH https://dev.azure.com/{organization}/_apis/serviceendpoint/endpoints/{endpointId}?api-version=7.0
+func ShareServiceEndpoint(ctx context.Context, cli *azuredevops.Client, opts ShareOptions) (*ServiceEndpoint, error) {
+	ubo := httplib.URLBuilderOptions{
+		BaseURL: cli.BaseURL(azuredevops.Default),
+		Path:    path.Join(opts.Organization, "_apis/serviceendpoint/endpoints", opts.EndpointId),
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+	}
+
+	uri, err := httplib.NewURLBuilder(ubo).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := httplib.Patch(uri.String(), httplib.ToJSON(opts.Endpoints))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req = req.WithContext(ctx)
+
+	apiErr := &azuredevops.APIError{}
+	val := &ServiceEndpoint{}
+
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:         cli.Verbose(),
+		AuthMethod:      cli.AuthMethod(),
+		ResponseHandler: httplib.FromJSON(val),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(apiErr, http.StatusOK),
+		},
+	})
+
+	return val, err
+}

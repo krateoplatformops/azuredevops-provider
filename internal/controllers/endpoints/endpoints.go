@@ -3,6 +3,7 @@ package endpoints
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -123,8 +124,20 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	cr.SetConditions(rtv1.Available())
 
-	cr.Status.Id = helpers.StringPtr(*observed.Id)
-	cr.Status.Url = helpers.StringPtr(*observed.Url)
+	endpoint, err := asAzureDevopsServiceEndpoint(ctx, e.kube, &ref, cr, *observed)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+
+	cr.Status.Id = observed.Id
+	cr.Status.Url = observed.Url
+
+	if !reflect.DeepEqual(observed, endpoint) {
+		return reconciler.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, e.kube.Status().Update(ctx, cr)
+	}
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
@@ -150,7 +163,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Creating())
 
-	endopoint, err := asAzureDevopsServiceEndpoint(ctx, e.kube, &ref, cr)
+	endopoint, err := asAzureDevopsServiceEndpoint(ctx, e.kube, &ref, cr, endpoints.ServiceEndpoint{})
 	if err != nil {
 		return err
 	}
@@ -169,7 +182,64 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
-	return nil // NOOP
+	cr, ok := mg.(*endpointsv1alpha1.Endpoint)
+	if !ok {
+		return errors.New(errNotCR)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionUpdate) {
+		e.log.Debug("External resource should not be updated by provider, skip creating.")
+		return nil
+	}
+
+	ref, err := e.resolveProjectRef(ctx, cr)
+	if err != nil {
+		return err
+	}
+
+	cr.SetConditions(rtv1.Creating())
+
+	var observed *endpoints.ServiceEndpoint
+	if cr.Status.Id == nil {
+		observed, err = e.findEndpoint(ctx, &ref, cr)
+	} else {
+		observed, err = endpoints.Get(ctx, e.azCli, endpoints.GetOptions{
+			Organization: ref.Organization,
+			Project:      ref.Name,
+			EndpointId:   helpers.String(cr.Status.Id),
+		})
+	}
+	if err != nil {
+		return err
+	}
+
+	endpoint, err := asAzureDevopsServiceEndpoint(ctx, e.kube, &ref, cr, *observed)
+	refBackup := endpoint.ServiceEndpointProjectReferences
+	endpoint.ServiceEndpointProjectReferences = observed.ServiceEndpointProjectReferences
+	if err != nil {
+		return err
+	}
+	res, err := endpoints.Update(ctx, e.azCli, endpoints.UpdateOptions{
+		EndpointId:   helpers.String(cr.Status.Id),
+		Organization: ref.Organization,
+		Endpoint:     endpoint,
+	})
+	if err != nil {
+		return err
+	}
+	_, err = endpoints.ShareServiceEndpoint(ctx, e.azCli, endpoints.ShareOptions{
+		Organization: ref.Organization,
+		EndpointId:   helpers.String(cr.Status.Id),
+		Endpoints:    getRefDiff(refBackup, observed.ServiceEndpointProjectReferences),
+	})
+	if err != nil {
+		return err
+	}
+
+	cr.Status.Id = res.Id
+	cr.Status.Url = res.Url
+
+	return e.kube.Status().Update(ctx, cr)
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
@@ -184,7 +254,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	if cr.Status.Id == nil {
-		return fmt.Errorf("missing Queue identifier")
+		return fmt.Errorf("missing Endpoint identifier")
 	}
 
 	ref, err := e.resolveProjectRef(ctx, cr.DeepCopy())
@@ -196,7 +266,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	return endpoints.Delete(ctx, e.azCli, endpoints.DeleteOptions{
 		Organization: ref.Organization,
-		ProjectIds:   []string{ref.Name},
+		ProjectIds:   []string{ref.Id},
 		EndpointId:   helpers.String(cr.Status.Id),
 	})
 }
