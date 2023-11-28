@@ -29,7 +29,7 @@ func (e *external) resolveProjectRef(ctx context.Context, cr *endpointsv1alpha1.
 	if cr.Spec.ProjectRef != nil {
 		prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 		if err != nil {
-			return ref, errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
+			return ref, errors.Wrapf(err, "unable to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
 		}
 		if prj != nil {
 			ref.Id = prj.Status.Id
@@ -80,30 +80,35 @@ func (e *external) findEndpoint(ctx context.Context, ref *ProjectReference, cr *
 	return &all[0], nil
 }
 
-func asAzureDevopsServiceEndpoint(ctx context.Context, kube client.Client, ref *ProjectReference, cr *endpointsv1alpha1.Endpoint) (*endpoints.ServiceEndpoint, error) {
+func asAzureDevopsServiceEndpoint(ctx context.Context, kube client.Client, ref *ProjectReference, cr *endpointsv1alpha1.Endpoint, originEndpoint endpoints.ServiceEndpoint) (*endpoints.ServiceEndpoint, error) {
 	if cr.Spec.Name == nil {
 		cr.Spec.Name = helpers.StringPtr(cr.GetName())
 	}
 
-	res := &endpoints.ServiceEndpoint{
-		Name:          cr.Spec.Name,
-		Description:   cr.Spec.Description,
-		IsShared:      cr.Spec.IsShared,
-		Owner:         cr.Spec.Owner,
-		Type:          cr.Spec.Type,
-		Url:           cr.Spec.Url,
-		Authorization: &endpoints.EndpointAuthorization{},
-		Data:          map[string]string{},
-		ServiceEndpointProjectReferences: []endpoints.ServiceEndpointProjectReference{
-			{
-				Name:        cr.Spec.Name,
-				Description: cr.Spec.Description,
-				ProjectReference: &endpoints.ProjectReference{
-					Id:   helpers.StringPtr(ref.Id),
-					Name: ref.Name,
-				},
-			},
+	res := originEndpoint
+	res.Name = helpers.StringPtr(helpers.StringOrDefault(cr.Spec.Name, helpers.String(res.Name)))
+	res.Description = helpers.StringPtr(helpers.StringOrDefault(cr.Spec.Description, helpers.String(res.Description)))
+	res.IsShared = helpers.BoolPtr(helpers.BoolOrDefault(cr.Spec.IsShared, helpers.Bool(res.IsShared)))
+	res.Owner = helpers.StringPtr(helpers.StringOrDefault(cr.Spec.Owner, helpers.String(res.Owner)))
+	res.Type = helpers.StringPtr(helpers.StringOrDefault(cr.Spec.Type, helpers.String(res.Type)))
+	res.Url = helpers.StringPtr(helpers.StringOrDefault(cr.Spec.Url, helpers.String(res.Url)))
+	res.Authorization = &endpoints.EndpointAuthorization{}
+	if res.Data == nil {
+		res.Data = map[string]string{}
+	}
+	if res.ServiceEndpointProjectReferences == nil {
+		res.ServiceEndpointProjectReferences = []endpoints.ServiceEndpointProjectReference{}
+	}
+	projRef := endpoints.ServiceEndpointProjectReference{
+		Name:        cr.Spec.Name,
+		Description: cr.Spec.Description,
+		ProjectReference: &endpoints.ProjectReference{
+			Id:   helpers.StringPtr(ref.Id),
+			Name: ref.Name,
 		},
+	}
+	if !containsRef(res.ServiceEndpointProjectReferences, projRef) {
+		res.ServiceEndpointProjectReferences = append(res.ServiceEndpointProjectReferences, projRef)
 	}
 
 	if aut := cr.Spec.Authorization; aut != nil {
@@ -121,6 +126,8 @@ func asAzureDevopsServiceEndpoint(ctx context.Context, kube client.Client, ref *
 			addEventually(res.Authorization.Parameters, "isCreatedFromSecretYaml", aut.Parameters.IsCreatedFromSecretYaml)
 			addEventually(res.Authorization.Parameters, "apitoken", aut.Parameters.Apitoken)
 		}
+	} else {
+		res.Authorization = originEndpoint.Authorization
 	}
 
 	if dt := cr.Spec.Data; dt != nil {
@@ -153,10 +160,12 @@ func asAzureDevopsServiceEndpoint(ctx context.Context, kube client.Client, ref *
 		spr.ProjectReference.Id = helpers.StringPtr(projectUser.Status.Id)
 		spr.ProjectReference.Name = projectUser.Spec.Name
 
-		res.ServiceEndpointProjectReferences = append(res.ServiceEndpointProjectReferences, spr)
+		if !containsRef(res.ServiceEndpointProjectReferences, spr) {
+			res.ServiceEndpointProjectReferences = append(res.ServiceEndpointProjectReferences, spr)
+		}
 	}
 
-	return res, nil
+	return &res, nil
 }
 
 func addEventually(dict map[string]string, key string, val *string) {
@@ -167,4 +176,21 @@ func addEventually(dict map[string]string, key string, val *string) {
 	if s := helpers.String(val); len(s) > 0 {
 		dict[key] = s
 	}
+}
+
+func containsRef(a []endpoints.ServiceEndpointProjectReference, b endpoints.ServiceEndpointProjectReference) bool {
+	for _, el := range a {
+		if helpers.String(el.Name) == helpers.String(b.Name) {
+			return true
+		}
+	}
+	return false
+}
+func getRefDiff(a, b []endpoints.ServiceEndpointProjectReference) (diff []endpoints.ServiceEndpointProjectReference) {
+	for _, el := range a {
+		if !containsRef(b, el) {
+			diff = append(diff, el)
+		}
+	}
+	return
 }
