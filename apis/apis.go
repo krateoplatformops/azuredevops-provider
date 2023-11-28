@@ -8,6 +8,7 @@ import (
 	environments "github.com/krateoplatformops/azuredevops-provider/apis/environments/v1alpha1"
 	feedpermissions "github.com/krateoplatformops/azuredevops-provider/apis/feedpermissions/v1alpha1"
 	feeds "github.com/krateoplatformops/azuredevops-provider/apis/feeds/v1alpha1"
+	groups "github.com/krateoplatformops/azuredevops-provider/apis/groups/v1alpha1"
 	pipelinepermissions "github.com/krateoplatformops/azuredevops-provider/apis/pipelinepermissions/v1alpha1"
 	pipelines "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
@@ -32,6 +33,7 @@ func init() {
 		environments.SchemeBuilder.AddToScheme,
 		repositories.SchemeBuilder.AddToScheme,
 		repositorypermissions.SchemeBuilder.AddToScheme,
+		groups.SchemeBuilder.AddToScheme,
 	)
 }
 
