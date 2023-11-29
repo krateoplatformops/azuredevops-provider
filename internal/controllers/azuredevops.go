@@ -8,6 +8,7 @@ import (
 	environments "github.com/krateoplatformops/azuredevops-provider/internal/controllers/enviroments"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/feedpermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/feeds"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/groups"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipeline"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipelinepermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/project"
@@ -32,6 +33,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		feedpermissions.Setup,
 		environments.Setup,
 		repositorypermissions.Setup,
+		groups.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err

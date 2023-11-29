@@ -1,0 +1,19 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Groups
+metadata:
+  name: group-sample
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Delete
+  membership:
+    # If projectRef is not specified, the group will be created in the organization if is set
+    # organization: matteogastaldello
+    projectRef: 
+      namespace: default
+      name: pipeline-proj
+  groupName: YAML Group
+  description: Group created from YAML
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample
