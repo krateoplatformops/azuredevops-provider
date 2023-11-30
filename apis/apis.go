@@ -16,6 +16,7 @@ import (
 	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 	repositorypermissions "github.com/krateoplatformops/azuredevops-provider/apis/repositorypermissions/v1alpha1"
 	runs "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
+	users "github.com/krateoplatformops/azuredevops-provider/apis/users/v1alpha1"
 )
 
 func init() {
@@ -34,6 +35,7 @@ func init() {
 		repositories.SchemeBuilder.AddToScheme,
 		repositorypermissions.SchemeBuilder.AddToScheme,
 		groups.SchemeBuilder.AddToScheme,
+		users.SchemeBuilder.AddToScheme,
 	)
 }
 

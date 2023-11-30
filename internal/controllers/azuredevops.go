@@ -16,6 +16,7 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repository"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repositorypermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/run"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/users"
 )
 
 // Setup creates all controllers with the supplied logger and adds them to
@@ -34,6 +35,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		environments.Setup,
 		repositorypermissions.Setup,
 		groups.Setup,
+		users.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err
