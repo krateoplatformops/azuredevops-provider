@@ -180,7 +180,7 @@ func addEventually(dict map[string]string, key string, val *string) {
 
 func containsRef(a []endpoints.ServiceEndpointProjectReference, b endpoints.ServiceEndpointProjectReference) bool {
 	for _, el := range a {
-		if helpers.String(el.Name) == helpers.String(b.Name) {
+		if helpers.String(el.Name) == helpers.String(b.Name) && el.ProjectReference.Name == b.ProjectReference.Name && helpers.String(el.ProjectReference.Id) == helpers.String(b.ProjectReference.Id) {
 			return true
 		}
 	}
