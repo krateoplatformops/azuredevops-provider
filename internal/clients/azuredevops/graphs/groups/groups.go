@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -26,8 +27,9 @@ type GroupResponse struct {
 }
 
 type GroupListResponse struct {
-	Count int             `json:"count"`
-	Value []GroupResponse `json:"value"`
+	Count             int             `json:"count"`
+	Value             []GroupResponse `json:"value"`
+	ContinuationToken *string         `json:"continuationToken"`
 }
 
 // Options for the Get Pipeline Permissions ForResource function
@@ -40,7 +42,8 @@ type GetOptions struct {
 
 type ListOptions struct {
 	// (required) The name of the Azure DevOps organization.
-	Organization string
+	Organization      string
+	ContinuationToken *string
 }
 
 type GroupDescription struct {
@@ -102,10 +105,14 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*GroupR
 // Get a list of all groups in the current scope (usually organization or account).
 // https://vssps.dev.azure.com/{organization}/_apis/graph/groups?api-version=7.0-preview.1
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*GroupListResponse, error) {
+	queryparams := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	if opts.ContinuationToken != nil {
+		queryparams = append(queryparams, "continuationToken", helpers.String(opts.ContinuationToken))
+	}
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/groups"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  queryparams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -138,6 +145,25 @@ type FindGroupByNameOptions struct {
 }
 
 func FindGroupByName(ctx context.Context, cli *azuredevops.Client, opts FindGroupByNameOptions) (*GroupResponse, error) {
+	var continuationToken *string
+	opts.ListOptions.ContinuationToken = continuationToken
+	for {
+		groups, err := List(ctx, cli, opts.ListOptions)
+		if err != nil {
+			return nil, err
+		}
+		for _, group := range groups.Value {
+			domain := path.Base(group.Domain)
+			if strings.EqualFold(group.DisplayName, opts.GroupName) && strings.EqualFold(domain, opts.ProjectID) {
+				return &group, nil
+			}
+		}
+		if groups.ContinuationToken == nil {
+			break
+		}
+		opts.ListOptions.ContinuationToken = groups.ContinuationToken
+	}
+
 	groups, err := List(ctx, cli, opts.ListOptions)
 	if err != nil {
 		return nil, err

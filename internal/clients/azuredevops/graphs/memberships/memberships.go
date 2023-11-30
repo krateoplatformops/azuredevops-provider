@@ -50,3 +50,38 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Member
 
 	return res, err
 }
+
+type CheckMembershipOptions struct {
+	Organization        string
+	SubjectDescriptor   string
+	ContainerDescriptor string
+}
+
+// CheckMembership checks if the user is a member of the group.
+// GET https://vssps.dev.azure.com/{organization}/_apis/graph/memberships/{subjectDescriptor}/{containerDescriptor}?api-version=7.0-preview.1
+func CheckMembership(ctx context.Context, cli *azuredevops.Client, opts CheckMembershipOptions) error {
+	ubo := httplib.URLBuilderOptions{
+		BaseURL: cli.BaseURL(azuredevops.Vssps),
+		Path:    path.Join(opts.Organization, "_apis/graph/memberships", opts.SubjectDescriptor, opts.ContainerDescriptor),
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+	}
+
+	uri, err := httplib.NewURLBuilder(ubo).Build()
+	if err != nil {
+		return err
+	}
+
+	req, err := httplib.Get(uri.String())
+	if err != nil {
+		return err
+	}
+
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:    cli.Verbose(),
+		AuthMethod: cli.AuthMethod(),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(&azuredevops.APIError{}, http.StatusOK),
+		},
+	})
+	return err
+}
