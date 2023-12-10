@@ -17,10 +17,14 @@ type Permission struct {
 }
 
 type PipelinePermission struct {
-	Authorized   *bool                    `json:"authorized,omitempty"`
+	Authorized   bool                     `json:"authorized,omitempty"`
 	AuthorizedBy *azuredevops.IdentityRef `json:"authorizedBy,omitempty"`
 	AuthorizedOn *azuredevops.Time        `json:"authorizedOn,omitempty"`
-	Id           *int                     `json:"id,omitempty"`
+	Id           interface{}              `json:"id,omitempty"`
+}
+
+func (p *PipelinePermission) GetId() string {
+	return p.Id.(string)
 }
 
 type ResourcePipelinePermissions struct {
@@ -64,6 +68,7 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Resour
 	apiErr := &azuredevops.APIError{}
 	val := &ResourcePipelinePermissions{
 		AllPipelines: &Permission{},
+		Pipelines:    []PipelinePermission{},
 		Resource:     &azuredevops.Resource{},
 	}
 
@@ -122,7 +127,11 @@ func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*
 	req = req.WithContext(ctx)
 
 	apiErr := &azuredevops.APIError{}
-	val := &ResourcePipelinePermissions{}
+	val := &ResourcePipelinePermissions{
+		AllPipelines: &Permission{},
+		Pipelines:    []PipelinePermission{},
+		Resource:     &azuredevops.Resource{},
+	}
 	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
 		AuthMethod:      cli.AuthMethod(),
 		Verbose:         cli.Verbose(),

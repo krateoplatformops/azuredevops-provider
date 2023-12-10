@@ -20,3 +20,40 @@ func ResolveTeamProject(ctx context.Context, kube client.Client, ref *rtv1.Refer
 	err := kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, res)
 	return res, err
 }
+
+func FindTeamProject(ctx context.Context, kube client.Client, projectId string) (*projects.TeamProject, error) {
+	res := &projects.TeamProject{}
+	list := &projects.TeamProjectList{}
+	err := kube.List(ctx, list)
+
+	if len(list.Items) == 0 {
+		return nil, fmt.Errorf("no teamproject referenced")
+	}
+
+	for _, v := range list.Items {
+		if v.Status.Id == projectId {
+			return &v, nil
+		}
+	}
+	return res, err
+}
+func FindTeamProjectRef(ctx context.Context, kube client.Client, projectId string) (*rtv1.Reference, error) {
+	list := &projects.TeamProjectList{}
+	err := kube.List(ctx, list)
+	if err != nil {
+		return nil, err
+	}
+	if len(list.Items) == 0 {
+		return nil, fmt.Errorf("no teamproject referenced")
+	}
+
+	for _, v := range list.Items {
+		if v.Status.Id == projectId {
+			return &rtv1.Reference{
+				Name:      v.ObjectMeta.GetName(),
+				Namespace: v.GetObjectMeta().GetNamespace(),
+			}, nil
+		}
+	}
+	return nil, err
+}

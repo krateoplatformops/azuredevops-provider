@@ -20,3 +20,24 @@ func ResolveGitRepository(ctx context.Context, kube client.Client, ref *rtv1.Ref
 	err := kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, &res)
 	return res, err
 }
+
+func FindRepositoryRef(ctx context.Context, kube client.Client, id string) (*rtv1.Reference, error) {
+	list := &repositories.GitRepositoryList{}
+	err := kube.List(ctx, list)
+	if err != nil {
+		return nil, err
+	}
+	if len(list.Items) == 0 {
+		return nil, fmt.Errorf("no GitRepository referenced")
+	}
+
+	for _, v := range list.Items {
+		if v.Status.Id == id {
+			return &rtv1.Reference{
+				Name:      v.ObjectMeta.GetName(),
+				Namespace: v.GetObjectMeta().GetNamespace(),
+			}, nil
+		}
+	}
+	return nil, err
+}
