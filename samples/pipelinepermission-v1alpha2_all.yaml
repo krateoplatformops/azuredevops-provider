@@ -6,7 +6,7 @@ metadata:
     krateo.io/connector-verbose: "true"
 spec:
   deletionPolicy: Orphan
-  authorizeAll: all
+  authorizeAll: true
   projectRef: 
     name: pipeline-proj
     namespace: default
