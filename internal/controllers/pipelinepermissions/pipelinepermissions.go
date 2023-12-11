@@ -220,7 +220,7 @@ func resolveResourceId(ctx context.Context, cli client.Client, ref *rtv1.Referen
 		return nil, fmt.Errorf("no resource referenced")
 	}
 	switch ty {
-	case "repository":
+	case string(pipelinepermissionsv1alpha2.GitRepository):
 		repo, err := resolvers.ResolveGitRepository(ctx, cli, ref)
 		if err != nil {
 			return nil, err
@@ -228,11 +228,11 @@ func resolveResourceId(ctx context.Context, cli client.Client, ref *rtv1.Referen
 		proj, err := resolvers.ResolveTeamProject(ctx, cli, repo.Spec.ProjectRef)
 		ret := fmt.Sprintf("%s.%s", proj.Status.Id, repo.Status.Id)
 		return helpers.StringPtr(ret), err
-	case "environment":
+	case string(pipelinepermissionsv1alpha2.Environment):
 		env, err := resolvers.ResolveEnvironment(ctx, cli, ref)
 		ret := fmt.Sprintf("%v", env.Status.Id)
 		return helpers.StringPtr(ret), err
-	case "queue":
+	case string(pipelinepermissionsv1alpha2.Queue):
 		que, err := resolvers.ResolveQueue(ctx, cli, ref)
 		ret := fmt.Sprintf("%v", que.Status.Id)
 		return helpers.StringPtr(ret), err

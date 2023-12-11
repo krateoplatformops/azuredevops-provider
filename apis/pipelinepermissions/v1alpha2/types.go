@@ -5,6 +5,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type ResourceType string
+
+const (
+	GitRepository ResourceType = "repository"
+	Environment   ResourceType = "environment"
+	Queue         ResourceType = "queue"
+	TeamProject   ResourceType = "teamproject"
+)
+
 type Resource struct {
 	// Type of the resource.
 	Type *string `json:"type,omitempty"`

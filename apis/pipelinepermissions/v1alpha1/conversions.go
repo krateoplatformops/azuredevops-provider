@@ -41,7 +41,7 @@ func (src *PipelinePermission) ConvertTo(dstRaw conversion.Hub) error {
 	id := helpers.String(src.Spec.Resource.Id)
 	ty := helpers.String(dst.Spec.Resource.Type)
 	resolver := resolvers.GetFinderFromType(ty)
-	if ty == "repository" {
+	if ty == string(v1alpha2.GitRepository) {
 		arr := strings.Split(id, ".")
 		if len(arr) > 1 {
 			id = arr[1]
@@ -84,19 +84,19 @@ func (dst *PipelinePermission) ConvertFrom(srcRaw conversion.Hub) error {
 	ty := helpers.String(dst.Spec.Resource.Type)
 	var id, name string
 	switch ty {
-	case "teamproject":
+	case string(v1alpha2.TeamProject):
 		res, _ := resolvers.ResolveTeamProject(ctx, cli, src.Spec.Resource.ResourceRef)
 		id = res.Status.Id
 		name = res.Spec.Name
-	case "repository":
+	case string(v1alpha2.GitRepository):
 		res, _ := resolvers.ResolveGitRepository(ctx, cli, src.Spec.Resource.ResourceRef)
 		id = res.Status.Id
 		name = res.Spec.Name
-	case "queue":
+	case string(v1alpha2.Queue):
 		res, _ := resolvers.ResolveQueue(ctx, cli, src.Spec.Resource.ResourceRef)
 		id = fmt.Sprintf("%v", helpers.Int(res.Status.Id))
 		name = helpers.String(res.Spec.Name)
-	case "environment":
+	case string(v1alpha2.Environment):
 		res, _ := resolvers.ResolveEnvironment(ctx, cli, src.Spec.Resource.ResourceRef)
 		id = fmt.Sprintf("%v", helpers.Int(res.Status.Id))
 		name = helpers.String(res.Spec.Name)
