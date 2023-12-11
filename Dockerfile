@@ -36,7 +36,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY --from=builder /bin/manager /bin/manager
 
-ARG METRICS_PORT
+ARG METRICS_PORT=8080
 EXPOSE ${METRICS_PORT}
 
 USER nonroot:nonroot

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-controller
+  labels:
+    app.kubernetes.io/name: controller-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: controller-webhook
+        app: my-controller
+    spec:
+      containers:
+      - name: my-container
+        image: docker.io/library/az-controller:v18
+        ports:
+        - containerPort: 8080
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-service-certs

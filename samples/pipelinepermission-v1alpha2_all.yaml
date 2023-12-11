@@ -1,0 +1,20 @@
+apiVersion: azuredevops.krateo.io/v1alpha2
+kind: PipelinePermission
+metadata:
+  name: pipelinepermission-v2
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Orphan
+  authorizeAll: true
+  projectRef: 
+    name: pipeline-proj
+    namespace: default
+  resource:
+    type: repository
+    resourceRef:
+      name: gitrepository-sample
+      namespace: default
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample
