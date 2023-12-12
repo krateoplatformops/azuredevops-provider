@@ -20,3 +20,17 @@ func ResolveGroup(ctx context.Context, kube client.Client, ref *rtv1.Reference) 
 	err := kube.Get(ctx, types.NamespacedName{Namespace: ref.Namespace, Name: ref.Name}, res)
 	return res, err
 }
+
+func ResolveGroupListDescriptors(ctx context.Context, kube client.Client, refs []rtv1.Reference) (list []string, err error) {
+	for _, ref := range refs {
+		res, err := ResolveGroup(ctx, kube, &ref)
+		if err != nil {
+			return nil, err
+		}
+		if res.Status.Descriptor == nil {
+			continue
+		}
+		list = append(list, *res.Status.Descriptor)
+	}
+	return list, nil
+}

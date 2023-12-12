@@ -75,6 +75,22 @@ spec:
               groupName:
                 description: 'GroupsName: name of the group'
                 type: string
+              groupRefs:
+                description: 'GroupRefs: the groups to which the group belongs.'
+                items:
+                  description: A Reference to a named object.
+                  properties:
+                    name:
+                      description: Name of the referenced object.
+                      type: string
+                    namespace:
+                      description: Namespace of the referenced object.
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  type: object
+                type: array
               membership:
                 description: 'Membership: membership of the group - One of Organization
                   or ProjectRef must be set'
@@ -96,8 +112,10 @@ spec:
                     - namespace
                     type: object
                 type: object
+              originId:
+                description: 'OriginID: the origin ID of the user.'
+                type: string
             required:
-            - groupName
             - membership
             type: object
           status:

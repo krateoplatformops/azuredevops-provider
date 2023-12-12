@@ -1,7 +1,7 @@
 apiVersion: azuredevops.krateo.io/v1alpha1
 kind: Groups
 metadata:
-  name: group-sample
+  name: group-test
   annotations:
     krateo.io/connector-verbose: "true"
 spec:
@@ -12,7 +12,10 @@ spec:
     projectRef: 
       namespace: default
       name: pipeline-proj
-  groupName: YAML Group
+  groupName: group-2
+  groupRefs:
+    - namespace: default
+      name: group-sample
   description: Group created from YAML
   connectorConfigRef:
     namespace: default

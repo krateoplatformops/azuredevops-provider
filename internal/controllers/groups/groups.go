@@ -22,6 +22,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/ratelimiter"
 	"github.com/krateoplatformops/provider-runtime/pkg/reconciler"
 	"github.com/krateoplatformops/provider-runtime/pkg/resource"
+	"github.com/lucasepe/httplib"
 	"github.com/pkg/errors"
 )
 
@@ -157,6 +158,33 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			ResourceUpToDate: true,
 		}, nil
 	}
+	check := true
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+	for _, groupDescriptor := range groupDescriptors {
+		err = memberships.CheckMembership(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        helpers.String(organization),
+			SubjectDescriptor:   group.Descriptor,
+			ContainerDescriptor: groupDescriptor,
+		})
+		if httplib.IsNotFoundError(err) {
+			check = false
+			break
+		}
+		if err != nil {
+			return reconciler.ExternalObservation{}, err
+		}
+		check = true
+	}
+
+	if len(groupDescriptors) != 0 && !check {
+		return reconciler.ExternalObservation{
+			ResourceExists:   true,
+			ResourceUpToDate: false,
+		}, nil
+	}
 
 	cr.Status.Descriptor = helpers.StringPtr(group.Descriptor)
 
@@ -169,7 +197,79 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
-	return nil
+	cr, ok := mg.(*groupsv1alpha1.Groups)
+	if !ok {
+		return errors.New(errNotCR)
+	}
+
+	if !meta.IsActionAllowed(cr, meta.ActionUpdate) {
+		e.log.Debug("External resource should not be updated by provider, skip updating.")
+		return nil
+	}
+
+	projectId, organization, err := resolveProjectAndOrganization(ctx, e.kube, cr)
+	if err != nil {
+		return err
+	}
+
+	var group *groups.GroupResponse
+	if cr.Status.Descriptor == nil {
+		group, err = groups.FindGroupByName(ctx, e.azCli, groups.FindGroupByNameOptions{
+			ListOptions: groups.ListOptions{
+				Organization: helpers.String(organization),
+			},
+			ProjectID: helpers.String(projectId),
+			GroupName: cr.Spec.GroupsName,
+		})
+		if err != nil {
+			return err
+		}
+	} else {
+		group, err = groups.Get(ctx, e.azCli, groups.GetOptions{
+			Organization:    helpers.String(organization),
+			GroupDescriptor: helpers.String(cr.Status.Descriptor),
+		})
+		if err != nil {
+			return err
+		}
+	}
+	if group == nil {
+		return errors.Errorf("group %s %s not found", cr.Spec.GroupsName, cr.Spec.OriginID)
+	}
+
+	var projectDescriptor *descriptors.DescriptorResponse
+	if projectId != nil {
+		projectDescriptor, err = descriptors.Get(ctx, e.azCli, descriptors.GetOptions{
+			Organization: helpers.String(organization),
+			Project:      helpers.String(projectId),
+		})
+		if err != nil {
+			return err
+		}
+	}
+	var scopeDescriptor *string
+	if projectDescriptor != nil {
+		scopeDescriptor = projectDescriptor.Value
+	}
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	if err != nil {
+		return err
+	}
+	group, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
+		Organization:     helpers.String(organization),
+		ScopeDescriptor:  scopeDescriptor,
+		GroupDescriptors: groupDescriptors,
+		GroupData: groups.GroupDescription{
+			DisplayName: cr.Spec.GroupsName,
+			Description: cr.Spec.Description,
+		}})
+	if err != nil {
+		return err
+	}
+
+	cr.Status.Descriptor = helpers.StringPtr(group.Descriptor)
+
+	return e.kube.Status().Update(ctx, cr)
 }
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	cr, ok := mg.(*groupsv1alpha1.Groups)
@@ -204,9 +304,15 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		scopeDescriptor = projectDescriptor.Value
 	}
 
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	if err != nil {
+		return err
+	}
+
 	res, err := groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
-		Organization:    helpers.String(organization),
-		ScopeDescriptor: scopeDescriptor,
+		Organization:     helpers.String(organization),
+		ScopeDescriptor:  scopeDescriptor,
+		GroupDescriptors: groupDescriptors,
 		GroupData: groups.GroupDescription{
 			DisplayName: cr.Spec.GroupsName,
 			Description: cr.Spec.Description,
