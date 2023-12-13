@@ -85,3 +85,34 @@ func CheckMembership(ctx context.Context, cli *azuredevops.Client, opts CheckMem
 	})
 	return err
 }
+
+// Create a new membership between a container and subject.
+// PUT https://vssps.dev.azure.com/{organization}/_apis/graph/memberships/{subjectDescriptor}/{containerDescriptor}?api-version=7.0-preview.1
+func Create(ctx context.Context, cli *azuredevops.Client, opts CheckMembershipOptions) error {
+	ubo := httplib.URLBuilderOptions{
+		BaseURL: cli.BaseURL(azuredevops.Vssps),
+		Path:    path.Join(opts.Organization, "_apis/graph/memberships", opts.SubjectDescriptor, opts.ContainerDescriptor),
+		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+	}
+
+	uri, err := httplib.NewURLBuilder(ubo).Build()
+	if err != nil {
+		return err
+	}
+
+	req, err := httplib.Put(uri.String(), nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req = req.WithContext(ctx)
+
+	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
+		Verbose:    cli.Verbose(),
+		AuthMethod: cli.AuthMethod(),
+		Validators: []httplib.HandleResponseFunc{
+			httplib.ErrorJSON(&azuredevops.APIError{}, http.StatusOK),
+		},
+	})
+	return err
+}

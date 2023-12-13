@@ -16,6 +16,7 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repository"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repositorypermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/run"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/teams"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/users"
 )
 
@@ -34,6 +35,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		feedpermissions.Setup,
 		environments.Setup,
 		repositorypermissions.Setup,
+		teams.Setup,
 		groups.Setup,
 		users.Setup,
 	} {

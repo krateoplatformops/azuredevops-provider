@@ -1,4 +1,4 @@
-package groups
+package teams
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	groupsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/groups/v1alpha1"
+	teamsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/teams/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/graphs/descriptors"
-	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/graphs/groups"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/graphs/memberships"
+	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/teams"
 	"github.com/krateoplatformops/azuredevops-provider/internal/resolvers"
 	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	"github.com/krateoplatformops/provider-runtime/pkg/controller"
@@ -27,18 +27,18 @@ import (
 )
 
 const (
-	errNotCR = "managed resource is not a Groups custom resource"
+	errNotCR = "managed resource is not a Team custom resource"
 )
 
 func Setup(mgr ctrl.Manager, o controller.Options) error {
-	name := reconciler.ControllerName(groupsv1alpha1.GroupsGroupKind)
+	name := reconciler.ControllerName(teamsv1alpha1.TeamGroupKind)
 
 	log := o.Logger.WithValues("controller", name)
 
 	recorder := mgr.GetEventRecorderFor(name)
 
 	r := reconciler.NewReconciler(mgr,
-		resource.ManagedKind(groupsv1alpha1.GroupsGroupVersionKind),
+		resource.ManagedKind(teamsv1alpha1.TeamGroupVersionKind),
 		reconciler.WithExternalConnecter(&connector{
 			kube:     mgr.GetClient(),
 			log:      log,
@@ -51,7 +51,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(o.ForControllerRuntime()).
-		For(&groupsv1alpha1.Groups{}).
+		For(&teamsv1alpha1.Team{}).
 		Complete(ratelimiter.NewReconciler(name, r, o.GlobalRateLimiter))
 }
 
@@ -62,7 +62,7 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconciler.ExternalClient, error) {
-	cr, ok := mg.(*groupsv1alpha1.Groups)
+	cr, ok := mg.(*teamsv1alpha1.Team)
 	if !ok {
 		return nil, errors.New(errNotCR)
 	}
@@ -89,16 +89,9 @@ type external struct {
 	rec   record.EventRecorder
 }
 
-func resolveProjectAndOrganization(ctx context.Context, kube client.Client, cr *groupsv1alpha1.Groups) (*string, *string, error) {
+func resolveProjectAndOrganization(ctx context.Context, kube client.Client, cr *teamsv1alpha1.Team) (*string, *string, error) {
 	var projectId, organization *string
-	if cr.Spec.Membership.ProjectRef == nil {
-		if cr.Spec.Membership.Organization == nil {
-			return nil, nil, errors.New("spec.membership.organization or spec.membership.projectRef must be set")
-		}
-		organization = cr.Spec.Membership.Organization
-		return nil, organization, nil
-	}
-	project, err := resolvers.ResolveTeamProject(ctx, kube, cr.Spec.Membership.ProjectRef)
+	project, err := resolvers.ResolveTeamProject(ctx, kube, cr.Spec.ProjectRef)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -108,7 +101,7 @@ func resolveProjectAndOrganization(ctx context.Context, kube client.Client, cr *
 }
 
 func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler.ExternalObservation, error) {
-	cr, ok := mg.(*groupsv1alpha1.Groups)
+	cr, ok := mg.(*teamsv1alpha1.Team)
 	if !ok {
 		return reconciler.ExternalObservation{}, errors.New(errNotCR)
 	}
@@ -117,56 +110,53 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, err
 	}
 
-	var group *groups.GroupResponse
-	if cr.Status.Descriptor == nil {
-		group, err = groups.FindGroupByName(ctx, e.azCli, groups.FindGroupByNameOptions{
-			ListOptions: groups.ListOptions{
+	var team *teams.TeamResponse
+	if cr.Status.Id == nil {
+		team, err = teams.FindTeamByName(ctx, e.azCli, teams.FindTeamByNameOptions{
+			ListOptions: teams.ListOptions{
 				Organization: helpers.String(organization),
+				ProjectID:    helpers.String(projectId),
 			},
-			GroupName: cr.Spec.GroupsName,
+			TeamName:  cr.Spec.Name,
 			ProjectID: helpers.String(projectId),
 		})
 		if err != nil {
 			return reconciler.ExternalObservation{}, err
 		}
 	} else {
-		group, err = groups.Get(ctx, e.azCli, groups.GetOptions{
-			Organization:    helpers.String(organization),
-			GroupDescriptor: *cr.Status.Descriptor,
+		team, err = teams.Get(ctx, e.azCli, teams.GetOptions{
+			Organization: helpers.String(organization),
+			ProjectID:    helpers.String(projectId),
+			TeamID:       helpers.String(cr.Status.Id),
 		})
 		if err != nil && !azuredevops.IsNotFound(err) {
 			return reconciler.ExternalObservation{}, err
 		}
 	}
-
-	if group == nil {
+	if team == nil {
 		return reconciler.ExternalObservation{
 			ResourceExists:   false,
 			ResourceUpToDate: true,
 		}, nil
 	}
-	membership, err := memberships.Get(ctx, e.azCli, memberships.GetOptions{
-		Organization:      helpers.String(organization),
-		SubjectDescriptor: group.Descriptor,
+
+	check := true
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupRefs)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+	teamDescriptor, err := descriptors.GetDescriptor(ctx, e.azCli, descriptors.GetOptions{
+		Organization: helpers.String(organization),
+		ResourceID:   team.ID,
 	})
 	if err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
-	if !membership.Active {
-		return reconciler.ExternalObservation{
-			ResourceExists:   false,
-			ResourceUpToDate: true,
-		}, nil
-	}
-	check := true
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
-	if err != nil {
-		return reconciler.ExternalObservation{}, err
-	}
+
 	for _, groupDescriptor := range groupDescriptors {
 		err = memberships.CheckMembership(ctx, e.azCli, memberships.CheckMembershipOptions{
 			Organization:        helpers.String(organization),
-			SubjectDescriptor:   group.Descriptor,
+			SubjectDescriptor:   helpers.String(teamDescriptor),
 			ContainerDescriptor: groupDescriptor,
 		})
 		if httplib.IsNotFoundError(err) {
@@ -186,7 +176,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 
-	cr.Status.Descriptor = helpers.StringPtr(group.Descriptor)
+	cr.Status.Id = helpers.StringPtr(team.ID)
 
 	cr.SetConditions(rtv1.Available())
 
@@ -197,7 +187,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*groupsv1alpha1.Groups)
+	cr, ok := mg.(*teamsv1alpha1.Team)
 	if !ok {
 		return errors.New(errNotCR)
 	}
@@ -206,73 +196,56 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		e.log.Debug("External resource should not be updated by provider, skip updating.")
 		return nil
 	}
-
 	projectId, organization, err := resolveProjectAndOrganization(ctx, e.kube, cr)
 	if err != nil {
 		return err
 	}
 
-	var group *groups.GroupResponse
-	if cr.Status.Descriptor == nil {
-		group, err = groups.FindGroupByName(ctx, e.azCli, groups.FindGroupByNameOptions{
-			ListOptions: groups.ListOptions{
-				Organization: helpers.String(organization),
-			},
-			ProjectID: helpers.String(projectId),
-			GroupName: cr.Spec.GroupsName,
-		})
-		if err != nil {
-			return err
-		}
-	} else {
-		group, err = groups.Get(ctx, e.azCli, groups.GetOptions{
-			Organization:    helpers.String(organization),
-			GroupDescriptor: helpers.String(cr.Status.Descriptor),
-		})
-		if err != nil {
-			return err
-		}
-	}
-	if group == nil {
-		return errors.Errorf("group %s %s not found", cr.Spec.GroupsName, cr.Spec.OriginID)
+	team, err := teams.Get(ctx, e.azCli, teams.GetOptions{
+		Organization: helpers.String(organization),
+		ProjectID:    helpers.String(projectId),
+		TeamID:       helpers.String(cr.Status.Id),
+	})
+	if err != nil && !azuredevops.IsNotFound(err) {
+		return err
 	}
 
-	var projectDescriptor *descriptors.DescriptorResponse
-	if projectId != nil {
-		projectDescriptor, err = descriptors.Get(ctx, e.azCli, descriptors.GetOptions{
-			Organization: helpers.String(organization),
-			ResourceID:   helpers.String(projectId),
-		})
-		if err != nil {
-			return err
-		}
-	}
-	var scopeDescriptor *string
-	if projectDescriptor != nil {
-		scopeDescriptor = projectDescriptor.Value
-	}
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupRefs)
 	if err != nil {
 		return err
 	}
-	group, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
-		Organization:     helpers.String(organization),
-		ScopeDescriptor:  scopeDescriptor,
-		GroupDescriptors: groupDescriptors,
-		GroupData: groups.GroupDescription{
-			DisplayName: cr.Spec.GroupsName,
-			Description: cr.Spec.Description,
-		}})
+	teamDescriptor, err := descriptors.GetDescriptor(ctx, e.azCli, descriptors.GetOptions{
+		Organization: helpers.String(organization),
+		ResourceID:   team.ID,
+	})
 	if err != nil {
 		return err
 	}
 
-	cr.Status.Descriptor = helpers.StringPtr(group.Descriptor)
+	for _, groupDescriptor := range groupDescriptors {
+		err = memberships.CheckMembership(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        helpers.String(organization),
+			SubjectDescriptor:   helpers.String(teamDescriptor),
+			ContainerDescriptor: groupDescriptor,
+		})
+		if err != nil && !httplib.IsNotFoundError(err) {
+			return err
+		}
+		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        helpers.String(organization),
+			SubjectDescriptor:   helpers.String(teamDescriptor),
+			ContainerDescriptor: groupDescriptor,
+		})
+		if err != nil {
+			return err
+		}
+	}
 
+	cr.Status.Id = helpers.StringPtr(team.ID)
 	return e.kube.Status().Update(ctx, cr)
 }
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*groupsv1alpha1.Groups)
+	cr, ok := mg.(*teamsv1alpha1.Team)
 	if !ok {
 		return errors.New(errNotCR)
 	}
@@ -289,45 +262,46 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Creating())
 
-	var projectDescriptor *descriptors.DescriptorResponse
-	if projectId != nil {
-		projectDescriptor, err = descriptors.Get(ctx, e.azCli, descriptors.GetOptions{
-			Organization: helpers.String(organization),
-			ResourceID:   helpers.String(projectId),
+	res, err := teams.Create(ctx, e.azCli, teams.CreateOptions{
+		Organization: helpers.String(organization),
+		ProjectID:    helpers.String(projectId),
+		TeamData: teams.TeamData{
+			Name:        cr.Spec.Name,
+			Description: cr.Spec.Description,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	teamDescriptor, err := descriptors.GetDescriptor(ctx, e.azCli, descriptors.GetOptions{
+		Organization: helpers.String(organization),
+		ResourceID:   res.ID,
+	})
+	if err != nil {
+		return err
+	}
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupRefs)
+	if err != nil {
+		return err
+	}
+
+	for _, groupDescriptor := range groupDescriptors {
+		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        helpers.String(organization),
+			SubjectDescriptor:   helpers.String(teamDescriptor),
+			ContainerDescriptor: groupDescriptor,
 		})
 		if err != nil {
 			return err
 		}
 	}
-	var scopeDescriptor *string
-	if projectDescriptor != nil {
-		scopeDescriptor = projectDescriptor.Value
-	}
 
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
-	if err != nil {
-		return err
-	}
-
-	res, err := groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
-		Organization:     helpers.String(organization),
-		ScopeDescriptor:  scopeDescriptor,
-		GroupDescriptors: groupDescriptors,
-		GroupData: groups.GroupDescription{
-			DisplayName: cr.Spec.GroupsName,
-			Description: cr.Spec.Description,
-		}})
-	if err != nil {
-		return err
-	}
-
-	cr.Status.Descriptor = helpers.StringPtr(res.Descriptor)
-
+	cr.Status.Id = helpers.StringPtr(res.ID)
 	return e.kube.Status().Update(ctx, cr)
 }
 
 func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
-	cr, ok := mg.(*groupsv1alpha1.Groups)
+	cr, ok := mg.(*teamsv1alpha1.Team)
 	if !ok {
 		return errors.New(errNotCR)
 	}
@@ -337,14 +311,15 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		return nil
 	}
 
-	_, organization, err := resolveProjectAndOrganization(ctx, e.kube, cr)
+	projectId, organization, err := resolveProjectAndOrganization(ctx, e.kube, cr)
 	if err != nil {
 		return err
 	}
 
-	err = groups.Delete(ctx, e.azCli, groups.DeleteOptions{
-		Organization:    helpers.String(organization),
-		GroupDescriptor: *cr.Status.Descriptor,
+	err = teams.Delete(ctx, e.azCli, teams.DeleteOptions{
+		Organization: helpers.String(organization),
+		ProjectID:    helpers.String(projectId),
+		TeamID:       helpers.String(cr.Status.Id),
 	})
 	if err != nil {
 		return err

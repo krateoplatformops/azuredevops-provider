@@ -33,10 +33,6 @@ type GroupsSpec struct {
 	// +required
 	Membership Membership `json:"membership"`
 
-	// // GroupsName: name of the group
-	// // +required
-	// GroupsName string `json:"groupName"`
-
 	// One of origidId or groupName must be specified
 	// +required
 	GroupIdentifier `json:",inline"`
