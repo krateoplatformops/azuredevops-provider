@@ -7,6 +7,7 @@ import (
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/lucasepe/httplib"
+	"github.com/pkg/errors"
 )
 
 type DescriptorResponse struct {
@@ -18,8 +19,7 @@ type DescriptorResponse struct {
 type GetOptions struct {
 	// (required) The name of the Azure DevOps organization.
 	Organization string
-	// (required) Project ID
-	Project string
+	ResourceID   string
 }
 
 // Resolve a storage key to a descriptor
@@ -27,7 +27,7 @@ type GetOptions struct {
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*DescriptorResponse, error) {
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
-		Path:    path.Join(opts.Organization, "_apis/graph/descriptors", opts.Project),
+		Path:    path.Join(opts.Organization, "_apis/graph/descriptors", opts.ResourceID),
 		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
 	}
 
@@ -52,4 +52,12 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Descri
 	})
 
 	return res, err
+}
+
+func GetDescriptor(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*string, error) {
+	res, err := Get(ctx, cli, opts)
+	if res == nil {
+		return nil, errors.Errorf("No descriptor for %s/%s", opts.Organization, opts.ResourceID)
+	}
+	return res.Value, err
 }

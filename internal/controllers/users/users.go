@@ -129,7 +129,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, err
 	}
 	check := true
-	groupDescriptors, err := ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
 	if err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
@@ -208,7 +208,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		return errors.Errorf("user %s %s not found", helpers.String(cr.Spec.User.Name), helpers.String(cr.Spec.User.OriginID))
 	}
 
-	groupDescriptors, err := ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
 	if err != nil {
 		return err
 	}
@@ -250,7 +250,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return nil
 	}
 
-	groupDescriptors, err := ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
 	if err != nil {
 		return err
 	}
@@ -292,18 +292,4 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	cr.SetConditions(rtv1.Deleting())
 
 	return nil
-}
-
-func ResolveGroupListDescriptors(ctx context.Context, kube client.Client, refs []rtv1.Reference) (list []string, err error) {
-	for _, ref := range refs {
-		res, err := resolvers.ResolveGroup(ctx, kube, &ref)
-		if err != nil {
-			return nil, err
-		}
-		if res.Status.Descriptor == nil {
-			continue
-		}
-		list = append(list, *res.Status.Descriptor)
-	}
-	return list, nil
 }

@@ -5,20 +5,23 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
   creationTimestamp: null
-  name: groups.azuredevops.krateo.io
+  name: teams.azuredevops.krateo.io
 spec:
   group: azuredevops.krateo.io
   names:
     categories:
     - krateo
     - azuredevops
-    kind: Groups
-    listKind: GroupsList
-    plural: groups
-    singular: groups
+    kind: Team
+    listKind: TeamList
+    plural: teams
+    singular: team
   scope: Cluster
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .status.id
+      name: ID
+      type: string
     - jsonPath: .status.conditions[?(@.type=='Ready')].status
       name: READY
       type: string
@@ -29,7 +32,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Groups is the Schema for the Groups API
+        description: Team is the Schema for the Team API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -44,7 +47,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: Groups defines the desired state of Groups
+            description: TeamSpec defines the desired state of Team
             properties:
               connectorConfigRef:
                 description: 'ConnectorConfigRef: configuration spec for the REST
@@ -72,11 +75,8 @@ spec:
               description:
                 description: 'Description: description of the group'
                 type: string
-              groupName:
-                description: 'GroupsName: name of the group'
-                type: string
               groupRefs:
-                description: 'GroupRefs: the groups to which the group belongs.'
+                description: 'GroupRefs: the groups to which the team belongs.'
                 items:
                   description: A Reference to a named object.
                   properties:
@@ -91,32 +91,24 @@ spec:
                   - namespace
                   type: object
                 type: array
-              membership:
-                description: 'Membership: membership of the group - One of Organization
-                  or ProjectRef must be set'
-                properties:
-                  organization:
-                    description: Used if ProjectRef is not set
-                    type: string
-                  projectRef:
-                    description: Reference to the project
-                    properties:
-                      name:
-                        description: Name of the referenced object.
-                        type: string
-                      namespace:
-                        description: Namespace of the referenced object.
-                        type: string
-                    required:
-                    - name
-                    - namespace
-                    type: object
-                type: object
-              originId:
-                description: 'OriginID: the origin ID of the user.'
+              name:
+                description: 'TeamName: name of the group'
                 type: string
+              projectRef:
+                description: Reference to the project
+                properties:
+                  name:
+                    description: Name of the referenced object.
+                    type: string
+                  namespace:
+                    description: Namespace of the referenced object.
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
             required:
-            - membership
+            - name
             type: object
           status:
             properties:
@@ -153,7 +145,7 @@ spec:
                   - type
                   type: object
                 type: array
-              descriptor:
+              id:
                 type: string
             type: object
         type: object

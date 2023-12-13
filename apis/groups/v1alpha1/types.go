@@ -13,6 +13,14 @@ type Membership struct {
 	// +optional
 	ProjectRef *rtv1.Reference `json:"projectRef"`
 }
+type GroupIdentifier struct {
+	// GroupsName: name of the group
+	// +optional
+	GroupsName string `json:"groupName"`
+	// OriginID: the origin ID of the user.
+	// +optional
+	OriginID string `json:"originId,omitempty"`
+}
 
 // Groups defines the desired state of Groups
 type GroupsSpec struct {
@@ -25,13 +33,17 @@ type GroupsSpec struct {
 	// +required
 	Membership Membership `json:"membership"`
 
-	// GroupsName: name of the group
+	// One of origidId or groupName must be specified
 	// +required
-	GroupsName string `json:"groupName"`
+	GroupIdentifier `json:",inline"`
 
 	// Description: description of the group
 	// +optional
 	Description string `json:"description,omitempty"`
+
+	// GroupRefs: the groups to which the group belongs.
+	// +optional
+	GroupsRefs []rtv1.Reference `json:"groupRefs"`
 }
 
 type GroupsStatus struct {

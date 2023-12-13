@@ -1,0 +1,19 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Team
+metadata:
+  name: team-test
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Delete
+  projectRef: 
+    namespace: default
+    name: pipeline-proj
+  name: team-1
+  groupRefs:
+    - namespace: default
+      name: group-sample
+  description: Team created from YAML
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample
