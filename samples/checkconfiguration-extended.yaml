@@ -1,0 +1,26 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: CheckConfiguration
+metadata:
+  name: check-sample
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Orphan
+  projectRef: 
+    namespace: default
+    name: pipeline-proj
+  type: Extends Check
+  timeout: 43200
+  resource:
+    type: Environment
+    resourceRef:
+      namespace: default
+      name: environment-sample-1
+  extendsCheckSettings:
+  - repositoryName: pipelineProj/extendsRepo
+    repositoryRef: refs/heads/master
+    repositoryType: Git
+    templatePath: template.yaml 
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

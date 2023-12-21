@@ -1,0 +1,33 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: CheckConfiguration
+metadata:
+  name: check-sample
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Delete
+  projectRef: 
+    namespace: default
+    name: pipeline-proj
+  type: Task Check
+  timeout: 43200
+  resource:
+    type: Environment
+    resourceRef:
+      namespace: default
+      name: environment-sample-1
+  taskCheckSettings:
+    definitionRef:
+      id: 86b05a0c-73e6-4f7d-b3cf-e38f3b39a75b
+      name: evaluatebranchProtection
+      version: "0.0.1"
+    displayName: Branch Control
+    retryInterval: 0
+    inputs: | 
+      {
+        "allowedBranches":"*",
+        "ensureProtectionOfBranch":"false"
+      }
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

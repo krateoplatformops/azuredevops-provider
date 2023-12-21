@@ -4,6 +4,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/controller"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/checkconfigurations"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/endpoints"
 	environments "github.com/krateoplatformops/azuredevops-provider/internal/controllers/enviroments"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/feedpermissions"
@@ -35,6 +36,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		feedpermissions.Setup,
 		environments.Setup,
 		repositorypermissions.Setup,
+		checkconfigurations.Setup,
 		teams.Setup,
 		groups.Setup,
 		users.Setup,
