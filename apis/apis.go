@@ -3,6 +3,7 @@ package apis
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 
+	checkconfigurations "github.com/krateoplatformops/azuredevops-provider/apis/checkconfigurations/v1alpha1"
 	connectorconfigs "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
 	endpoints "github.com/krateoplatformops/azuredevops-provider/apis/endpoints/v1alpha1"
 	environments "github.com/krateoplatformops/azuredevops-provider/apis/environments/v1alpha1"
@@ -40,6 +41,7 @@ func init() {
 		repositorypermissions.SchemeBuilder.AddToScheme,
 		groups.SchemeBuilder.AddToScheme,
 		users.SchemeBuilder.AddToScheme,
+		checkconfigurations.SchemeBuilder.AddToScheme,
 	)
 }
 

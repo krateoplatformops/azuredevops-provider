@@ -1,0 +1,30 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: CheckConfiguration
+metadata:
+  name: check-sample-1
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Delete
+  projectRef: 
+    namespace: default
+    name: pipeline-proj
+  type: Approval
+  timeout: 43200
+  resource:
+    type: Environment
+    resourceRef:
+      namespace: default
+      name: environment-sample-1
+  approvalSettings:
+    instructions: "Please approve the deployment"
+    approvers:
+    - approverRef:
+        namespace: default
+        name: user-build
+    - approverRef:
+        namespace: default
+        name: group-test
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample
