@@ -129,15 +129,16 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, err
 	}
 	check := true
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	// group and team descriptors are managed by as the same object in azure devops APIs
+	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
-	for _, groupDescriptor := range groupDescriptors {
+	for _, descriptor := range groupAndTeamDescriptors {
 		err = memberships.CheckMembership(ctx, e.azCli, memberships.CheckMembershipOptions{
 			Organization:        cr.Spec.Organization,
 			SubjectDescriptor:   user.Descriptor,
-			ContainerDescriptor: groupDescriptor,
+			ContainerDescriptor: descriptor,
 		})
 		if httplib.IsNotFoundError(err) {
 			check = false
@@ -155,7 +156,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 
-	if len(groupDescriptors) != 0 && !check {
+	if len(groupAndTeamDescriptors) != 0 && !check {
 		return reconciler.ExternalObservation{
 			ResourceExists:   true,
 			ResourceUpToDate: false,
@@ -208,27 +209,18 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		return errors.Errorf("user %s %s not found", helpers.String(cr.Spec.User.Name), helpers.String(cr.Spec.User.OriginID))
 	}
 
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	// group and team descriptors are managed by as the same object in azure devops APIs
+	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return err
 	}
-	if user.OriginID == nil {
-		user, err = users.Create[users.PrincipalName](ctx, e.azCli, users.CreateOptions[users.PrincipalName]{
-			Organization: cr.Spec.Organization,
-			Identifier: users.PrincipalName{
-				PrincipalName: user.PrincipalName,
-			},
-			GroupDescriptors: groupDescriptors,
-		})
-	} else {
-		user, err = users.Create[users.OriginID](ctx, e.azCli, users.CreateOptions[users.OriginID]{
-			Organization: cr.Spec.Organization,
-			Identifier: users.OriginID{
-				OriginID: helpers.String(user.OriginID),
-			},
-			GroupDescriptors: groupDescriptors,
-		})
-	}
+	user, err = users.Create[users.PrincipalName](ctx, e.azCli, users.CreateOptions[users.PrincipalName]{
+		Organization: cr.Spec.Organization,
+		Identifier: users.PrincipalName{
+			PrincipalName: user.PrincipalName,
+		},
+		GroupDescriptors: groupAndTeamDescriptors,
+	})
 
 	if err != nil {
 		return err
@@ -250,16 +242,18 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return nil
 	}
 
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	// group and team descriptors are managed by as the same object in azure devops APIs
+	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return err
 	}
+
 	user, err := users.Create[users.PrincipalName](ctx, e.azCli, users.CreateOptions[users.PrincipalName]{
 		Organization: cr.Spec.Organization,
 		Identifier: users.PrincipalName{
 			PrincipalName: helpers.String(cr.Spec.User.Name),
 		},
-		GroupDescriptors: groupDescriptors,
+		GroupDescriptors: groupAndTeamDescriptors,
 	})
 	if err != nil {
 		return err

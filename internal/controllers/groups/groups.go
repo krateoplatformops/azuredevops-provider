@@ -159,15 +159,17 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 	check := true
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+
+	// group and team descriptors are managed by as the same object in azure devops APIs
+	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
-	for _, groupDescriptor := range groupDescriptors {
+	for _, descriptor := range groupAndTeamDescriptors {
 		err = memberships.CheckMembership(ctx, e.azCli, memberships.CheckMembershipOptions{
 			Organization:        helpers.String(organization),
 			SubjectDescriptor:   group.Descriptor,
-			ContainerDescriptor: groupDescriptor,
+			ContainerDescriptor: descriptor,
 		})
 		if httplib.IsNotFoundError(err) {
 			check = false
@@ -179,7 +181,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		check = true
 	}
 
-	if len(groupDescriptors) != 0 && !check {
+	if len(groupAndTeamDescriptors) != 0 && !check {
 		return reconciler.ExternalObservation{
 			ResourceExists:   true,
 			ResourceUpToDate: false,
@@ -251,14 +253,15 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	if projectDescriptor != nil {
 		scopeDescriptor = projectDescriptor.Value
 	}
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	// group and team descriptors are managed by as the same object in azure devops APIs
+	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return err
 	}
 	group, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
 		Organization:     helpers.String(organization),
 		ScopeDescriptor:  scopeDescriptor,
-		GroupDescriptors: groupDescriptors,
+		GroupDescriptors: groupAndTeamDescriptors,
 		GroupData: groups.GroupDescription{
 			DisplayName: cr.Spec.GroupsName,
 			Description: cr.Spec.Description,
@@ -304,15 +307,15 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		scopeDescriptor = projectDescriptor.Value
 	}
 
-	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupsRefs)
+	// group and team descriptors are managed by as the same object in azure devops APIs
+	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return err
 	}
-
 	res, err := groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
 		Organization:     helpers.String(organization),
 		ScopeDescriptor:  scopeDescriptor,
-		GroupDescriptors: groupDescriptors,
+		GroupDescriptors: groupAndTeamDescriptors,
 		GroupData: groups.GroupDescription{
 			DisplayName: cr.Spec.GroupsName,
 			Description: cr.Spec.Description,

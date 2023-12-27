@@ -145,6 +145,8 @@ spec:
                   - type
                   type: object
                 type: array
+              descriptor:
+                type: string
               id:
                 type: string
             type: object

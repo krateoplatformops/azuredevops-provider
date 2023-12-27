@@ -44,6 +44,10 @@ type GroupsSpec struct {
 	// GroupRefs: the groups to which the group belongs.
 	// +optional
 	GroupsRefs []rtv1.Reference `json:"groupRefs"`
+
+	// TeamRefs: the teams to which the group belongs.
+	// +optional
+	TeamsRefs []rtv1.Reference `json:"teamRefs"`
 }
 
 type GroupsStatus struct {

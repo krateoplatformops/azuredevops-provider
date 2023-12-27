@@ -34,6 +34,10 @@ type UsersSpec struct {
 	// GroupRefs: the groups to which the user belongs.
 	// +optional
 	GroupsRefs []rtv1.Reference `json:"groupRefs"`
+
+	// TeamRefs: the teams to which the user belongs.
+	// +optional
+	TeamsRefs []rtv1.Reference `json:"teamRefs"`
 }
 
 type UsersStatus struct {
