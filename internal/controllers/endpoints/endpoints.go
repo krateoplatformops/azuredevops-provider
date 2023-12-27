@@ -129,6 +129,16 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, err
 	}
 
+	// // print the endpoint in json with indent
+	// fmt.Println("endpoint:")
+	// b, _ := json.MarshalIndent(endpoint, "", "  ")
+	// fmt.Println(string(b))
+
+	// // print the observed endpoint in json with indent
+	// fmt.Println("observed endpoint:")
+	// b, _ = json.MarshalIndent(observed, "", "  ")
+	// fmt.Println(string(b))
+
 	cr.Status.Id = observed.Id
 	cr.Status.Url = observed.Url
 
@@ -163,13 +173,13 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Creating())
 
-	endopoint, err := asAzureDevopsServiceEndpoint(ctx, e.kube, &ref, cr, endpoints.ServiceEndpoint{})
+	endpoint, err := asAzureDevopsServiceEndpoint(ctx, e.kube, &ref, cr, endpoints.ServiceEndpoint{})
 	if err != nil {
 		return err
 	}
 	res, err := endpoints.Create(ctx, e.azCli, endpoints.CreateOptions{
 		Organization: ref.Organization,
-		Endpoint:     endopoint,
+		Endpoint:     endpoint,
 	})
 	if err != nil {
 		return err
@@ -227,13 +237,16 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	if err != nil {
 		return err
 	}
-	_, err = endpoints.ShareServiceEndpoint(ctx, e.azCli, endpoints.ShareOptions{
-		Organization: ref.Organization,
-		EndpointId:   helpers.String(cr.Status.Id),
-		Endpoints:    getRefDiff(refBackup, observed.ServiceEndpointProjectReferences),
-	})
-	if err != nil {
-		return err
+	endpointReferences := getRefDiff(refBackup, observed.ServiceEndpointProjectReferences)
+	if len(endpointReferences) > 0 {
+		_, err = endpoints.ShareServiceEndpoint(ctx, e.azCli, endpoints.ShareOptions{
+			Organization: ref.Organization,
+			EndpointId:   helpers.String(cr.Status.Id),
+			Endpoints:    endpointReferences,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	cr.Status.Id = res.Id

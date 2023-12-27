@@ -17,6 +17,7 @@ const (
 	Environment   ResourceType = "environment"
 	Queue         ResourceType = "queue"
 	TeamProject   ResourceType = "teamproject"
+	Endpoint      ResourceType = "endpoint"
 )
 
 func GetFinderFromType(ty string) func(context.Context, client.Client, string) (*rtv1.Reference, error) {
@@ -29,6 +30,8 @@ func GetFinderFromType(ty string) func(context.Context, client.Client, string) (
 		return FindQueueRef
 	case "environment":
 		return FindEnvironmentRef
+	case "endpoint":
+		return FindEndpointRef
 	}
 	return nil
 }

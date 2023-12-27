@@ -40,14 +40,14 @@ func (src *PipelinePermission) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Spec.Resource.Type = src.Spec.Resource.Type
 	id := helpers.String(src.Spec.Resource.Id)
 	ty := helpers.String(dst.Spec.Resource.Type)
-	resolver := resolvers.GetFinderFromType(ty)
+	finder := resolvers.GetFinderFromType(ty)
 	if ty == string(v1alpha2.GitRepository) {
 		arr := strings.Split(id, ".")
 		if len(arr) > 1 {
 			id = arr[1]
 		}
 	}
-	ref, err := resolver(context.TODO(), cli, id)
+	ref, err := finder(context.TODO(), cli, id)
 	if err != nil {
 		return err
 	}
@@ -100,8 +100,13 @@ func (dst *PipelinePermission) ConvertFrom(srcRaw conversion.Hub) error {
 		res, _ := resolvers.ResolveEnvironment(ctx, cli, src.Spec.Resource.ResourceRef)
 		id = fmt.Sprintf("%v", helpers.Int(res.Status.Id))
 		name = helpers.String(res.Spec.Name)
+	case string(v1alpha2.Endpoint):
+		res, _ := resolvers.ResolveEndpoint(ctx, cli, src.Spec.Resource.ResourceRef)
+		id = helpers.String(res.Status.Id)
+		name = helpers.String(res.Spec.Name)
 	}
-	if id == "" {
+
+	if strings.EqualFold(id, "") {
 		return errors.Errorf("No resource idendified of type %s", ty)
 	}
 
