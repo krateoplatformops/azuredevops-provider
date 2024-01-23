@@ -12,6 +12,7 @@ const (
 	Environment   ResourceType = "environment"
 	Queue         ResourceType = "queue"
 	TeamProject   ResourceType = "teamproject"
+	Endpoint      ResourceType = "endpoint"
 )
 
 type Resource struct {

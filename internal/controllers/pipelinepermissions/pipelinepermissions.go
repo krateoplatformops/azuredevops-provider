@@ -3,6 +3,7 @@ package pipelinepermissions
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -219,6 +220,7 @@ func resolveResourceId(ctx context.Context, cli client.Client, ref *rtv1.Referen
 	if ref == nil {
 		return nil, fmt.Errorf("no resource referenced")
 	}
+	ty = strings.ToLower(ty)
 	switch ty {
 	case string(pipelinepermissionsv1alpha2.GitRepository):
 		repo, err := resolvers.ResolveGitRepository(ctx, cli, ref)
@@ -230,11 +232,15 @@ func resolveResourceId(ctx context.Context, cli client.Client, ref *rtv1.Referen
 		return helpers.StringPtr(ret), err
 	case string(pipelinepermissionsv1alpha2.Environment):
 		env, err := resolvers.ResolveEnvironment(ctx, cli, ref)
-		ret := fmt.Sprintf("%v", env.Status.Id)
+		ret := fmt.Sprintf("%v", helpers.Int(env.Status.Id))
 		return helpers.StringPtr(ret), err
 	case string(pipelinepermissionsv1alpha2.Queue):
 		que, err := resolvers.ResolveQueue(ctx, cli, ref)
-		ret := fmt.Sprintf("%v", que.Status.Id)
+		ret := fmt.Sprintf("%v", helpers.Int(que.Status.Id))
+		return helpers.StringPtr(ret), err
+	case string(pipelinepermissionsv1alpha2.Endpoint):
+		end, err := resolvers.ResolveEndpoint(ctx, cli, ref)
+		ret := helpers.String(end.Status.Id)
 		return helpers.StringPtr(ret), err
 	}
 
