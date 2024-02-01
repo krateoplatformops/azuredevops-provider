@@ -3,7 +3,6 @@ package endpoints
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -142,17 +141,22 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	cr.Status.Id = observed.Id
 	cr.Status.Url = observed.Url
 
-	if !reflect.DeepEqual(observed, endpoint) {
+	err = e.kube.Status().Update(ctx, cr)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+
+	if !endpoints.Equal(observed, endpoint) {
 		return reconciler.ExternalObservation{
 			ResourceExists:   true,
 			ResourceUpToDate: false,
-		}, e.kube.Status().Update(ctx, cr)
+		}, nil
 	}
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: true,
-	}, e.kube.Status().Update(ctx, cr)
+	}, nil
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
