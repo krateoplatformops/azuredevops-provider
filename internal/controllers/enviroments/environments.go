@@ -125,6 +125,16 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			ResourceUpToDate: true,
 		}, nil
 	}
+
+	cr.SetConditions(rtv1.Available())
+
+	cr.Status.Id = observed.Id
+	err = e.kube.Status().Update(ctx, cr)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+
+	// Check if the observed state is up to date with the desired state.
 	if helpers.String(observed.Name) != helpers.String(cr.Spec.Name) || helpers.String(observed.Description) != helpers.String(cr.Spec.Description) {
 		return reconciler.ExternalObservation{
 			ResourceExists:   true,
@@ -132,14 +142,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 
-	cr.SetConditions(rtv1.Available())
-
-	cr.Status.Id = observed.Id
-
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: true,
-	}, e.kube.Status().Update(ctx, cr)
+	}, nil
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
