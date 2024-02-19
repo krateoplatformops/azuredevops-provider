@@ -2,6 +2,7 @@ package groups
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -253,21 +254,31 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	if projectDescriptor != nil {
 		scopeDescriptor = projectDescriptor.Value
 	}
+
 	// group and team descriptors are managed by as the same object in azure devops APIs
 	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return err
 	}
 	group, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
-		Organization:     helpers.String(organization),
-		ScopeDescriptor:  scopeDescriptor,
-		GroupDescriptors: groupAndTeamDescriptors,
+		Organization:    helpers.String(organization),
+		ScopeDescriptor: scopeDescriptor,
 		GroupData: groups.GroupDescription{
 			DisplayName: cr.Spec.GroupsName,
 			Description: cr.Spec.Description,
 		}})
 	if err != nil {
 		return err
+	}
+	for _, containerDescriptor := range groupAndTeamDescriptors {
+		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        helpers.String(organization),
+			SubjectDescriptor:   group.Descriptor,
+			ContainerDescriptor: containerDescriptor,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create group membership: %w", err)
+		}
 	}
 
 	cr.Status.Descriptor = helpers.StringPtr(group.Descriptor)
@@ -312,16 +323,26 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	if err != nil {
 		return err
 	}
+
 	res, err := groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
-		Organization:     helpers.String(organization),
-		ScopeDescriptor:  scopeDescriptor,
-		GroupDescriptors: groupAndTeamDescriptors,
+		Organization:    helpers.String(organization),
+		ScopeDescriptor: scopeDescriptor,
 		GroupData: groups.GroupDescription{
 			DisplayName: cr.Spec.GroupsName,
 			Description: cr.Spec.Description,
 		}})
 	if err != nil {
 		return err
+	}
+	for _, containerDescriptor := range groupAndTeamDescriptors {
+		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        helpers.String(organization),
+			SubjectDescriptor:   res.Descriptor,
+			ContainerDescriptor: containerDescriptor,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create group membership: %w", err)
+		}
 	}
 
 	cr.Status.Descriptor = helpers.StringPtr(res.Descriptor)

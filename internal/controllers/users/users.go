@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -219,8 +220,18 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		Identifier: users.PrincipalName{
 			PrincipalName: user.PrincipalName,
 		},
-		GroupDescriptors: groupAndTeamDescriptors,
 	})
+
+	for _, descriptor := range groupAndTeamDescriptors {
+		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        cr.Spec.Organization,
+			SubjectDescriptor:   user.Descriptor,
+			ContainerDescriptor: descriptor,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add user %s to group or team: %w", user.PrincipalName, err)
+		}
+	}
 
 	if err != nil {
 		return err
@@ -253,10 +264,19 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		Identifier: users.PrincipalName{
 			PrincipalName: helpers.String(cr.Spec.User.Name),
 		},
-		GroupDescriptors: groupAndTeamDescriptors,
 	})
 	if err != nil {
 		return err
+	}
+	for _, descriptor := range groupAndTeamDescriptors {
+		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
+			Organization:        cr.Spec.Organization,
+			SubjectDescriptor:   user.Descriptor,
+			ContainerDescriptor: descriptor,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add user %s to group or team: %w", user.PrincipalName, err)
+		}
 	}
 
 	cr.Status.Descriptor = helpers.StringPtr(user.Descriptor)
