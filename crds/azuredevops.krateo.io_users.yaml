@@ -91,15 +91,34 @@ spec:
               organization:
                 description: 'Organization: the organization to which the user belongs.'
                 type: string
+              teamRefs:
+                description: 'TeamRefs: the teams to which the user belongs.'
+                items:
+                  description: A Reference to a named object.
+                  properties:
+                    name:
+                      description: Name of the referenced object.
+                      type: string
+                    namespace:
+                      description: Namespace of the referenced object.
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  type: object
+                type: array
               user:
                 description: 'User: the user to be created or retrieved. Either name
                   or originId must be specified.'
                 properties:
                   name:
-                    description: 'PrincipalName: the name of the user.'
+                    description: 'PrincipalName: the name of the user. This field
+                      correspond to user''s email address if the user is an Azure
+                      Active Directory user.'
                     type: string
                   originId:
-                    description: 'OriginID: the origin ID of the user.'
+                    description: 'OriginID: the origin ID of the user. If set, the
+                      user is assumed to be an Azure Active Directory user.'
                     type: string
                 type: object
             required:

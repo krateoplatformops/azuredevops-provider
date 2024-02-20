@@ -32,6 +32,7 @@ type TeamSpec struct {
 type TeamStatus struct {
 	rtv1.ManagedStatus `json:",inline"`
 	Id                 *string `json:"id,omitempty"`
+	Descriptor         *string `json:"descriptor,omitempty"`
 }
 
 //+kubebuilder:object:root=true

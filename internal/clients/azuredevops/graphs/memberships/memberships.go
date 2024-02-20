@@ -111,7 +111,7 @@ func Create(ctx context.Context, cli *azuredevops.Client, opts CheckMembershipOp
 		Verbose:    cli.Verbose(),
 		AuthMethod: cli.AuthMethod(),
 		Validators: []httplib.HandleResponseFunc{
-			httplib.ErrorJSON(&azuredevops.APIError{}, http.StatusOK),
+			httplib.ErrorJSON(&azuredevops.APIError{}, http.StatusOK, http.StatusCreated),
 		},
 	})
 	return err

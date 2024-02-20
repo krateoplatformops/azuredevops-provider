@@ -1,0 +1,22 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Users
+metadata:
+  name: user-gambino-aad
+  annotations:
+    krateo.io/connector-verbose: "falsse"
+spec:
+  deletionPolicy: Delete
+  organization: matteogastaldello-org
+  user:
+    name: alfredo.gambino@krateo.io # this field corresponds to the user's email in case of AAD
+  groupRefs:
+    - namespace: default
+      name: group-sample
+    - namespace: default
+      name: group-test
+  teamRefs:
+    - namespace: default
+      name: team-test
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

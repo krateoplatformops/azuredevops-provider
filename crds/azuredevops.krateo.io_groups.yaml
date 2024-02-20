@@ -113,8 +113,25 @@ spec:
                     type: object
                 type: object
               originId:
-                description: 'OriginID: the origin ID of the user.'
+                description: 'OriginID: the origin ID of the group. If set, the group
+                  is assumed to be an Azure Active Directory group.'
                 type: string
+              teamRefs:
+                description: 'TeamRefs: the teams to which the group belongs.'
+                items:
+                  description: A Reference to a named object.
+                  properties:
+                    name:
+                      description: Name of the referenced object.
+                      type: string
+                    namespace:
+                      description: Namespace of the referenced object.
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  type: object
+                type: array
             required:
             - membership
             type: object

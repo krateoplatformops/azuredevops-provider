@@ -176,6 +176,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 
+	cr.Status.Descriptor = teamDescriptor
 	cr.Status.Id = helpers.StringPtr(team.ID)
 
 	cr.SetConditions(rtv1.Available())
@@ -242,6 +243,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	}
 
 	cr.Status.Id = helpers.StringPtr(team.ID)
+	cr.Status.Descriptor = teamDescriptor
 	return e.kube.Status().Update(ctx, cr)
 }
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
@@ -297,6 +299,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	}
 
 	cr.Status.Id = helpers.StringPtr(res.ID)
+	cr.Status.Descriptor = teamDescriptor
 	return e.kube.Status().Update(ctx, cr)
 }
 

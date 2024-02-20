@@ -46,6 +46,13 @@ dev: generate ## Run the controller in debug mode.
 	$(KUBECTL) apply -f crds/ -R
 	go run cmd/main.go -d
 
+.PHONY: local-dev
+local-dev: generate ## Run the controller in debug mode.
+	bash ./_deploy/create-certs-local.sh
+	$(KUBECTL) apply -f crds/ -R
+	$(KUBECTL) patch crd pipelinepermissions.azuredevops.krateo.io  --patch-file ./_deploy/local/patch.yaml
+	go run cmd/main.go -d
+
 .PHONY: kind-up
 kind-up: ## Starts a KinD cluster for local development.
 	@$(KIND) get kubeconfig --name $(KIND_CLUSTER_NAME) >/dev/null 2>&1 || $(KIND) create cluster --name=$(KIND_CLUSTER_NAME)
