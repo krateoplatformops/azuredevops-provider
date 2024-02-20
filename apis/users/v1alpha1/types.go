@@ -6,11 +6,11 @@ import (
 )
 
 type User struct {
-	// PrincipalName: the name of the user.
+	// PrincipalName: the name of the user. This field correspond to user's email address if the user is an Azure Active Directory user.
 	// +optional
 	Name *string `json:"name,omitempty"`
 
-	// OriginID: the origin ID of the user.
+	// OriginID: the origin ID of the user. If set, the user is assumed to be an Azure Active Directory user.
 	// +optional
 	OriginID *string `json:"originId,omitempty"`
 }

@@ -16,10 +16,10 @@ type Membership struct {
 type GroupIdentifier struct {
 	// GroupsName: name of the group
 	// +optional
-	GroupsName string `json:"groupName"`
-	// OriginID: the origin ID of the user.
+	GroupsName *string `json:"groupName"`
+	// OriginID: the origin ID of the group. If set, the group is assumed to be an Azure Active Directory group.
 	// +optional
-	OriginID string `json:"originId,omitempty"`
+	OriginID *string `json:"originId,omitempty"`
 }
 
 // Groups defines the desired state of Groups

@@ -124,7 +124,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			ListOptions: groups.ListOptions{
 				Organization: helpers.String(organization),
 			},
-			GroupName: cr.Spec.GroupsName,
+			GroupName: helpers.String(cr.Spec.GroupsName),
 			ProjectID: helpers.String(projectId),
 		})
 		if err != nil {
@@ -222,7 +222,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 				Organization: helpers.String(organization),
 			},
 			ProjectID: helpers.String(projectId),
-			GroupName: cr.Spec.GroupsName,
+			GroupName: helpers.String(cr.Spec.GroupsName),
 		})
 		if err != nil {
 			return err
@@ -237,7 +237,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		}
 	}
 	if group == nil {
-		return errors.Errorf("group %s %s not found", cr.Spec.GroupsName, cr.Spec.OriginID)
+		return errors.Errorf("group %s %s not found", *cr.Spec.GroupsName, *cr.Spec.OriginID)
 	}
 
 	var projectDescriptor *descriptors.DescriptorResponse
@@ -260,16 +260,18 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	if err != nil {
 		return err
 	}
+
 	group, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
 		Organization:    helpers.String(organization),
 		ScopeDescriptor: scopeDescriptor,
 		GroupData: groups.GroupDescription{
-			DisplayName: cr.Spec.GroupsName,
+			DisplayName: helpers.String(cr.Spec.GroupsName),
 			Description: cr.Spec.Description,
 		}})
 	if err != nil {
 		return err
 	}
+
 	for _, containerDescriptor := range groupAndTeamDescriptors {
 		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
 			Organization:        helpers.String(organization),
@@ -317,23 +319,37 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 	if projectDescriptor != nil {
 		scopeDescriptor = projectDescriptor.Value
 	}
-
 	// group and team descriptors are managed by as the same object in azure devops APIs
 	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
 		return err
 	}
-
-	res, err := groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
-		Organization:    helpers.String(organization),
-		ScopeDescriptor: scopeDescriptor,
-		GroupData: groups.GroupDescription{
-			DisplayName: cr.Spec.GroupsName,
-			Description: cr.Spec.Description,
-		}})
-	if err != nil {
-		return err
+	var res *groups.GroupResponse
+	if cr.Spec.OriginID != nil {
+		// Group is an Azure Active Directory user
+		res, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.SetGroupMembership]{
+			Organization: helpers.String(organization),
+			GroupData: groups.SetGroupMembership{
+				OriginID: *cr.Spec.OriginID,
+			},
+			ScopeDescriptor: scopeDescriptor,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add AAD group: %w", err)
+		}
+	} else {
+		res, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
+			Organization:    helpers.String(organization),
+			ScopeDescriptor: scopeDescriptor,
+			GroupData: groups.GroupDescription{
+				DisplayName: helpers.String(cr.Spec.GroupsName),
+				Description: cr.Spec.Description,
+			}})
+		if err != nil {
+			return fmt.Errorf("failed to create group: %w", err)
+		}
 	}
+
 	for _, containerDescriptor := range groupAndTeamDescriptors {
 		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
 			Organization:        helpers.String(organization),
@@ -368,7 +384,7 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	err = groups.Delete(ctx, e.azCli, groups.DeleteOptions{
 		Organization:    helpers.String(organization),
-		GroupDescriptor: *cr.Status.Descriptor,
+		GroupDescriptor: helpers.String(cr.Status.Descriptor),
 	})
 	if err != nil {
 		return err

@@ -113,7 +113,8 @@ spec:
                     type: object
                 type: object
               originId:
-                description: 'OriginID: the origin ID of the user.'
+                description: 'OriginID: the origin ID of the group. If set, the group
+                  is assumed to be an Azure Active Directory group.'
                 type: string
               teamRefs:
                 description: 'TeamRefs: the teams to which the group belongs.'

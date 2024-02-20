@@ -102,7 +102,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			ListOptions: users.ListOptions{
 				Organization: cr.Spec.Organization,
 			},
-			PrincipalName: *cr.Spec.User.Name,
+			PrincipalName: helpers.String(cr.Spec.User.Name),
 		})
 		if err != nil {
 			return reconciler.ExternalObservation{}, err
@@ -259,15 +259,31 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return err
 	}
 
-	user, err := users.Create[users.PrincipalName](ctx, e.azCli, users.CreateOptions[users.PrincipalName]{
-		Organization: cr.Spec.Organization,
-		Identifier: users.PrincipalName{
-			PrincipalName: helpers.String(cr.Spec.User.Name),
-		},
-	})
-	if err != nil {
-		return err
+	var user *users.UserResource
+	if cr.Spec.User.OriginID != nil {
+		// User is assumed to be an Azure Active Directory user
+		user, err = users.Create[users.OriginID](ctx, e.azCli, users.CreateOptions[users.OriginID]{
+			Organization: cr.Spec.Organization,
+			Identifier: users.OriginID{
+				OriginID: helpers.String(cr.Spec.User.OriginID),
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create user %s: %w", helpers.String(cr.Spec.User.OriginID), err)
+		}
+	} else {
+		// User could be an Azure DevOps user or an Azure Active Directory user - this api will create an Azure DevOps user if it does not exist the corresponding Azure Active Directory user
+		user, err = users.Create[users.PrincipalName](ctx, e.azCli, users.CreateOptions[users.PrincipalName]{
+			Organization: cr.Spec.Organization,
+			Identifier: users.PrincipalName{
+				PrincipalName: helpers.String(cr.Spec.User.Name),
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create user %s: %w", helpers.String(cr.Spec.User.Name), err)
+		}
 	}
+
 	for _, descriptor := range groupAndTeamDescriptors {
 		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
 			Organization:        cr.Spec.Organization,

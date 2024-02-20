@@ -112,10 +112,13 @@ spec:
                   or originId must be specified.'
                 properties:
                   name:
-                    description: 'PrincipalName: the name of the user.'
+                    description: 'PrincipalName: the name of the user. This field
+                      correspond to user''s email address if the user is an Azure
+                      Active Directory user.'
                     type: string
                   originId:
-                    description: 'OriginID: the origin ID of the user.'
+                    description: 'OriginID: the origin ID of the user. If set, the
+                      user is assumed to be an Azure Active Directory user.'
                     type: string
                 type: object
             required:
