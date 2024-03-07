@@ -216,6 +216,9 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 				if err != nil {
 					return err
 				}
+				if group.Status.Descriptor == nil {
+					return errors.New("group descriptor is nil")
+				}
 				groupResource, err := groups.Get(ctx, e.azCli, groups.GetOptions{
 					Organization:    project.Spec.Organization,
 					GroupDescriptor: helpers.String(group.Status.Descriptor),
@@ -225,6 +228,9 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 				}
 				approverId = groupResource.OriginID
 			} else {
+				if user.Status.Descriptor == nil {
+					return errors.New("user descriptor is nil")
+				}
 				userResource, err := users.Get(ctx, e.azCli, users.GetOptions{
 					Organization:   project.Spec.Organization,
 					UserDescriptor: helpers.String(user.Status.Descriptor),
