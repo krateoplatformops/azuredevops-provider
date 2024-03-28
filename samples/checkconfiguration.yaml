@@ -3,7 +3,7 @@ kind: CheckConfiguration
 metadata:
   name: check-sample-1
   annotations:
-    krateo.io/connector-verbose: "true"
+    krateo.io/connector-verbose: "false"
 spec:
   deletionPolicy: Delete
   projectRef: 
@@ -21,10 +21,7 @@ spec:
     approvers:
     - approverRef:
         namespace: default
-        name: user-build
-    - approverRef:
-        namespace: default
-        name: group-test
+        name: group-compose
   connectorConfigRef:
     namespace: default
     name: connectorconfig-sample
