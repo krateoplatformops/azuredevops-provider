@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	rtv1 "github.com/krateoplatformops/provider-runtime/apis/common/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -174,6 +175,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	cr.Status.ID = helpers.StringPtr(fmt.Sprintf("%v", res.ID))
 	e.kube.Status().Update(ctx, cr)
+	cr.SetConditions(rtv1.Available())
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
