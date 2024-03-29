@@ -215,12 +215,6 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	if err != nil {
 		return err
 	}
-	user, err = users.Create[users.PrincipalName](ctx, e.azCli, users.CreateOptions[users.PrincipalName]{
-		Organization: cr.Spec.Organization,
-		Identifier: users.PrincipalName{
-			PrincipalName: user.PrincipalName,
-		},
-	})
 
 	for _, descriptor := range groupAndTeamDescriptors {
 		err = memberships.Create(ctx, e.azCli, memberships.CheckMembershipOptions{
