@@ -2,10 +2,17 @@ apiVersion: azuredevops.krateo.io/v1alpha1
 kind: Run
 metadata:
   name: run-sample
+  annotations:
+    krateo.io/connector-verbose: "true"
 spec:
   pipelineRef:
     name: pipeline-sample
     namespace: default
+  runParameters:
+    resources:
+      repositories:
+        self: 
+          refName: "refs/heads/test"
   connectorConfigRef:
     namespace: default
     name: connectorconfig-sample
