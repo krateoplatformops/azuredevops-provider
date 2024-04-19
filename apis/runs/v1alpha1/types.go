@@ -73,7 +73,7 @@ type RunSpec struct {
 
 	// Optional additional parameters for this run.
 	// +optional
-	RunParameters *RunPipelineParameters `json:"runParameters,inline"`
+	RunParameters *RunPipelineParameters `json:"runParameters,omitempty"`
 
 	// PipelineRef: reference to the pipeline.
 	PipelineRef *rtv1.Reference `json:"pipelineRef,omitempty"`

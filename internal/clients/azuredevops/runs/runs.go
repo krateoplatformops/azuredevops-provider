@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strconv"
 
+	runsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
+
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
@@ -116,11 +118,11 @@ type RepositoryResourceParameters struct {
 }
 
 type RunResourcesParameters struct {
-	Builds       map[string]BuildResourceParameters      `json:"builds,omitempty"`
-	Containers   map[string]ContainerResourceParameters  `json:"containers,omitempty"`
-	Packages     map[string]PackageResourceParameters    `json:"packages,omitempty"`
-	Pipelines    map[string]PipelineResourceParameters   `json:"pipelines,omitempty"`
-	Repositories map[string]RepositoryResourceParameters `json:"repositories,omitempty"`
+	Builds       map[string]runsv1alpha1.BuildResourceParameters      `json:"builds,omitempty"`
+	Containers   map[string]runsv1alpha1.ContainerResourceParameters  `json:"containers,omitempty"`
+	Packages     map[string]runsv1alpha1.PackageResourceParameters    `json:"packages,omitempty"`
+	Pipelines    map[string]runsv1alpha1.PipelineResourceParameters   `json:"pipelines,omitempty"`
+	Repositories map[string]runsv1alpha1.RepositoryResourceParameters `json:"repositories,omitempty"`
 }
 
 type RunPipelineParameters struct {
@@ -140,7 +142,7 @@ type RunPipelineParameters struct {
 	TemplateParameters map[string]string `json:"templateParameters,omitempty"`
 
 	// +optional
-	Variables map[string]Variable `json:"variables,omitempty"`
+	Variables map[string]runsv1alpha1.Variable `json:"variables,omitempty"`
 	// YamlOverride: If you use the preview run option, you may optionally supply different YAML.
 	// This allows you to preview the final YAML document without committing a changed file.
 	// +optional
