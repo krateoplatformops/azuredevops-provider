@@ -189,11 +189,28 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.ProjectRef.Name)
 	}
 
+	if cr.Spec.RunParameters.Resources == nil {
+		fmt.Println("RunParameters is nil")
+	}
+
 	run, err := runs.Run(ctx, e.azCli, runs.RunOptions{
 		Organization: prj.Spec.Organization,
 		Project:      prj.Status.Id,
 		PipelineId:   pipelineId,
-	})
+		RunParameters: &runs.RunPipelineParameters{
+			PreviewRun:   cr.Spec.RunParameters.PreviewRun,
+			StagesToSkip: cr.Spec.RunParameters.StagesToSkip,
+			Resources: &runs.RunResourcesParameters{
+				Repositories: cr.Spec.RunParameters.Resources.Repositories,
+				Builds:       cr.Spec.RunParameters.Resources.Builds,
+				Containers:   cr.Spec.RunParameters.Resources.Containers,
+				Packages:     cr.Spec.RunParameters.Resources.Packages,
+				Pipelines:    cr.Spec.RunParameters.Resources.Pipelines,
+			},
+			TemplateParameters: cr.Spec.RunParameters.TemplateParameters,
+			Variables:          cr.Spec.RunParameters.Variables,
+			YamlOverride:       cr.Spec.RunParameters.YamlOverride,
+		}})
 	if err != nil {
 		return err
 	}

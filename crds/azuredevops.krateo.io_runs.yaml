@@ -88,82 +88,87 @@ spec:
                 - name
                 - namespace
                 type: object
-              previewRun:
-                description: If true, don't actually create a new run. Instead, return
-                  the final YAML document after parsing templates.
-                type: boolean
-              resources:
-                description: The resources the run requires.
+              runParameters:
+                description: Optional additional parameters for this run.
                 properties:
-                  builds:
-                    additionalProperties:
-                      properties:
-                        version:
-                          type: string
-                      type: object
+                  previewRun:
+                    description: If true, don't actually create a new run. Instead,
+                      return the final YAML document after parsing templates.
+                    type: boolean
+                  resources:
+                    description: The resources the run requires.
+                    properties:
+                      builds:
+                        additionalProperties:
+                          properties:
+                            version:
+                              type: string
+                          type: object
+                        type: object
+                      containers:
+                        additionalProperties:
+                          properties:
+                            version:
+                              type: string
+                          type: object
+                        type: object
+                      packages:
+                        additionalProperties:
+                          properties:
+                            version:
+                              type: string
+                          type: object
+                        type: object
+                      pipelines:
+                        additionalProperties:
+                          properties:
+                            version:
+                              type: string
+                          type: object
+                        type: object
+                      repositories:
+                        additionalProperties:
+                          properties:
+                            refName:
+                              type: string
+                            token:
+                              description: This is the security token to use when
+                                connecting to the repository.
+                              type: string
+                            tokenType:
+                              description: 'Optional. This is the type of the token
+                                given. If not provided, a type of "Bearer" is assumed.
+                                Note: Use "Basic" for a PAT token.'
+                              type: string
+                            version:
+                              type: string
+                          type: object
+                        type: object
                     type: object
-                  containers:
-                    additionalProperties:
-                      properties:
-                        version:
-                          type: string
-                      type: object
-                    type: object
-                  packages:
-                    additionalProperties:
-                      properties:
-                        version:
-                          type: string
-                      type: object
-                    type: object
-                  pipelines:
-                    additionalProperties:
-                      properties:
-                        version:
-                          type: string
-                      type: object
-                    type: object
-                  repositories:
-                    additionalProperties:
-                      properties:
-                        refName:
-                          type: string
-                        token:
-                          description: This is the security token to use when connecting
-                            to the repository.
-                          type: string
-                        tokenType:
-                          description: 'Optional. This is the type of the token given.
-                            If not provided, a type of "Bearer" is assumed. Note:
-                            Use "Basic" for a PAT token.'
-                          type: string
-                        version:
-                          type: string
-                      type: object
-                    type: object
-                type: object
-              stagesToSkip:
-                items:
-                  type: string
-                type: array
-              templateParameters:
-                additionalProperties:
-                  type: string
-                type: object
-              variables:
-                additionalProperties:
-                  properties:
-                    isSecret:
-                      type: boolean
-                    value:
+                  stagesToSkip:
+                    items:
                       type: string
-                  type: object
+                    type: array
+                  templateParameters:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  variables:
+                    additionalProperties:
+                      properties:
+                        isSecret:
+                          type: boolean
+                        value:
+                          type: string
+                      type: object
+                    type: object
+                  yamlOverride:
+                    description: 'YamlOverride: If you use the preview run option,
+                      you may optionally supply different YAML. This allows you to
+                      preview the final YAML document without committing a changed
+                      file.'
+                    type: string
                 type: object
-              yamlOverride:
-                description: 'YamlOverride: If you use the preview run option, you
-                  may optionally supply different YAML. This allows you to preview
-                  the final YAML document without committing a changed file.'
-                type: string
             type: object
           status:
             properties:
