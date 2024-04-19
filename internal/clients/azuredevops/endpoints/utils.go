@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -30,19 +31,17 @@ func Equal(a *ServiceEndpoint, b *ServiceEndpoint) bool {
 	if !reflect.DeepEqual(a.Data, b.Data) {
 		return false
 	}
-
+	found := 0
 	for _, ref := range a.ServiceEndpointProjectReferences {
-		found := false
 		for _, refb := range b.ServiceEndpointProjectReferences {
 			if reflect.DeepEqual(ref, refb) {
-				found = true
-				break
+				found++
 			}
-		}
-		if !found {
-			return false
 		}
 	}
 
-	return true
+	fmt.Println("found:", found)
+	fmt.Println("len:", len(a.ServiceEndpointProjectReferences))
+
+	return found == len(a.ServiceEndpointProjectReferences)
 }
