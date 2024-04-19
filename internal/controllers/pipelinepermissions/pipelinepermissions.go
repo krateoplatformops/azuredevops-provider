@@ -128,16 +128,25 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	cr.SetConditions(rtv1.Available())
 
-	upToDate := false
 	if res.AllPipelines != nil {
 		current := res.AllPipelines.Authorized
 		desired := helpers.BoolOrDefault(cr.Spec.AuthorizeAll, false)
-		upToDate = (desired == current)
+		if !(desired == current) {
+			return reconciler.ExternalObservation{
+				ResourceExists:   true,
+				ResourceUpToDate: false,
+			}, nil
+		}
+	}
+
+	ok, err = checkPipelinePermission(ctx, e.kube, cr.Spec.Pipelines, res.Pipelines)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
 	}
 
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
-		ResourceUpToDate: upToDate,
+		ResourceUpToDate: ok,
 	}, nil
 }
 
@@ -177,7 +186,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		}
 		pipelineList = append(pipelineList, pipelinespermissions.PipelinePermission{
 			Authorized: v.Authorized,
-			Id:         helpers.String(pipeline.Status.Id),
+			Id:         pipeline.Status.Id,
 		})
 	}
 

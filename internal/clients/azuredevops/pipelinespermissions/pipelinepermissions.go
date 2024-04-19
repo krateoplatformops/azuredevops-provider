@@ -2,6 +2,7 @@ package pipelinespermissions
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path"
 	"reflect"
@@ -24,7 +25,7 @@ type PipelinePermission struct {
 }
 
 func (p *PipelinePermission) GetId() string {
-	return p.Id.(string)
+	return fmt.Sprintf("%v", p.Id)
 }
 
 type ResourcePipelinePermissions struct {
