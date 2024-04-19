@@ -3,39 +3,40 @@ kind: Endpoint
 metadata:
   name: endpoint-sample
   annotations:
-    krateo.io/connector-verbose: "false"
+    krateo.io/connector-verbose: "true"
 spec:
-  name: endpoint-sample
+  deletionPolicy: Orphan
+  name: endpoint-sample-test-3
+  type: azurerm
   projectRef: 
     name: pipeline-proj
-    namespace: yournamespace
+    namespace: default
   authorization:
     parameters:
-      tenantid: 91b02abd-daec-432a-8ee4-b5137910aca6
+      tenantid: 1272a66f-e2e8-4e88-ab43-487409186c3f
+      serviceprincipalId: 1272a66f-e2e8-4e88-ab43-487409186c3f
       authenticationType: spnKey
-      scope: /subscriptions/97624910-2b37-4b00-8b9b-5155fd1daeda/resourcegroups/centrico
+      serviceprincipalKey: somePassword
     scheme: ServicePrincipal
   data:
     environment: AzureCloud
     scopeLevel: Subscription
-    subscriptionId: 0fe98abc-6028-4c53-9e43-200b66fac644
+    subscriptionId: 1272a66f-e2e8-4e88-ab43-487409186c3f
     subscriptionName: Microsoft Azure Sponsorship
-    creationMode: Automatic
-  isShared: true
-  owner: library
-  type: azurerm
+    creationMode: Manual
+  isShared: false
   url: https://management.azure.com/
   serviceEndpointProjectReferences:
     - description: description of the share
-      name: prova2
+      name: prova8
       projectRef: 
-        name: teamproject
-        namespace: yournamespace
+        name: test-shares
+        namespace: default
     - description: description of the share
-      name: prova1
+      name: prova9
       projectRef: 
-        name: anotherproject
-        namespace: yournamespace
+        name: test-share-1
+        namespace: default
   connectorConfigRef:
-    namespace: yournamespace
+    namespace: default
     name: connectorconfig-sample
