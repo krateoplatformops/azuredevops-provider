@@ -3,6 +3,7 @@ package feeds
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -121,6 +122,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 
+	cr.Status.Id = observed.Id
+	cr.Status.Url = observed.Url
+
+	err = e.kube.Status().Update(ctx, cr)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+
 	if !compareFeed(ctx, cr, observed) {
 		return reconciler.ExternalObservation{
 			ResourceExists:   true,
@@ -130,13 +139,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 
 	cr.SetConditions(rtv1.Available())
 
-	cr.Status.Id = observed.Id
-	cr.Status.Url = observed.Url
-
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: true,
-	}, e.kube.Status().Update(ctx, cr)
+	}, nil
 }
 
 func (e *external) Create(ctx context.Context, mg resource.Managed) error {
@@ -306,7 +312,10 @@ func (e *external) findFeed(ctx context.Context, cr *feedsv1alpha1.Feed) (*feeds
 }
 func findUpstream(upstream feeds.UpstreamSource, upstreams []feeds.UpstreamSource) bool {
 	for _, v := range upstreams {
-		if helpers.String(upstream.Name) == helpers.String(v.Name) && helpers.String(upstream.Location) == helpers.String(v.DisplayLocation) && helpers.String(upstream.Protocol) == helpers.String(v.Protocol) && helpers.String(upstream.UpstreamSourceType) == helpers.String(v.UpstreamSourceType) {
+		if helpers.String(upstream.Name) == helpers.String(v.Name) &&
+			helpers.String(upstream.Location) == helpers.String(v.DisplayLocation) &&
+			strings.EqualFold(helpers.String(upstream.Protocol), helpers.String(v.Protocol)) &&
+			strings.EqualFold(helpers.String(upstream.UpstreamSourceType), helpers.String(v.UpstreamSourceType)) {
 			return true
 		}
 	}
@@ -341,6 +350,9 @@ func (e *external) localFeedUpdate(ctx context.Context, cr *feedsv1alpha1.Feed, 
 	})
 	if err != nil {
 		return nil, err
+	}
+	if feed == nil {
+		return nil, fmt.Errorf("feed not found")
 	}
 
 	feed.Name = helpers.StringOrDefault(cr.Spec.Name, feed.Name)
