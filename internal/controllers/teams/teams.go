@@ -169,6 +169,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		check = true
 	}
 
+	cr.Status.Descriptor = teamDescriptor
+	cr.Status.Id = helpers.StringPtr(team.ID)
+	cr.SetConditions(rtv1.Available())
+	err = e.kube.Status().Update(ctx, cr)
+	if err != nil {
+		return reconciler.ExternalObservation{}, err
+	}
+
 	if len(groupDescriptors) != 0 && !check {
 		return reconciler.ExternalObservation{
 			ResourceExists:   true,
@@ -176,15 +184,10 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		}, nil
 	}
 
-	cr.Status.Descriptor = teamDescriptor
-	cr.Status.Id = helpers.StringPtr(team.ID)
-
-	cr.SetConditions(rtv1.Available())
-
 	return reconciler.ExternalObservation{
 		ResourceExists:   true,
 		ResourceUpToDate: true,
-	}, e.kube.Status().Update(ctx, cr)
+	}, nil
 }
 
 func (e *external) Update(ctx context.Context, mg resource.Managed) error {
@@ -209,6 +212,9 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	})
 	if err != nil && !azuredevops.IsNotFound(err) {
 		return err
+	}
+	if team == nil {
+		return errors.New("team not found")
 	}
 
 	groupDescriptors, err := resolvers.ResolveGroupListDescriptors(ctx, e.kube, cr.Spec.GroupRefs)
