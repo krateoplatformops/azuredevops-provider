@@ -34,8 +34,6 @@ func FindEndpointRef(ctx context.Context, kube client.Client, id string) (*rtv1.
 
 	for _, v := range list.Items {
 		sid := fmt.Sprintf("%v", helpers.String(v.Status.Id))
-		fmt.Println("id: ", id)
-		fmt.Println("sid: ", sid)
 		if strings.EqualFold(sid, id) {
 			return &rtv1.Reference{
 				Name:      v.ObjectMeta.GetName(),

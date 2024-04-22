@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"k8s.io/client-go/tools/record"
@@ -128,16 +127,6 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	if err != nil {
 		return reconciler.ExternalObservation{}, err
 	}
-
-	// print the endpoint in json with indent
-	fmt.Println("endpoint:")
-	b, _ := json.MarshalIndent(endpoint, "", "  ")
-	fmt.Println(string(b))
-
-	// print the observed endpoint in json with indent
-	fmt.Println("observed endpoint:")
-	b, _ = json.MarshalIndent(observed, "", "  ")
-	fmt.Println(string(b))
 
 	cr.Status.Id = observed.Id
 	cr.Status.Url = observed.Url

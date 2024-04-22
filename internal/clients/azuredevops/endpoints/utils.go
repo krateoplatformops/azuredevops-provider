@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -39,9 +38,6 @@ func Equal(a *ServiceEndpoint, b *ServiceEndpoint) bool {
 			}
 		}
 	}
-
-	fmt.Println("found:", found)
-	fmt.Println("len:", len(a.ServiceEndpointProjectReferences))
 
 	return found == len(a.ServiceEndpointProjectReferences)
 }
