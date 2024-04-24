@@ -8,15 +8,18 @@ import (
 type ResourceType string
 
 const (
-	GitRepository ResourceType = "repository"
-	Environment   ResourceType = "environment"
-	Queue         ResourceType = "queue"
-	TeamProject   ResourceType = "teamproject"
-	Endpoint      ResourceType = "endpoint"
+	GitRepository  ResourceType = "repository"
+	Environment    ResourceType = "environment"
+	Queue          ResourceType = "queue"
+	TeamProject    ResourceType = "teamproject"
+	Endpoint       ResourceType = "endpoint"
+	VariableGroups ResourceType = "variablegroup"
+	SecureFiles    ResourceType = "securefile"
 )
 
 type Resource struct {
 	// Type of the resource.
+	// +kubebuilder:validation:Enum=repository;environment;queue;teamproject;endpoint;variablegroup;securefile
 	Type *string `json:"type,omitempty"`
 
 	// ResourceRef - Reference to the resource to authorize.

@@ -248,6 +248,14 @@ spec:
                     type: object
                   type:
                     description: Type of the resource.
+                    enum:
+                    - repository
+                    - environment
+                    - queue
+                    - teamproject
+                    - endpoint
+                    - variablegroup
+                    - securefile
                     type: string
                 type: object
             type: object
