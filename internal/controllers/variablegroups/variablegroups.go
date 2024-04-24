@@ -317,8 +317,6 @@ func isSynced(cr variablegroupsv1alpha1.VariableGroups, observed *vgclient.Varia
 		if !observed.Variables[k].IsSecret &&
 			observed.Variables[k].Value != v.Value ||
 			observed.Variables[k].IsReadOnly != v.IsReadOnly {
-
-			fmt.Println("Resource is not synced", observed.Variables[k].Value, v.Value, observed.Variables[k].IsSecret, v.IsSecret, observed.Variables[k].IsReadOnly, v.IsReadOnly)
 			return false, nil
 		}
 	}
