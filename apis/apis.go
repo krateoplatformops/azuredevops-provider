@@ -18,6 +18,7 @@ import (
 	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 	repositorypermissions "github.com/krateoplatformops/azuredevops-provider/apis/repositorypermissions/v1alpha1"
 	runs "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
+	securefiles "github.com/krateoplatformops/azuredevops-provider/apis/securefiles/v1alpha1"
 	teams "github.com/krateoplatformops/azuredevops-provider/apis/teams/v1alpha1"
 	users "github.com/krateoplatformops/azuredevops-provider/apis/users/v1alpha1"
 )
@@ -42,6 +43,7 @@ func init() {
 		groups.SchemeBuilder.AddToScheme,
 		users.SchemeBuilder.AddToScheme,
 		checkconfigurations.SchemeBuilder.AddToScheme,
+		securefiles.SchemeBuilder.AddToScheme,
 	)
 }
 
