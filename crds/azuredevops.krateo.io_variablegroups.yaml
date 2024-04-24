@@ -76,7 +76,9 @@ spec:
                 description: 'Description: the description of the VariableGroup.'
                 type: string
               name:
-                description: 'Name: the name of the VariableGroup.'
+                description: 'Name: the name of the VariableGroup. Must be the same
+                  as the one in ''variableGroupProjectReferences'' due to the limitation
+                  of Azure DevOps REST API.'
                 type: string
               type:
                 description: 'Type: the type of the VariableGroup.'
@@ -84,7 +86,8 @@ spec:
               variableGroupProjectReferences:
                 description: 'VariableGroupProjectReferences: a variable group reference
                   is a shallow reference to variable group. Currently, variableGroups
-                  cannot be shared across projects. https://developercommunity.visualstudio.com/t/variablegroup-cannot-be-shared-via-rest-api/488577'
+                  cannot be shared across projects so must contain only one project.
+                  https://developercommunity.visualstudio.com/t/variablegroup-cannot-be-shared-via-rest-api/488577'
                 items:
                   properties:
                     description:
