@@ -8,11 +8,13 @@ import (
 type ResourceType string
 
 const (
-	GitRepository ResourceType = "repository"
-	Environment   ResourceType = "environment"
-	Queue         ResourceType = "queue"
-	TeamProject   ResourceType = "teamproject"
-	Endpoint      ResourceType = "endpoint"
+	GitRepository  ResourceType = "repository"
+	Environment    ResourceType = "environment"
+	Queue          ResourceType = "queue"
+	TeamProject    ResourceType = "teamproject"
+	Endpoint       ResourceType = "endpoint"
+	VariableGroups ResourceType = "variablegroup"
+	SecureFiles    ResourceType = "securefile"
 )
 
 type Resource struct {

@@ -77,7 +77,7 @@ type VariableGroupsStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:scope=Cluster,categories={krateo,azuredevops}
-//+kubebuilder:printcolumn:name="DESCRIPTOR",type="string",JSONPath=".status.descriptor"
+//+kubebuilder:printcolumn:name="ID",type="string",JSONPath=".status.id"
 //+kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 //+kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status",priority=10
 

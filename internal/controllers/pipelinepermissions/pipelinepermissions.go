@@ -251,6 +251,12 @@ func resolveResourceId(ctx context.Context, cli client.Client, ref *rtv1.Referen
 		end, err := resolvers.ResolveEndpoint(ctx, cli, ref)
 		ret := helpers.String(end.Status.Id)
 		return helpers.StringPtr(ret), err
+	case string(pipelinepermissionsv1alpha2.VariableGroups):
+		vg, err := resolvers.ResolveVariableGroups(ctx, cli, ref)
+		return helpers.StringPtr(vg.Status.Id), err
+	case string(pipelinepermissionsv1alpha2.SecureFiles):
+		sf, err := resolvers.ResolveSecureFiles(ctx, cli, ref)
+		return sf.Status.Id, err
 	}
 
 	return nil, fmt.Errorf("no resource referenced of type %s", ty)
