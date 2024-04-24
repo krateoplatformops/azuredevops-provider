@@ -20,6 +20,7 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/securefiles"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/teams"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/users"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/variablegroups"
 )
 
 // Setup creates all controllers with the supplied logger and adds them to
@@ -42,6 +43,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		groups.Setup,
 		users.Setup,
 		securefiles.Setup,
+		variablegroups.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err
