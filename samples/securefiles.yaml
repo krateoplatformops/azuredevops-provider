@@ -1,0 +1,15 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: SecureFiles
+metadata:
+  name: sf-test-config
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Delete
+  name: config.txt
+  projectRef: 
+    namespace: default
+    name: pipeline-proj
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

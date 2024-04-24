@@ -17,6 +17,7 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repository"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repositorypermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/run"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/securefiles"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/teams"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/users"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/variablegroups"
@@ -41,6 +42,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		teams.Setup,
 		groups.Setup,
 		users.Setup,
+		securefiles.Setup,
 		variablegroups.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
