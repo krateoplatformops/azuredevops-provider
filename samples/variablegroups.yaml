@@ -1,0 +1,26 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: VariableGroups
+metadata:
+  name: vg-test-1
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  deletionPolicy: Orphan
+  name: vg-test
+  description: "Variable group for testing"
+  variables:
+    var1:
+      isSecret: false
+      value: "value12"
+    var2:
+      isSecret: true
+      value: "value2"
+  variableGroupProjectReferences:
+    - name: vg-project-test-1
+      description: "Project 1"
+      projectRef:
+        name: pipeline-proj
+        namespace: default
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

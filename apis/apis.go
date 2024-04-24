@@ -20,6 +20,7 @@ import (
 	runs "github.com/krateoplatformops/azuredevops-provider/apis/runs/v1alpha1"
 	teams "github.com/krateoplatformops/azuredevops-provider/apis/teams/v1alpha1"
 	users "github.com/krateoplatformops/azuredevops-provider/apis/users/v1alpha1"
+	variablegroups "github.com/krateoplatformops/azuredevops-provider/apis/variablegroups/v1alpha1"
 )
 
 func init() {
@@ -42,6 +43,7 @@ func init() {
 		groups.SchemeBuilder.AddToScheme,
 		users.SchemeBuilder.AddToScheme,
 		checkconfigurations.SchemeBuilder.AddToScheme,
+		variablegroups.SchemeBuilder.AddToScheme,
 	)
 }
 
