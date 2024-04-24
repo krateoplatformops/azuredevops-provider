@@ -1,7 +1,7 @@
 apiVersion: azuredevops.krateo.io/v1alpha2
 kind: PipelinePermission
 metadata:
-  name: pipelinepermission-v2
+  name: pipelinepermission-v2-var
   annotations:
     krateo.io/connector-verbose: "true"
 spec:
@@ -14,11 +14,15 @@ spec:
     - pipelineRef:
         name: pipeline-sample
         namespace: default
-      authorized: true
+      authorized: false
+    - pipelineRef:
+        name: pipeline-sample-2
+        namespace: default
+      authorized: false
   resource:
-    type: repository
+    type: variablegroup # other possible value are: repository;environment;queue;teamproject;endpoint;variablegroup;securefile
     resourceRef:
-      name: gitrepository-sample
+      name: vg-test-1
       namespace: default
   connectorConfigRef:
     namespace: default
