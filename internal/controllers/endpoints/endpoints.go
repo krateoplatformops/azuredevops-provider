@@ -223,14 +223,17 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 	if err != nil {
 		return err
 	}
-	res, err := endpoints.Update(ctx, e.azCli, endpoints.UpdateOptions{
-		EndpointId:   helpers.String(cr.Status.Id),
-		Organization: ref.Organization,
-		Endpoint:     endpoint,
-	})
-	if err != nil {
-		return err
+	if !endpoints.EqualResourceData(endpoint, observed) {
+		_, err := endpoints.Update(ctx, e.azCli, endpoints.UpdateOptions{
+			EndpointId:   helpers.String(cr.Status.Id),
+			Organization: ref.Organization,
+			Endpoint:     endpoint,
+		})
+		if err != nil {
+			return err
+		}
 	}
+
 	endpointReferences := getRefDiff(refBackup, observed.ServiceEndpointProjectReferences)
 	if len(endpointReferences) > 0 {
 		_, err = endpoints.ShareServiceEndpoint(ctx, e.azCli, endpoints.ShareOptions{
@@ -243,8 +246,8 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		}
 	}
 
-	cr.Status.Id = res.Id
-	cr.Status.Url = res.Url
+	cr.Status.Id = observed.Id
+	cr.Status.Url = observed.Url
 
 	return e.kube.Status().Update(ctx, cr)
 }

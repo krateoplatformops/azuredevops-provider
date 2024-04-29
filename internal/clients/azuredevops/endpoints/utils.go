@@ -7,7 +7,7 @@ import (
 	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 )
 
-func Equal(a *ServiceEndpoint, b *ServiceEndpoint) bool {
+func EqualResourceData(a *ServiceEndpoint, b *ServiceEndpoint) bool {
 	if helpers.String(a.Id) != helpers.String(b.Id) {
 		return false
 	}
@@ -30,6 +30,11 @@ func Equal(a *ServiceEndpoint, b *ServiceEndpoint) bool {
 	if !reflect.DeepEqual(a.Data, b.Data) {
 		return false
 	}
+
+	return true
+}
+
+func EqualServiceEndpointProjectReferences(a *ServiceEndpoint, b *ServiceEndpoint) bool {
 	found := 0
 	for _, ref := range a.ServiceEndpointProjectReferences {
 		for _, refb := range b.ServiceEndpointProjectReferences {
@@ -40,4 +45,16 @@ func Equal(a *ServiceEndpoint, b *ServiceEndpoint) bool {
 	}
 
 	return found == len(a.ServiceEndpointProjectReferences)
+}
+
+func Equal(a *ServiceEndpoint, b *ServiceEndpoint) bool {
+	if !EqualResourceData(a, b) {
+		return false
+	}
+
+	if !EqualServiceEndpointProjectReferences(a, b) {
+		return false
+	}
+
+	return true
 }
