@@ -2,7 +2,6 @@ package groups
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 	"reflect"
@@ -164,7 +163,7 @@ func FindGroupByName(ctx context.Context, cli *azuredevops.Client, opts FindGrou
 		}
 		opts.ListOptions.ContinuationToken = groups.ContinuationToken
 	}
-	return nil, fmt.Errorf("group not found with name: %s", opts.GroupName)
+	return nil, nil
 }
 
 // Create a new Azure DevOps group.
