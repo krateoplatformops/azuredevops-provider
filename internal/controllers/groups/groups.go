@@ -240,34 +240,8 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		return errors.Errorf("group %s %s not found", *cr.Spec.GroupsName, *cr.Spec.OriginID)
 	}
 
-	var projectDescriptor *descriptors.DescriptorResponse
-	if projectId != nil {
-		projectDescriptor, err = descriptors.Get(ctx, e.azCli, descriptors.GetOptions{
-			Organization: helpers.String(organization),
-			ResourceID:   helpers.String(projectId),
-		})
-		if err != nil {
-			return err
-		}
-	}
-	var scopeDescriptor *string
-	if projectDescriptor != nil {
-		scopeDescriptor = projectDescriptor.Value
-	}
-
 	// group and team descriptors are managed by as the same object in azure devops APIs
 	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
-	if err != nil {
-		return err
-	}
-
-	group, err = groups.Create(ctx, e.azCli, groups.CreateOptions[groups.GroupDescription]{
-		Organization:    helpers.String(organization),
-		ScopeDescriptor: scopeDescriptor,
-		GroupData: groups.GroupDescription{
-			DisplayName: helpers.String(cr.Spec.GroupsName),
-			Description: cr.Spec.Description,
-		}})
 	if err != nil {
 		return err
 	}
