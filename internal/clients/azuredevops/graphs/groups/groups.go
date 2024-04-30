@@ -2,6 +2,8 @@ package groups
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"path"
 	"reflect"
@@ -129,7 +131,7 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*Grou
 	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
 		Verbose:         cli.Verbose(),
 		AuthMethod:      cli.AuthMethod(),
-		ResponseHandler: httplib.FromJSON(res),
+		ResponseHandler: FromJSON(res),
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(&azuredevops.APIError{}, http.StatusOK),
 		},
@@ -243,4 +245,22 @@ func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) er
 	})
 
 	return err
+}
+
+// FromJSON decodes a response as a JSON object.
+func FromJSON(v *GroupListResponse) httplib.HandleResponseFunc {
+	return func(res *http.Response) error {
+		data, err := io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		header := res.Header.Get("X-Ms-Continuationtoken")
+		if header != "" {
+			v.ContinuationToken = helpers.StringPtr(header)
+		}
+		if err = json.Unmarshal(data, v); err != nil {
+			return err
+		}
+		return nil
+	}
 }
