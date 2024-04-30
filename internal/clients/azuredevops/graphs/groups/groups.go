@@ -143,7 +143,7 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*Grou
 type FindGroupByNameOptions struct {
 	ListOptions
 	GroupName string
-	ProjectID string
+	ProjectID *string
 }
 
 func FindGroupByName(ctx context.Context, cli *azuredevops.Client, opts FindGroupByNameOptions) (*GroupResponse, error) {
@@ -156,7 +156,9 @@ func FindGroupByName(ctx context.Context, cli *azuredevops.Client, opts FindGrou
 		}
 		for _, group := range groups.Value {
 			domain := path.Base(group.Domain)
-			if strings.EqualFold(group.DisplayName, opts.GroupName) && strings.EqualFold(domain, opts.ProjectID) {
+			if strings.EqualFold(group.DisplayName, opts.GroupName) &&
+				opts.ProjectID == nil || //if projectID is not provided, return the first group with the name - organization is from the api endpoint
+				strings.EqualFold(domain, helpers.String(opts.ProjectID)) {
 				return &group, nil
 			}
 		}
