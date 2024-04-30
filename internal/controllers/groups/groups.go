@@ -125,7 +125,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 				Organization: helpers.String(organization),
 			},
 			GroupName: helpers.String(cr.Spec.GroupsName),
-			ProjectID: helpers.String(projectId),
+			ProjectID: projectId,
 		})
 		if err != nil {
 			return reconciler.ExternalObservation{}, err
@@ -221,7 +221,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 			ListOptions: groups.ListOptions{
 				Organization: helpers.String(organization),
 			},
-			ProjectID: helpers.String(projectId),
+			ProjectID: projectId,
 			GroupName: helpers.String(cr.Spec.GroupsName),
 		})
 		if err != nil {
