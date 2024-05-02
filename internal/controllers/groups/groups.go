@@ -257,6 +257,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		}
 	}
 
+	cr.SetConditions(rtv1.ReconcileSuccess())
 	cr.Status.Descriptor = helpers.StringPtr(group.Descriptor)
 
 	return e.kube.Status().Update(ctx, cr)
@@ -366,5 +367,5 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Deleting())
 
-	return nil
+	return e.kube.Status().Update(ctx, cr)
 }
