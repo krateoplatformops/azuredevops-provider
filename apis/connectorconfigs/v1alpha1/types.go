@@ -14,12 +14,29 @@ type Reference struct {
 	Namespace string `json:"namespace"`
 }
 
+type ApiUrl struct {
+	// Default: the baseUrl for the REST API provider.
+	Defautl string `json:"default,omitempty"`
+	// Feeds: the baseUrl for the REST API provider.
+	Feeds string `json:"feeds,omitempty"`
+	// Vssps: the baseUrl for the REST API provider.
+	Vssps string `json:"vssps,omitempty"`
+}
+
 type ConnectorConfigSpec struct {
+	// DEPRECATED: This field is deprecated and will be removed in a future version. Use the ApiUrls field instead.
 	// ApiUrl: the baseUrl for the REST API provider.
 	// +immutable
+	// +optional
 	ApiUrl string `json:"apiUrl,omitempty"`
 
+	// ApiUrls: the baseUrl for the REST API provider.
+	// +immutable
+	// +optional
+	ApiUrls *ApiUrl `json:"apiUrls,omitempty"`
+
 	// Credentials required to authenticate ReST API server.
+	// +required
 	Credentials *rtv1.CredentialSelectors `json:"credentials"`
 }
 

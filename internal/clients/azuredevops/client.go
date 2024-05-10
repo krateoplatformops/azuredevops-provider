@@ -25,6 +25,7 @@ const (
 type ClientOptions struct {
 	Token   string
 	Verbose bool
+	UriMap  *map[URIKey]string
 }
 
 type Client struct {
@@ -35,14 +36,17 @@ type Client struct {
 }
 
 func NewClient(opts ClientOptions) *Client {
-	return &Client{
-		httpClient: httplib.NewClient(),
-		uriMap: map[URIKey]string{
+	if opts.UriMap == nil {
+		opts.UriMap = &map[URIKey]string{
 			Default: "https://dev.azure.com",
 			Feeds:   "https://feeds.dev.azure.com",
 			Vssps:   "https://vssps.dev.azure.com",
-		},
-		verbose: opts.Verbose,
+		}
+	}
+	return &Client{
+		httpClient: httplib.NewClient(),
+		uriMap:     *opts.UriMap,
+		verbose:    opts.Verbose,
 		authMethod: &httplib.BasicAuth{
 			Username: UserAgent,
 			Password: opts.Token,

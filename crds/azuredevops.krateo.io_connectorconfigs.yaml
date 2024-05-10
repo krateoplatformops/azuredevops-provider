@@ -38,8 +38,23 @@ spec:
           spec:
             properties:
               apiUrl:
-                description: 'ApiUrl: the baseUrl for the REST API provider.'
+                description: 'DEPRECATED: This field is deprecated and will be removed
+                  in a future version. Use the ApiUrls field instead. ApiUrl: the
+                  baseUrl for the REST API provider.'
                 type: string
+              apiUrls:
+                description: 'ApiUrls: the baseUrl for the REST API provider.'
+                properties:
+                  default:
+                    description: 'Default: the baseUrl for the REST API provider.'
+                    type: string
+                  feeds:
+                    description: 'Feeds: the baseUrl for the REST API provider.'
+                    type: string
+                  vssps:
+                    description: 'Vssps: the baseUrl for the REST API provider.'
+                    type: string
+                type: object
               credentials:
                 description: Credentials required to authenticate ReST API server.
                 properties:
