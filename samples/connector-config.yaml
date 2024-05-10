@@ -3,7 +3,11 @@ kind: ConnectorConfig
 metadata:
   name: connectorconfig-sample
 spec:
-  apiUrl: https://dev.azure.com
+  apiUrl: https://dev.azure.com # DEPRECATED - use apiUrls instead
+  apiUrls: 
+    default: https://dev.azure.com
+    feeds: https://feeds.dev.azure.com
+    vssps: https://vssps.dev.azure.com
   credentials:
     secretRef:
       namespace: default

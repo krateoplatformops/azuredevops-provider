@@ -28,6 +28,19 @@ func ResolveConnectorConfig(ctx context.Context, kube client.Client, ref *rtv1.R
 		return opts, errors.Wrapf(err, "cannot get %s connector config", ref.Name)
 	}
 
+	apiUrl := cfg.Spec.ApiUrl
+	if apiUrl == "" {
+		return opts, fmt.Errorf("no apiUrl specified")
+	}
+
+	if cfg.Spec.ApiUrls != nil {
+		opts.UriMap = &map[azuredevops.URIKey]string{
+			azuredevops.Default: cfg.Spec.ApiUrls.Defautl,
+			azuredevops.Feeds:   cfg.Spec.ApiUrls.Feeds,
+			azuredevops.Vssps:   cfg.Spec.ApiUrls.Vssps,
+		}
+	}
+
 	csr := cfg.Spec.Credentials.SecretRef
 	if csr == nil {
 		return opts, fmt.Errorf("no credentials secret referenced")
