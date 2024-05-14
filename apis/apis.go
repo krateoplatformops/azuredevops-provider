@@ -14,6 +14,7 @@ import (
 	pipelinepermissionsv1alpha2 "github.com/krateoplatformops/azuredevops-provider/apis/pipelinepermissions/v1alpha2"
 	pipelines "github.com/krateoplatformops/azuredevops-provider/apis/pipelines/v1alpha1"
 	projects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
+	pullrequests "github.com/krateoplatformops/azuredevops-provider/apis/pullrequests/v1alpha1"
 	queues "github.com/krateoplatformops/azuredevops-provider/apis/queues/v1alpha1"
 	repositories "github.com/krateoplatformops/azuredevops-provider/apis/repositories/v1alpha1"
 	repositorypermissions "github.com/krateoplatformops/azuredevops-provider/apis/repositorypermissions/v1alpha1"
@@ -46,6 +47,7 @@ func init() {
 		checkconfigurations.SchemeBuilder.AddToScheme,
 		securefiles.SchemeBuilder.AddToScheme,
 		variablegroups.SchemeBuilder.AddToScheme,
+		pullrequests.SchemeBuilder.AddToScheme,
 	)
 }
 
