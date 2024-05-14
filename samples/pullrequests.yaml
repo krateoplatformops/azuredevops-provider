@@ -1,0 +1,22 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: PullRequest
+metadata:
+  name: pr-2
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  projectRef:
+    name: pipeline-proj
+    namespace: default
+  repositoryRef:
+    name: gitrepository-sample
+    namespace: default
+  pullRequest:
+    sourceRefName: refs/heads/prova
+    targetRefName: refs/heads/main
+    title: A new feature-1
+    description: This is a new feature
+    status: abandoned
+  connectorConfigRef:
+    namespace: default
+    name: connectorconfig-sample

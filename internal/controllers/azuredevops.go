@@ -13,6 +13,7 @@ import (
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipeline"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pipelinepermissions"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/project"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/pullrequests"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/queues"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repository"
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers/repositorypermissions"
@@ -44,6 +45,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		users.Setup,
 		securefiles.Setup,
 		variablegroups.Setup,
+		pullrequests.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err
