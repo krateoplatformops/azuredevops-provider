@@ -60,13 +60,33 @@ type GetOptions struct {
 	CheckID string
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.CheckConfigurations
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Get Check configuration by Id
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/checks/configurations/{id}?api-version=7.0-preview.1
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*CheckConfiguration, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines/checks/configurations", opts.CheckID),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -117,14 +137,19 @@ type ListResponse struct {
 // List check configuration by project
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/checks/configurations?api-version=7.0-preview.1
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListResponse, error) {
-	queryparams := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+
 	if opts.ResourceId == nil {
 		return nil, errors.New("ResourceId parameter is required")
 	}
 	if opts.ResourceType == nil {
 		return nil, errors.New("ResourceType parameter is required")
 	}
-	queryparams = append(queryparams, "resourceId", helpers.String(opts.ResourceId))
+	var queryparams []string
+	queryparams = append(apiVersionParams, "resourceId", helpers.String(opts.ResourceId))
 	queryparams = append(queryparams, "resourceType", helpers.String(opts.ResourceType))
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
@@ -255,10 +280,15 @@ type CreateOptions[T CheckOptions] struct {
 // Add a check configuration
 // POST https://dev.azure.com/{organization}/{project}/_apis/pipelines/checks/configurations?api-version=7.0-preview.1
 func Create[T CheckOptions](ctx context.Context, cli *azuredevops.Client, opts CreateOptions[T]) (*CheckConfiguration, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines/checks/configurations"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -293,10 +323,14 @@ type DeleteOptions struct {
 // Delete check configuration by id
 // DELETE https://dev.azure.com/{organization}/{project}/_apis/pipelines/checks/configurations/{id}?api-version=7.0-preview.1
 func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines/checks/configurations", opts.CheckId),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return err

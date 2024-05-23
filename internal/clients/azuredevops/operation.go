@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"strings"
 
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -49,13 +51,32 @@ type GetOperationOpts struct {
 	OperationId  string
 }
 
+func getOperationsAPIVersion(cli *Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Operations
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Gets an operation from the operationId using the given pluginId.
 // https://learn.microsoft.com/en-us/rest/api/azure/devops/operations/operations/get?view=azure-devops-rest-7.0#operation
 func (c *Client) GetOperation(ctx context.Context, opts GetOperationOpts) (*Operation, error) {
+	apiVersionParams, isNone := getOperationsAPIVersion(c)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{ApiVersionKey, ApiVersionVal}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: c.BaseURL(Default),
 		Path:    path.Join(opts.Organization, "_apis/operations", opts.OperationId),
-		Params:  []string{ApiVersionKey, ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err

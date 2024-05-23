@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"path"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -129,15 +131,33 @@ type ListProjectsResponseValue struct {
 	Count int            `json:"count"`
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.PullRequests
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Retrieve all pull requests matching a specified criteria.
 // GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/pullrequests?api-version=7.0
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListProjectsResponseValue, error) {
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	uri, err := httplib.NewURLBuilder(
 		httplib.URLBuilderOptions{
 			BaseURL: cli.BaseURL(azuredevops.Default),
 			Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories", opts.RepositoryId, "pullrequests"),
-			Params:  params,
+			Params:  apiVersionParams,
 		}).Build()
 	if err != nil {
 		return nil, err
@@ -185,10 +205,14 @@ type GetOptions struct {
 // Retrieve a pull request.
 // GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/pullrequests/{pullRequestId}?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*PullRequest, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories", opts.RepositoryId, "pullrequests", opts.PullRequestId),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -228,10 +252,14 @@ type CreateOptions struct {
 // Create a pull request.
 // POST https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/pullrequests?api-version=7.0
 func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*PullRequest, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories", opts.RepositoryId, "pullrequests"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -268,10 +296,14 @@ type UpdateOptions struct {
 // Update a pull request
 // PATCH https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/pullrequests/{pullRequestId}?api-version=7.0
 func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*PullRequest, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.ProjectId, "_apis/git/repositories", opts.RepositoryId, "pullrequests", opts.PullRequestId),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err

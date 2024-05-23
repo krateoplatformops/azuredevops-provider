@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -238,12 +239,31 @@ type AddOptions struct {
 	//AuthorizePipelines *bool
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Queues
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // POST https://dev.azure.com/{organization}/{project}/_apis/distributedtask/queues?api-version=7.0
 func Add(ctx context.Context, cli *azuredevops.Client, opts AddOptions) (*TaskAgentQueue, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/distributedtask/queues/"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -291,6 +311,10 @@ type FindResult struct {
 
 // GET https://dev.azure.com/{organization}/{project}/_apis/distributedtask/queues?queueNames={queueNames}&api-version=7.0
 func FindByNames(ctx context.Context, cli *azuredevops.Client, opts FindByNamesOptions) ([]TaskAgentQueue, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	var fullPath string
 	if len(opts.Project) == 0 {
 		fullPath = path.Join(opts.Organization, "_apis/distributedtask/queues")
@@ -298,7 +322,8 @@ func FindByNames(ctx context.Context, cli *azuredevops.Client, opts FindByNamesO
 		fullPath = path.Join(opts.Organization, opts.Project, "_apis/distributedtask/queues")
 	}
 
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	var params []string
+	params = append(params, apiVersionParams...)
 	if len(opts.QueueNames) > 0 {
 		params = append(params, "queueNames", strings.Join(opts.QueueNames, ","))
 	}
@@ -375,11 +400,15 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*TaskAg
 	} else {
 		fullPath = path.Join(opts.Organization, opts.Project, "_apis/distributedtask/queues/", fmt.Sprintf("%d", opts.QueueId))
 	}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -428,10 +457,15 @@ func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) er
 	} else {
 		fullPath = path.Join(opts.Organization, opts.Project, "_apis/distributedtask/queues/", fmt.Sprintf("%d", opts.QueueId))
 	}
+
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return err

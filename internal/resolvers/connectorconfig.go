@@ -41,6 +41,8 @@ func ResolveConnectorConfig(ctx context.Context, kube client.Client, ref *rtv1.R
 		}
 	}
 
+	opts.ApiVersionConfig = cfg.Spec.APIVersionConfig
+
 	csr := cfg.Spec.Credentials.SecretRef
 	if csr == nil {
 		return opts, fmt.Errorf("no credentials secret referenced")

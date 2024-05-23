@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	connectorconfigsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/connectorconfigs/v1alpha1"
+
 	"github.com/lucasepe/httplib"
 )
 
@@ -23,16 +25,18 @@ const (
 )
 
 type ClientOptions struct {
-	Token   string
-	Verbose bool
-	UriMap  *map[URIKey]string
+	Token            string
+	Verbose          bool
+	UriMap           *map[URIKey]string
+	ApiVersionConfig *connectorconfigsv1alpha1.APIVersionConfig
 }
 
 type Client struct {
-	httpClient *http.Client
-	uriMap     map[URIKey]string
-	verbose    bool
-	authMethod httplib.AuthMethod
+	httpClient       *http.Client
+	uriMap           map[URIKey]string
+	verbose          bool
+	authMethod       httplib.AuthMethod
+	ApiVersionConfig *connectorconfigsv1alpha1.APIVersionConfig
 }
 
 func NewClient(opts ClientOptions) *Client {
@@ -51,6 +55,7 @@ func NewClient(opts ClientOptions) *Client {
 			Username: UserAgent,
 			Password: opts.Token,
 		},
+		ApiVersionConfig: opts.ApiVersionConfig,
 	}
 }
 
