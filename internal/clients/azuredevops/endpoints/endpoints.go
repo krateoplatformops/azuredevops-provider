@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -95,9 +96,30 @@ type FindResult struct {
 	Values []ServiceEndpoint `json:"value,omitempty"`
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Endpoints
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // GET https://dev.azure.com/{organization}/{project}/_apis/serviceendpoint/endpoints?endpointNames={endpointNames}&type={type}&authSchemes={authSchemes}&owner={owner}&includeFailed={includeFailed}&includeDetails={includeDetails}&api-version=7.0
 func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) ([]ServiceEndpoint, error) {
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
+	var params []string
+	params = append(params, apiVersionParams...)
 	if len(opts.EndpointNames) > 0 {
 		params = append(params, "endpointNames", strings.Join(opts.EndpointNames, ","))
 	}
@@ -167,7 +189,13 @@ func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) ([]Ser
 
 // GET https://dev.azure.com/{organization}/{project}/_apis/serviceendpoint/endpoints?type={type}&authSchemes={authSchemes}&endpointIds={endpointIds}&owner={owner}&includeFailed={includeFailed}&includeDetails={includeDetails}&api-version=7.0
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) ([]ServiceEndpoint, error) {
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
+	var params []string
+	params = append(params, apiVersionParams...)
 	if len(opts.EndpointIds) > 0 {
 		params = append(params, "endpointIds", strings.Join(opts.EndpointIds, ","))
 	}
@@ -263,10 +291,15 @@ type CreateOptions struct {
 
 // POST https://dev.azure.com/{organization}/_apis/serviceendpoint/endpoints?api-version=7.0
 func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*ServiceEndpoint, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, "_apis/serviceendpoint/endpoints"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -309,11 +342,17 @@ type DeleteOptions struct {
 
 // DELETE https://dev.azure.com/{organization}/_apis/serviceendpoint/endpoints/{endpointId}?projectIds={projectIds}&deep={deep}&api-version=7.0
 func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
+
 	if len(opts.ProjectIds) == 0 {
 		return fmt.Errorf("ProjectIds slice cannot be emtpy")
 	}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	var params []string
+	params = append(params, apiVersionParams...)
 	params = append(params, "projectIds", strings.Join(opts.ProjectIds, ","))
 
 	if opts.Deep != nil {
@@ -355,10 +394,15 @@ type GetOptions struct {
 
 // GET https://dev.azure.com/{organization}/{project}/_apis/serviceendpoint/endpoints/{endpointId}?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*ServiceEndpoint, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/serviceendpoint/endpoints", opts.EndpointId),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -63,15 +64,33 @@ type GetOptions struct {
 	Project         string
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.VariableGroups
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Get a variable group.
 // GET https://dev.azure.com/{organization}/{project}/_apis/distributedtask/variablegroups/{groupId}?api-version=7.1-preview.2
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*VariableGroupResponse, error) {
 	fullPath := path.Join(opts.Organization, opts.Project, "_apis/distributedtask/variablegroups", fmt.Sprintf("%d", opts.VariableGroupId))
-
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -118,11 +137,15 @@ type CreateOptions struct {
 // Add a variable group.
 // POST https://dev.azure.com/{organization}/_apis/distributedtask/variablegroups?api-version=7.0
 func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*VariableGroupResponse, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	fullPath := path.Join(opts.Organization, opts.Project, "_apis/distributedtask/variablegroups")
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -163,12 +186,17 @@ type ListReturn struct {
 // Get variable groups.
 // GET https://dev.azure.com/{organization}/{project}/_apis/distributedtask/variablegroups?api-version=7.0
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListReturn, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	fullPath := path.Join(opts.Organization, opts.Project, "_apis/distributedtask/variablegroups")
 
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -235,11 +263,15 @@ type DeleteOptions struct {
 // Delete a variable group
 // DELETE https://dev.azure.com/{organization}/_apis/distributedtask/variablegroups/{groupId}?projectIds={projectIds}&api-version=7.0
 func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	fullPath := path.Join(opts.Organization, "_apis/distributedtask/variablegroups", fmt.Sprintf("%d", opts.VariableGroupId))
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 	if opts.ProjectID == "" {
 		return fmt.Errorf("project ID is required")
@@ -279,12 +311,16 @@ type UpdateOptions struct {
 // Update a variable group.
 // PUT https://dev.azure.com/{organization}/_apis/distributedtask/variablegroups/{groupId}?api-version=7.1-preview.2
 func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*VariableGroupResponse, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	fullPath := path.Join(opts.Organization, opts.Project, "_apis/distributedtask/variablegroups", fmt.Sprintf("%d", opts.VariableGroupId))
 
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()

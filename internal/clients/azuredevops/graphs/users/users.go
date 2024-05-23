@@ -30,13 +30,32 @@ type UserResource struct {
 	Descriptor    string      `json:"descriptor"`
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Users
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Get retrieves information about a user.
 // GET https://vssps.dev.azure.com/{organization}/_apis/graph/users/{userDescriptor}?api-version=7.0-preview.1
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*UserResource, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/users", opts.UserDescriptor),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -82,7 +101,14 @@ type ListResponse struct {
 
 // GET https://vssps.dev.azure.com/{organization}/_apis/graph/users?api-version=7.0-preview.1
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListResponse, error) {
-	queryparams := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+
+	var queryparams []string
+	queryparams = append(queryparams, apiVersionParams...)
 	if opts.ContinuationToken != nil {
 		queryparams = append(queryparams, "continuationToken", helpers.String(opts.ContinuationToken))
 	}
@@ -170,15 +196,24 @@ type CreateOptions[T Identifiers] struct {
 // Options for the Create User function
 // POST https://vssps.dev.azure.com/{organization}/_apis/graph/users?api-version=7.0-preview.1
 func Create[T Identifiers](ctx context.Context, cli *azuredevops.Client, opts CreateOptions[T]) (*UserResource, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+	var queryParams []string
+	queryParams = append(queryParams, apiVersionParams...)
+
 	// Contains the list of group descriptors to add the user to separeted by comma
 	var groupsString string
 	for _, group := range opts.GroupDescriptors {
 		groupsString += group + ","
 	}
+	queryParams = append(queryParams, "groupDescriptors", groupsString)
+
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/users"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1", "groupDescriptors", groupsString},
+		Params:  queryParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -220,10 +255,14 @@ type DeleteOptions struct {
 
 // DELETE https://vssps.dev.azure.com/{organization}/_apis/graph/users/{userDescriptor}?api-version=7.0-preview.1
 func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/users", opts.UserDescriptor),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return err

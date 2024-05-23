@@ -77,13 +77,32 @@ type CreateOptions struct {
 	Pipeline     Pipeline
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Pipelines
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Create creates a pipeline.
 // POST https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.0
 func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*Pipeline, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -123,10 +142,15 @@ type GetOptions struct {
 // Get gets a pipeline, optionally at the specified version
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Pipeline, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Default),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/pipelines", opts.PipelineId),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 	if opts.PipelineVersion != nil {
 		ubo.Params = append(ubo.Params, "pipelineVersion", helpers.String(opts.PipelineVersion))
@@ -184,7 +208,13 @@ type ListPipelinesResponseValue struct {
 // List get a list of pipelines.
 // GET https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.0
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*ListPipelinesResponseValue, error) {
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
+	var params []string
+	params = append(params, apiVersionParams...)
 	if opts.OrderBy != nil {
 		params = append(params, "orderBy", string(*opts.OrderBy))
 	}

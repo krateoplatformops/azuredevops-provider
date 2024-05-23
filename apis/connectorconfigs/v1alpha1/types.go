@@ -14,6 +14,57 @@ type Reference struct {
 	Namespace string `json:"namespace"`
 }
 
+type APIVersionConfig struct {
+	// +optional
+	CheckConfigurations *string `json:"checkconfiguration,omitempty"`
+	// +optional
+	Endpoints *string `json:"endpoints,omitempty"`
+	// +optional
+	Environments *string `json:"environments,omitempty"`
+	// +optional
+	Feeds *string `json:"feeds,omitempty"`
+	// +optional
+	FeedPermissions *string `json:"feedpermissions,omitempty"`
+	// +optional
+	Groups *string `json:"groups,omitempty"`
+	// +optional
+	Pipelines *string `json:"pipelines,omitempty"`
+	// +optional
+	PipelinePermissions *string `json:"pipelinepermissions,omitempty"`
+	// +optional
+	Projects *string `json:"projects,omitempty"`
+	// +optional
+	PullRequests *string `json:"pullrequests,omitempty"`
+	// +optional
+	Queues *string `json:"queues,omitempty"`
+	// +optional
+	Repositories *string `json:"repositories,omitempty"`
+	// +optional
+	RepositoryPermissions *string `json:"repositorypermissions,omitempty"`
+	// +optional
+	Runs *string `json:"runs,omitempty"`
+	// +optional
+	SecureFiles *string `json:"securefiles,omitempty"`
+	// +optional
+	Teams *string `json:"teams,omitempty"`
+	// +optional
+	Users *string `json:"users,omitempty"`
+	// +optional
+	VariableGroups *string `json:"variablegroups,omitempty"`
+	// +optional
+	Descriptors *string `json:"descriptors,omitempty"`
+	// +optional
+	Memberships *string `json:"memberships,omitempty"`
+	// +optional
+	Identities *string `json:"identities,omitempty"`
+	// +optional
+	Pools *string `json:"pools,omitempty"`
+	// +optional
+	Definitions *string `json:"definitions,omitempty"`
+	// +optional
+	Operations *string `json:"operations,omitempty"`
+}
+
 type ApiUrl struct {
 	// Default: the baseUrl for the REST API provider.
 	Defautl string `json:"default,omitempty"`
@@ -38,6 +89,10 @@ type ConnectorConfigSpec struct {
 	// Credentials required to authenticate ReST API server.
 	// +required
 	Credentials *rtv1.CredentialSelectors `json:"credentials"`
+
+	// APIVersionConfig: the API version configuration.
+	// +optional
+	APIVersionConfig *APIVersionConfig `json:"apiVersionConfig,omitempty"`
 }
 
 //+kubebuilder:object:root=true

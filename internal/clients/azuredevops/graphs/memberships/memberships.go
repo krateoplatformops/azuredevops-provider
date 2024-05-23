@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -21,11 +23,30 @@ type GetOptions struct {
 	SubjectDescriptor string
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Memberships
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*MembershipStateResponse, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/membershipstates", opts.SubjectDescriptor),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -60,10 +81,14 @@ type CheckMembershipOptions struct {
 // CheckMembership checks if the user is a member of the group.
 // GET https://vssps.dev.azure.com/{organization}/_apis/graph/memberships/{subjectDescriptor}/{containerDescriptor}?api-version=7.0-preview.1
 func CheckMembership(ctx context.Context, cli *azuredevops.Client, opts CheckMembershipOptions) error {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/memberships", opts.SubjectDescriptor, opts.ContainerDescriptor),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -89,10 +114,14 @@ func CheckMembership(ctx context.Context, cli *azuredevops.Client, opts CheckMem
 // Create a new membership between a container and subject.
 // PUT https://vssps.dev.azure.com/{organization}/_apis/graph/memberships/{subjectDescriptor}/{containerDescriptor}?api-version=7.0-preview.1
 func Create(ctx context.Context, cli *azuredevops.Client, opts CheckMembershipOptions) error {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/memberships", opts.SubjectDescriptor, opts.ContainerDescriptor),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()

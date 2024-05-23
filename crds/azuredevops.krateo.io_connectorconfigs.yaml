@@ -55,6 +55,50 @@ spec:
                     description: 'Vssps: the baseUrl for the REST API provider.'
                     type: string
                 type: object
+              apiVersionConfig:
+                description: 'APIVersionConfig: the API version configuration.'
+                properties:
+                  checkconfiguration:
+                    type: string
+                  descriptors:
+                    type: string
+                  endpoints:
+                    type: string
+                  environments:
+                    type: string
+                  feedpermissions:
+                    type: string
+                  feeds:
+                    type: string
+                  groups:
+                    type: string
+                  memberships:
+                    type: string
+                  pipelinepermissions:
+                    type: string
+                  pipelines:
+                    type: string
+                  projects:
+                    type: string
+                  pullrequests:
+                    type: string
+                  queues:
+                    type: string
+                  repositories:
+                    type: string
+                  repositorypermissions:
+                    type: string
+                  runs:
+                    type: string
+                  securefiles:
+                    type: string
+                  teams:
+                    type: string
+                  users:
+                    type: string
+                  variablegroups:
+                    type: string
+                type: object
               credentials:
                 description: Credentials required to authenticate ReST API server.
                 properties:

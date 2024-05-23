@@ -68,14 +68,34 @@ type CreateOptions[T GroupData] struct {
 	GroupDescriptors []string `json:"groupDescriptors"`
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Groups
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Get a group by its descriptor.
 // The group will be returned even if it has been deleted from the account or has had all its memberships deleted.
 // https://vssps.dev.azure.com/{organization}/_apis/graph/groups/{groupDescriptor}?api-version=7.0-preview.1
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*GroupResponse, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/groups", opts.GroupDescriptor),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -107,7 +127,13 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*GroupR
 // Get a list of all groups in the current scope (usually organization or account).
 // https://vssps.dev.azure.com/{organization}/_apis/graph/groups?api-version=7.0-preview.1
 func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*GroupListResponse, error) {
-	queryparams := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+
+	var queryparams []string
+	queryparams = append(queryparams, apiVersionParams...)
 	if opts.ContinuationToken != nil {
 		queryparams = append(queryparams, "continuationToken", helpers.String(opts.ContinuationToken))
 	}
@@ -173,7 +199,12 @@ func FindGroupByName(ctx context.Context, cli *azuredevops.Client, opts FindGrou
 // Create a new Azure DevOps group.
 // POST https://vssps.dev.azure.com/{organization}/_apis/graph/groups?scopeDescriptor={scopeDescriptor}&groupDescriptors={groupDescriptors}&api-version=7.0-preview.1
 func Create[T GroupData](ctx context.Context, cli *azuredevops.Client, opts CreateOptions[T]) (*GroupResponse, error) {
-	queryParams := []string{}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal + azuredevops.ApiPreviewFlag + ".1"}
+	}
+	var queryParams []string
+	queryParams = append(queryParams, apiVersionParams...)
 	if opts.ScopeDescriptor != nil {
 		queryParams = append(queryParams, "scopeDescriptor", *opts.ScopeDescriptor)
 	}
@@ -184,7 +215,7 @@ func Create[T GroupData](ctx context.Context, cli *azuredevops.Client, opts Crea
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/groups"),
-		Params:  append(queryParams, azuredevops.ApiVersionKey, azuredevops.ApiVersionVal+azuredevops.ApiPreviewFlag+".1"),
+		Params:  queryParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -222,6 +253,11 @@ type DeleteOptions struct {
 // Delete a group.
 // DELETE https://vssps.dev.azure.com/{organization}/_apis/graph/groups/{groupDescriptor}?api-version=6.1-preview.1
 func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) error {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, "6.1" + azuredevops.ApiPreviewFlag + ".1"}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/graph/groups", opts.GroupDescriptor),

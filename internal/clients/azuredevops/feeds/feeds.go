@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"path"
 	"reflect"
+	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -187,6 +189,21 @@ type GetOptions struct {
 	//IncludeDeletedUpstreams *bool
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Feeds
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Get the settings for a specific feed.
 // GET https://feeds.dev.azure.com/{organization}/{project}/_apis/packaging/feeds/{feedId}?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Feed, error) {
@@ -197,10 +214,15 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Feed, 
 		fullPath = path.Join(opts.Organization, opts.Project, "_apis/packaging/feeds/", opts.FeedId)
 	}
 
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Feeds),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -260,7 +282,13 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) ([]Fee
 		fullPath = path.Join(opts.Organization, opts.Project, "_apis/packaging/feeds")
 	}
 
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
+	var params []string
+	params = append(params, apiVersionParams...)
 	if len(opts.FeedRole) > 0 {
 		params = append(params, "feedRole", opts.FeedRole)
 	}
@@ -359,10 +387,15 @@ func Create(ctx context.Context, cli *azuredevops.Client, opts CreateOptions) (*
 		fullPath = path.Join(opts.Organization, opts.Project, "_apis/packaging/feeds")
 	}
 
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Feeds),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -400,10 +433,15 @@ type UpdateOptions struct {
 // Update an existing project's name, abbreviation, description, or restore a project.
 // PATCH https://feeds.dev.azure.com/{organization}/{project}/_apis/packaging/feeds/{feedId}?api-version=7.0
 func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*Feed, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Feeds),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/packaging/feeds", opts.FeedId),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return nil, err
@@ -444,10 +482,16 @@ func Delete(ctx context.Context, cli *azuredevops.Client, opts DeleteOptions) er
 	} else {
 		fullPath = path.Join(opts.Organization, opts.Project, "_apis/packaging/feeds/", opts.FeedId)
 	}
+
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	uri, err := httplib.NewURLBuilder(httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Feeds),
 		Path:    fullPath,
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}).Build()
 	if err != nil {
 		return err

@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"path"
 	"reflect"
+	"strings"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/feeds"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 )
 
@@ -40,13 +42,33 @@ type GetOptions struct {
 	FeedId string
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.FeedPermissions
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // Get the permissions for a feed. The project parameter must be supplied if the feed was created in a project. If the feed is not associated with any project, omit the project parameter from the request.
 // GET https://feeds.dev.azure.com/{organization}/{project}/_apis/packaging/Feeds/{feedId}/permissions?api-version=7.0
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*FeedPermissionResponse, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Feeds),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/packaging/Feeds", opts.FeedId, "permissions"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()
@@ -86,10 +108,14 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*FeedPe
 // Update the permissions on a feed. The project parameter must be supplied if the feed was created in a project. If the feed is not associated with any project, omit the project parameter from the request.
 // PATCH https://feeds.dev.azure.com/{organization}/{project}/_apis/packaging/Feeds/{feedId}/permissions?api-version=7.0
 func Update(ctx context.Context, cli *azuredevops.Client, opts UpdateOptions) (*FeedPermissionResponse, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Feeds),
 		Path:    path.Join(opts.Organization, opts.Project, "_apis/packaging/Feeds", opts.ResourceId, "permissions"),
-		Params:  []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  apiVersionParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()

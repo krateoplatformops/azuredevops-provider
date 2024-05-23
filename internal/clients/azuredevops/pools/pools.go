@@ -66,9 +66,30 @@ type FindResult struct {
 	Values []TaskAgentPool `json:"value,omitempty"`
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Pools
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 // GET https://dev.azure.com/{organization}/_apis/distributedtask/pools?poolName={poolName}&properties={properties}&poolType={poolType}&actionFilter={actionFilter}&api-version=7.0
 func Find(ctx context.Context, cli *azuredevops.Client, opts FindOptions) ([]TaskAgentPool, error) {
-	params := []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
+
+	var params []string
+	params = append(params, apiVersionParams...)
 	if len(opts.PoolName) > 0 {
 		params = append(params, "poolName", opts.PoolName)
 	}

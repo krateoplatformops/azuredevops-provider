@@ -9,6 +9,7 @@ import (
 
 	teamprojects "github.com/krateoplatformops/azuredevops-provider/apis/projects/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops"
+	"github.com/krateoplatformops/provider-runtime/pkg/helpers"
 	"github.com/lucasepe/httplib"
 	"github.com/pkg/errors"
 )
@@ -61,6 +62,21 @@ type IdentityParams struct {
 	Name string
 }
 
+func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
+	if cli.ApiVersionConfig != nil {
+		apiVersion := cli.ApiVersionConfig.Identities
+		if apiVersion != nil {
+			if strings.EqualFold(*apiVersion, "none") {
+				apiVersionParams = nil
+				isNone = true
+			} else {
+				apiVersionParams = []string{azuredevops.ApiVersionKey, helpers.String(apiVersion)}
+			}
+		}
+	}
+	return apiVersionParams, isNone
+}
+
 func (resp *IdentityResponse) IdentityMatch(identity *IdentityParams) (*Identity, error) {
 	for _, v := range resp.Value {
 		resolvedId, err := identity.Type.ResolveIdentityDescriptorFromUserType()
@@ -81,6 +97,10 @@ func (resp *IdentityResponse) IdentityMatch(identity *IdentityParams) (*Identity
 }
 
 func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*IdentityResponse, error) {
+	apiVersionParams, isNone := getAPIVersion(cli)
+	if len(apiVersionParams) == 0 && !isNone {
+		apiVersionParams = []string{azuredevops.ApiVersionKey, azuredevops.ApiVersionVal}
+	}
 
 	var filterValue string
 	switch opts.Type {
@@ -90,10 +110,14 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Identi
 		filterValue = fmt.Sprint("[", opts.Project.Spec.Name, "]", "\\", opts.Name)
 	}
 
+	var queryParams []string
+	queryParams = append(queryParams, apiVersionParams...)
+	queryParams = append(queryParams, "searchFilter", "General", "filterValue", filterValue, "queryMembership", "None")
+
 	ubo := httplib.URLBuilderOptions{
 		BaseURL: cli.BaseURL(azuredevops.Vssps),
 		Path:    path.Join(opts.Organization, "_apis/identities"),
-		Params:  []string{"searchFilter", "General", "filterValue", filterValue, "queryMembership", "None", azuredevops.ApiVersionKey, azuredevops.ApiVersionVal},
+		Params:  queryParams,
 	}
 
 	uri, err := httplib.NewURLBuilder(ubo).Build()

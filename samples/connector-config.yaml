@@ -4,6 +4,9 @@ metadata:
   name: connectorconfig-sample
 spec:
   apiUrl: https://dev.azure.com # DEPRECATED - use apiUrls instead
+  apiVersionConfig:
+    endpoints: none
+    projects: 7.1-preview.1
   apiUrls: 
     default: https://dev.azure.com
     feeds: https://feeds.dev.azure.com
