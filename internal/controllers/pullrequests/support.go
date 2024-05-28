@@ -23,7 +23,7 @@ func createPRWithModifiedFields(cr *pullrequestsv1alpha1.PullRequest, response *
 	if cr.Spec.PullRequest.TargetRefName != response.TargetRefName {
 		pr.TargetRefName = cr.Spec.PullRequest.TargetRefName
 	}
-	if !compareCompletionOptions(cr, response) {
+	if response.CompletionOptions != nil && !compareCompletionOptions(cr, response) {
 		pr.CompletionOptions = &pullrequests.CompletionOptions{
 			DeleteSourceBranch:          cr.Spec.PullRequest.CompletionOptions.DeleteSourceBranch,
 			MergeCommitMessage:          cr.Spec.PullRequest.CompletionOptions.MergeCommitMessage,
@@ -36,7 +36,7 @@ func createPRWithModifiedFields(cr *pullrequestsv1alpha1.PullRequest, response *
 			MergeStrategy:               cr.Spec.PullRequest.CompletionOptions.MergeStrategy,
 		}
 	}
-	if !compareMergeOptions(cr, response) {
+	if response.MergeOptions != nil && !compareMergeOptions(cr, response) {
 		pr.MergeOptions = &pullrequests.GitPullRequestMergeOptions{
 			SquashMerge:        cr.Spec.PullRequest.MergeOptions.SquashMerge,
 			CreateMergeCommit:  cr.Spec.PullRequest.MergeOptions.CreateMergeCommit,
@@ -113,10 +113,10 @@ func isUpdated(cr *pullrequestsv1alpha1.PullRequest, response *pullrequests.Pull
 	if cr.Spec.PullRequest.TargetRefName != response.TargetRefName {
 		return false
 	}
-	if !compareCompletionOptions(cr, response) {
+	if response.CompletionOptions != nil && !compareCompletionOptions(cr, response) {
 		return false
 	}
-	if !compareMergeOptions(cr, response) {
+	if response.MergeOptions != nil && !compareMergeOptions(cr, response) {
 		return false
 	}
 	if response.AutoCompleteSetBy != nil && cr.Spec.PullRequest.AutoCompleteSetBy.Id != response.AutoCompleteSetBy.Id {
