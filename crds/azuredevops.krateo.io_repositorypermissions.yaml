@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.1
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.15.0
   name: repositorypermissions.azuredevops.krateo.io
 spec:
   group: azuredevops.krateo.io
@@ -43,14 +42,19 @@ spec:
           API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -73,9 +77,10 @@ spec:
                 type: object
               deletionPolicy:
                 default: Delete
-                description: DeletionPolicy specifies what will happen to the underlying
-                  external when this managed resource is deleted - either "Delete"
-                  or "Orphan" the external resource.
+                description: |-
+                  DeletionPolicy specifies what will happen to the underlying external
+                  when this managed resource is deleted - either "Delete" or "Orphan" the
+                  external resource.
                 enum:
                 - Orphan
                 - Delete
@@ -84,14 +89,16 @@ spec:
                 description: Permissions - The permissions to set.
                 properties:
                   allowList:
-                    description: AllowList - The permissions that this identity has.
+                    description: |-
+                      AllowList - The permissions that this identity has.
                       Possible (case insensitive) values are [administerpermission,genericread,genericcontribute,forcepush,createbranch,createtag,managenote,policyexempt,createrepository,deleterepository,renamerepository,editpolicies,removeotherslocks,managepermissions,pullrequestcontribute,pullrequestbypasspolicy,viewadvsecalerts,dismissadvsecalerts,manageadvsecscanning]
                     items:
                       type: string
                     type: array
                   denyList:
-                    description: DenyList - The permissions that this identity is
-                      explicitly denied. Possible values are [administerpermission,genericread,genericcontribute,forcepush,createbranch,createtag,managenote,policyexempt,createrepository,deleterepository,renamerepository,editpolicies,removeotherslocks,managepermissions,pullrequestcontribute,pullrequestbypasspolicy,viewadvsecalerts,dismissadvsecalerts,manageadvsecscanning]
+                    description: |-
+                      DenyList - The permissions that this identity is explicitly denied.
+                      Possible values are [administerpermission,genericread,genericcontribute,forcepush,createbranch,createtag,managenote,policyexempt,createrepository,deleterepository,renamerepository,editpolicies,removeotherslocks,managepermissions,pullrequestcontribute,pullrequestbypasspolicy,viewadvsecalerts,dismissadvsecalerts,manageadvsecscanning]
                     items:
                       type: string
                     type: array
@@ -117,15 +124,16 @@ spec:
                         - namespace
                         type: object
                       type:
-                        description: The user identity type to add [build-service,
-                          azure-group]
+                        description: |-
+                          The user identity type to add
+                          [build-service, azure-group]
                         type: string
                     type: object
                   merge:
-                    description: Merge If true, the permissions are added to existing
-                      permissions and only the setted perms are mantained by the controller.
-                      If false, the permissions are the only permissions for this
-                      identity and are mantained exaclty as the CR by the controller.
+                    description: |-
+                      Merge
+                      If true, the permissions are added to existing permissions and only the setted perms are mantained by the controller.
+                      If false, the permissions are the only permissions for this identity and are mantained exaclty as the CR by the controller.
                     type: boolean
                 type: object
               repositoryRef:
@@ -152,13 +160,15 @@ spec:
                   description: A Condition that may apply to a resource.
                   properties:
                     lastTransitionTime:
-                      description: LastTransitionTime is the last time this condition
-                        transitioned from one status to another.
+                      description: |-
+                        LastTransitionTime is the last time this condition transitioned from one
+                        status to another.
                       format: date-time
                       type: string
                     message:
-                      description: A Message containing details about this condition's
-                        last transition from one status to another, if any.
+                      description: |-
+                        A Message containing details about this condition's last transition from
+                        one status to another, if any.
                       type: string
                     reason:
                       description: A Reason for this condition's last transition from
@@ -169,8 +179,9 @@ spec:
                         False, or Unknown?
                       type: string
                     type:
-                      description: Type of this condition. At most one of each condition
-                        type may apply to a resource at any point in time.
+                      description: |-
+                        Type of this condition. At most one of each condition type may apply to
+                        a resource at any point in time.
                       type: string
                   required:
                   - lastTransitionTime

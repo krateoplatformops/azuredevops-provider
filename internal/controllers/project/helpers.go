@@ -76,9 +76,9 @@ func conditionFromOperationReference(opref *azuredevops.OperationReference) rtv1
 
 	switch s := opref.Status; {
 	case s == azuredevops.StatusSucceeded:
-		res.Status = corev1.ConditionTrue
+		res.Status = metav1.ConditionStatus(corev1.ConditionTrue)
 	default:
-		res.Status = corev1.ConditionFalse
+		res.Status = metav1.ConditionStatus(corev1.ConditionFalse)
 	}
 
 	return res

@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.1
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.15.0
   name: connectorconfigs.azuredevops.krateo.io
 spec:
   group: azuredevops.krateo.io
@@ -24,23 +23,28 @@ spec:
         description: ConnectorConfigSpec is the Schema for the AzureDevops Client
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
           spec:
             properties:
               apiUrl:
-                description: 'DEPRECATED: This field is deprecated and will be removed
-                  in a future version. Use the ApiUrls field instead. ApiUrl: the
-                  baseUrl for the REST API provider.'
+                description: |-
+                  DEPRECATED: This field is deprecated and will be removed in a future version. Use the ApiUrls field instead.
+                  ApiUrl: the baseUrl for the REST API provider.
                 type: string
               apiUrls:
                 description: 'ApiUrls: the baseUrl for the REST API provider.'
@@ -60,6 +64,8 @@ spec:
                 properties:
                   checkconfiguration:
                     type: string
+                  definitions:
+                    type: string
                   descriptors:
                     type: string
                   endpoints:
@@ -72,11 +78,17 @@ spec:
                     type: string
                   groups:
                     type: string
+                  identities:
+                    type: string
                   memberships:
+                    type: string
+                  operations:
                     type: string
                   pipelinepermissions:
                     type: string
                   pipelines:
+                    type: string
+                  pools:
                     type: string
                   projects:
                     type: string
@@ -103,8 +115,9 @@ spec:
                 description: Credentials required to authenticate ReST API server.
                 properties:
                   env:
-                    description: Env is a reference to an environment variable that
-                      contains credentials that must be used to connect to the provider.
+                    description: |-
+                      Env is a reference to an environment variable that contains credentials
+                      that must be used to connect to the provider.
                     properties:
                       name:
                         description: Name is the name of an environment variable.
@@ -113,8 +126,9 @@ spec:
                     - name
                     type: object
                   secretRef:
-                    description: A SecretRef is a reference to a secret key that contains
-                      the credentials that must be used to connect to the provider.
+                    description: |-
+                      A SecretRef is a reference to a secret key that contains the credentials
+                      that must be used to connect to the provider.
                     properties:
                       key:
                         description: The key to select.
