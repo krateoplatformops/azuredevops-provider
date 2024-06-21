@@ -88,6 +88,8 @@ spec:
                     type: string
                   pipelines:
                     type: string
+                  policies:
+                    type: string
                   pools:
                     type: string
                   projects:
