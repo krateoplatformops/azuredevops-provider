@@ -63,6 +63,8 @@ type APIVersionConfig struct {
 	Definitions *string `json:"definitions,omitempty"`
 	// +optional
 	Operations *string `json:"operations,omitempty"`
+	// +optional
+	Policies *string `json:"policies,omitempty"`
 }
 
 type ApiUrl struct {

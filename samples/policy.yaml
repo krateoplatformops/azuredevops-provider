@@ -1,0 +1,30 @@
+apiVersion: azuredevops.krateo.io/v1alpha1
+kind: Policy
+metadata:
+  name: example-policy
+  namespace: default
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  connectorConfigRef:
+    name: connectorconfig-sample
+    namespace: default
+  deletionPolicy: Delete
+  policyBody:
+    isBlocking: false
+    isDeleted: false
+    isEnabled: true
+    isEnterpriseManaged: false
+    projectRef:
+      name: pipeline-proj
+      namespace: default
+    settings:
+      buildDefinitionId: 17
+      scope:
+      - matchKind: Exact
+        refName: refs/heads/main
+        repositoryRef:
+          name: policy-repo
+          namespace: default
+    type:
+      id: "0609b952-1397-4640-95ec-e00a01b2c241"
