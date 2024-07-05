@@ -3,6 +3,7 @@ package endpoints
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	endpointsv1alpha1 "github.com/krateoplatformops/azuredevops-provider/apis/endpoints/v1alpha1"
 	"github.com/krateoplatformops/azuredevops-provider/internal/clients/azuredevops/endpoints"
@@ -180,7 +181,7 @@ func addEventually(dict map[string]string, key string, val *string) {
 
 func containsRef(a []endpoints.ServiceEndpointProjectReference, b endpoints.ServiceEndpointProjectReference) bool {
 	for _, el := range a {
-		if helpers.String(el.Name) == helpers.String(b.Name) && el.ProjectReference.Name == b.ProjectReference.Name && helpers.String(el.ProjectReference.Id) == helpers.String(b.ProjectReference.Id) {
+		if helpers.String(el.Name) == helpers.String(b.Name) && strings.EqualFold(el.ProjectReference.Name, b.ProjectReference.Name) && helpers.String(el.ProjectReference.Id) == helpers.String(b.ProjectReference.Id) {
 			return true
 		}
 	}
