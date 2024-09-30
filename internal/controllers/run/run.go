@@ -189,6 +189,13 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return errors.Wrapf(err, "unble to resolve Project: %s", pip.Spec.ProjectRef.Name)
 	}
 
+	if cr.Spec.RunParameters == nil {
+		cr.Spec.RunParameters = &runsv1alpha1.RunPipelineParameters{}
+	}
+	if cr.Spec.RunParameters.Resources == nil {
+		cr.Spec.RunParameters.Resources = &runsv1alpha1.RunResourcesParameters{}
+	}
+
 	run, err := runs.Run(ctx, e.azCli, runs.RunOptions{
 		Organization: prj.Spec.Organization,
 		Project:      prj.Status.Id,
