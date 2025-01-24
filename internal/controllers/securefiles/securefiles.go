@@ -94,6 +94,14 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 		return reconciler.ExternalObservation{}, errors.New(errNotCR)
 	}
 
+	if cr.GetDeletionTimestamp() != nil && !meta.IsActionAllowed(cr, meta.ActionDelete) {
+		e.log.Debug("Deletion of external resource is not allowed, skipping observation and deleting CR.")
+		return reconciler.ExternalObservation{
+			ResourceExists:   false,
+			ResourceUpToDate: true,
+		}, nil
+	}
+
 	project, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 	if err != nil {
 		return reconciler.ExternalObservation{}, fmt.Errorf("cannot resolve project reference: %w", err)
@@ -154,7 +162,8 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 
 	if !meta.IsActionAllowed(cr, meta.ActionDelete) {
 		e.log.Debug("External resource should not be deleted by provider, skip deleting.")
-		return nil
+		cr.SetConditions(rtv1.Deleting())
+		return e.kube.Status().Update(ctx, cr)
 	}
 
 	project, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)

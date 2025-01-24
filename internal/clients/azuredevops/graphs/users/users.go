@@ -2,6 +2,8 @@ package users
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"path"
 	"reflect"
@@ -133,9 +135,20 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*List
 	}
 
 	err = httplib.Fire(cli.HTTPClient(), req, httplib.FireOptions{
-		Verbose:         cli.Verbose(),
-		AuthMethod:      cli.AuthMethod(),
-		ResponseHandler: httplib.FromJSON(val),
+		Verbose:    cli.Verbose(),
+		AuthMethod: cli.AuthMethod(),
+		ResponseHandler: func(res *http.Response) error {
+			data, err := io.ReadAll(res.Body)
+			if err != nil {
+				return err
+			}
+			if err = json.Unmarshal(data, val); err != nil {
+				return err
+			}
+
+			val.ContinuationToken = helpers.StringPtr(res.Header.Get("X-Ms-Continuationtoken"))
+			return nil
+		},
 		Validators: []httplib.HandleResponseFunc{
 			httplib.ErrorJSON(apiErr, http.StatusOK),
 		},
