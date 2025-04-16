@@ -5,9 +5,10 @@ spec:
       clientConfig:
         service:
           namespace: default
-          name: webhook-service
+          name: core-provider-webhook-service
           path: /convert
-        caBundle: CA_BUNDLE
+          port: 9443
+        caBundle: CA_BUNDLE    
       conversionReviewVersions:
       - v1
       - v1alpha2

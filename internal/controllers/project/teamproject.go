@@ -109,6 +109,13 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			return reconciler.ExternalObservation{}, nil
 		}
 
+		if op.Status == azuredevops.StatusFailed {
+			e.log.Debug("Operation failed, retrying", "id", op.Id, "status", op.Status)
+			e.rec.Eventf(cr, corev1.EventTypeWarning, "OperationFailed",
+				"Operation '%s' failed", op.Id)
+			return reconciler.ExternalObservation{}, deleteOperationAnnotation(ctx, e.kube, cr)
+		}
+
 		return reconciler.ExternalObservation{},
 			deleteOperationAnnotation(ctx, e.kube, cr)
 	}
