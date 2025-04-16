@@ -20,10 +20,21 @@ kubectl create secret generic \
     ${WEBHOOK_NAME}-certs \
     --from-file=tls.key=./tls.key \
     --from-file=tls.crt=./tls.crt \
-    --dry-run=client -o yaml > ./cluster/webhook-certs.yaml
+    --dry-run=client -o yaml > ./webhook-certs.yaml\
+    -n default
 
-# Set the CABundle on the webhook registration
+
+# # Set the CABundle on the webhook registration
 CA_BUNDLE=$(cat ./tls.crt | base64 -b 0)
-sed "s/CA_BUNDLE/${CA_BUNDLE}/" ./cluster/patch.yaml.tpl > ./cluster/patch.yaml
+sed "s/CA_BUNDLE/${CA_BUNDLE}/" ./mutate.yaml.tpl > ./mutate.yaml
 
+# ## For conversion test 
+# sed "s/CA_BUNDLE/${CA_BUNDLE}/" ./patch.yaml.tpl > ./patch.yaml
+
+
+kubectl apply -f ./mutate.yaml
+kubectl apply -f ./webhook-certs.yaml
+
+rm ./webhook-certs.yaml
+# rm ./mutate.yaml
 rm ./tls.*

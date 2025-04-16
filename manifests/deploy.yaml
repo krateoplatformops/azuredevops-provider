@@ -1,0 +1,158 @@
+---
+# Source: azuredevops-provider/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: azuredevops-provider
+  
+automountServiceAccountToken: true
+---
+# Source: azuredevops-provider/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: azuredevops-provider
+  
+data:
+  AZURE_DEVOPS_PROVIDER_DEBUG: "true"
+  AZURE_DEVOPS_PROVIDER_POLL_INTERVAL: 3m
+---
+# Source: azuredevops-provider/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: azuredevops-provider
+  
+rules:
+- apiGroups: ["azuredevops.krateo.io"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  resources:
+  - checkconfigurations
+  - connectorconfigs
+  - endpoints
+  - environments
+  - feedpermissions
+  - feeds
+  - gitrepositories
+  - groups
+  - pipelinepermissions
+  - pipelines
+  - pullrequests
+  - queues
+  - repositorypermissions
+  - runs
+  - securefiles
+  - teamprojects
+  - teams
+  - users
+  - variablegroups
+  - policies
+- apiGroups: ["azuredevops.krateo.io"]
+  verbs: ["get", "patch", "update"]
+  resources:
+  - checkconfigurations/status
+  - endpoints/status
+  - environments/status
+  - feedpermissions/status
+  - feeds/status
+  - gitrepositories/status
+  - groups/status
+  - pipelinepermissions/status
+  - pipelines/status
+  - pullrequests/status
+  - queues/status
+  - repositorypermissions/status
+  - runs/status
+  - securefiles/status
+  - teamprojects/status
+  - teams/status
+  - users/status
+  - variablegroups/status
+  - policies/status
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch", "update"]
+---
+# Source: azuredevops-provider/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: azuredevops-provider
+  
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name:  azuredevops-provider
+subjects:
+- kind: ServiceAccount
+  name: azuredevops-provider
+  namespace: default
+---
+# Source: azuredevops-provider/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: azuredevops-provider
+  
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: azuredevops-provider
+    app.kubernetes.io/instance: azuredevops-provider
+---
+# Source: azuredevops-provider/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azuredevops-provider
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: azuredevops-provider
+      app.kubernetes.io/instance: azuredevops-provider
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: azuredevops-provider-0.20.5
+        app.kubernetes.io/name: azuredevops-provider
+        app.kubernetes.io/instance: azuredevops-provider
+        app.kubernetes.io/version: "0.20.5"
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: azuredevops-provider
+      securityContext:
+        {}
+      containers:
+        - name: azuredevops-provider
+          envFrom:
+            - configMapRef:
+                name: azuredevops-provider
+          securityContext:
+            {}
+          image: "kind.local/azuredevops-provider:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 443
+              protocol: TCP
+          resources:
+            {}
+          volumeMounts:
+            - mountPath: /tmp/k8s-webhook-server/serving-certs
+              name: cert
+              readOnly: true
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: azuredevops-provider-webhook-service-certs
