@@ -8,6 +8,6 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
-func NewGlobalExponential(baseDelay time.Duration, maxDelay time.Duration) workqueue.TypedRateLimiter[any] {
-	return internal_workqueue.NewExponentialTimedFailureRateLimiter[any](baseDelay, maxDelay)
+func NewGlobalExponential(baseDelay time.Duration, maxDelay time.Duration) workqueue.RateLimiter {
+	return internal_workqueue.NewExponentialTimedFailureRateLimiter(baseDelay, maxDelay)
 }

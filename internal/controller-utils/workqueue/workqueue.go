@@ -15,23 +15,23 @@ type FailureRequest struct {
 	LastAttempt time.Time
 }
 
-type TypedItemExponentialTimedFailureRateLimiter[T comparable] struct {
+type ItemExponentialTimedFailureRateLimiter struct {
 	failuresLock sync.Mutex
-	failures     map[T]FailureRequest
+	failures     map[interface{}]FailureRequest
 
 	baseDelay time.Duration
 	maxDelay  time.Duration
 }
 
-func NewExponentialTimedFailureRateLimiter[T comparable](baseDelay time.Duration, maxDelay time.Duration) workqueue.TypedRateLimiter[T] {
-	return &TypedItemExponentialTimedFailureRateLimiter[T]{
-		failures:  map[T]FailureRequest{},
+func NewExponentialTimedFailureRateLimiter(baseDelay time.Duration, maxDelay time.Duration) workqueue.RateLimiter {
+	return &ItemExponentialTimedFailureRateLimiter{
+		failures:  map[interface{}]FailureRequest{},
 		baseDelay: baseDelay,
 		maxDelay:  maxDelay,
 	}
 }
 
-func (r *TypedItemExponentialTimedFailureRateLimiter[T]) When(item T) time.Duration {
+func (r *ItemExponentialTimedFailureRateLimiter) When(item interface{}) time.Duration {
 	r.failuresLock.Lock()
 	defer r.failuresLock.Unlock()
 
@@ -64,14 +64,14 @@ func (r *TypedItemExponentialTimedFailureRateLimiter[T]) When(item T) time.Durat
 	return calculated
 }
 
-func (r *TypedItemExponentialTimedFailureRateLimiter[T]) NumRequeues(item T) int {
+func (r *ItemExponentialTimedFailureRateLimiter) NumRequeues(item interface{}) int {
 	r.failuresLock.Lock()
 	defer r.failuresLock.Unlock()
 
 	return r.failures[item].Attempts
 }
 
-func (r *TypedItemExponentialTimedFailureRateLimiter[T]) Forget(item T) {
+func (r *ItemExponentialTimedFailureRateLimiter) Forget(item interface{}) {
 	r.failuresLock.Lock()
 	defer r.failuresLock.Unlock()
 
