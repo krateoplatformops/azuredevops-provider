@@ -13,9 +13,9 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"github.com/krateoplatformops/azuredevops-provider/apis"
+	"github.com/krateoplatformops/azuredevops-provider/internal/controller-utils/ratelimiter"
 	"github.com/krateoplatformops/provider-runtime/pkg/controller"
 	"github.com/krateoplatformops/provider-runtime/pkg/logging"
-	"github.com/krateoplatformops/provider-runtime/pkg/ratelimiter"
 
 	"github.com/stoewer/go-strcase"
 )
@@ -49,7 +49,16 @@ func main() {
 				Default("false").
 				OverrideDefaultFromEnvar(fmt.Sprintf("%s_LEADER_ELECTION", envVarPrefix)).
 				Bool()
+		maxErrorRetryInterval = app.Flag("max-error-retry-interval", "The maximum interval between retries when an error occurs. This should be less than the half of the poll interval.").
+					Default("1m").
+					OverrideDefaultFromEnvar(fmt.Sprintf("%s_MAX_ERROR_RETRY_INTERVAL", envVarPrefix)).
+					Duration()
+		minErrorRetryInterval = app.Flag("min-error-retry-interval", "The minimum interval between retries when an error occurs. This should be less than max-error-retry-interval.").
+					Default("1s").
+					OverrideDefaultFromEnvar(fmt.Sprintf("%s_MIN_ERROR_RETRY_INTERVAL", envVarPrefix)).
+					Duration()
 	)
+
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
 	zl := zap.New(zap.UseDevMode(*debug))
@@ -82,7 +91,7 @@ func main() {
 		Logger:                  log,
 		MaxConcurrentReconciles: *maxReconcileRate,
 		PollInterval:            *pollInterval,
-		GlobalRateLimiter:       ratelimiter.NewGlobal(*maxReconcileRate),
+		GlobalRateLimiter:       ratelimiter.NewGlobalExponential(*minErrorRetryInterval, *maxErrorRetryInterval),
 	}
 
 	kingpin.FatalIfError(apis.AddToScheme(mgr.GetScheme()), "Cannot add APIs to scheme")

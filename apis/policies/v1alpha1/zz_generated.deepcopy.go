@@ -123,7 +123,7 @@ func (in *PolicySettings) DeepCopyInto(out *PolicySettings) {
 	}
 	if in.RequiredReviewerIds != nil {
 		in, out := &in.RequiredReviewerIds, &out.RequiredReviewerIds
-		*out = make([]int, len(*in))
+		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
 	if in.FileNamePatterns != nil {
