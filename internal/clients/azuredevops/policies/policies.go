@@ -34,7 +34,7 @@ type PolicySettings struct {
 	CreatorVoteCounts         bool              `json:"creatorVoteCounts"`
 	Scope                     []Scope           `json:"scope"`
 	BuildDefinitionId         int               `json:"buildDefinitionId"`
-	RequiredReviewerIds       []int             `json:"requiredReviewerIds"`
+	RequiredReviewerIds       []string          `json:"requiredReviewerIds"`
 	FileNamePatterns          []string          `json:"fileNamePatterns"`
 	AddedFilesOnly            bool              `json:"addedFilesOnly"`
 	Message                   string            `json:"message"`

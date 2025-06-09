@@ -31,7 +31,7 @@ type PolicySettings struct {
 	// +optional
 	BuildDefinitionId int `json:"buildDefinitionId"`
 	// +optional
-	RequiredReviewerIds []int `json:"requiredReviewerIds"`
+	RequiredReviewerIds []string `json:"requiredReviewerIds"`
 	// +optional
 	FileNamePatterns []string `json:"fileNamePatterns"`
 	// +optional
