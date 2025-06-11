@@ -27,7 +27,7 @@ type PolicyType struct {
 type Scope struct {
 	RefName      string `json:"refName"`
 	MatchKind    string `json:"matchKind"`
-	RepositoryId string `json:"repositoryId,omitempty"`
+	RepositoryId string `json:"repositoryId"`
 }
 type PolicySettings struct {
 	MinimumApproverCount      int               `json:"minimumApproverCount"`
@@ -51,31 +51,31 @@ type PolicySettings struct {
 // Policy defines the desired state of Policy
 type PolicyBody struct {
 	// Type - The policy configuration type.
-	Type PolicyType
+	Type PolicyType `json:"type"`
 
 	// IsBlocking - Indicates whether the policy is blocking.
-	IsBlocking bool
+	IsBlocking bool `json:"isBlocking"`
 
-	// IsEnabled - Indicates whether the policy is enabled.
-	IsEnabled bool
+	// IsEnabled - Indicates  whether the policy is enabled.
+	IsEnabled bool `json:"isEnabled"`
 
 	// IsEnterpriseManaged - If set, this policy requires "Manage Enterprise Policies" permission to create, edit, or delete.
-	IsEnterpriseManaged bool
+	IsEnterpriseManaged bool `json:"isEnterpriseManaged"`
 
 	// URL - The URL where the policy configuration can be retrieved.
-	URL string
+	URL string `json:"url"`
 
 	// Revision - The policy configuration revision ID.
-	Revision int
+	Revision int `json:"revision"`
 
 	// IsDeleted - Indicates whether the policy has been (soft) deleted.
-	IsDeleted bool
+	IsDeleted bool `json:"isDeleted"`
 
 	// Settings - The policy configuration settings.
-	Settings PolicySettings
+	Settings PolicySettings `json:"settings"`
 
 	// ID - The policy configuration ID.
-	ID int
+	ID int `json:"id"`
 }
 
 func getAPIVersion(cli *azuredevops.Client) (apiVersionParams []string, isNone bool) {
