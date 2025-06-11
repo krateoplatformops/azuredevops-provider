@@ -109,6 +109,10 @@ func specScopeToClientScope(ctx context.Context, client client.Client, specScope
 	for _, scope := range specScope {
 		repo, err := resolvers.ResolveGitRepository(ctx, client, scope.RepositoryRef)
 		if err != nil {
+			clientScope = append(clientScope, policies.Scope{
+				RefName:   scope.RefName,
+				MatchKind: scope.MatchKind,
+			})
 			continue
 		}
 		clientScope = append(clientScope, policies.Scope{
