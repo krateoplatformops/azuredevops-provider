@@ -114,10 +114,25 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 			Project:      project.Status.Id,
 			SecretFileId: helpers.String(cr.Status.Id),
 		})
-		if httplib.IsNotFoundError(err) && cr.GetDeletionTimestamp() != nil {
-			return reconciler.ExternalObservation{}, nil
-		}
 		if err != nil {
+			if httplib.IsNotFoundError(err) {
+				// The resource was not found. Now, check if this is part of a deletion.
+				if cr.GetDeletionTimestamp() != nil {
+					e.log.Debug("Secure file not found by ID, but CR is being deleted. This is expected.", "error", err)
+					// CASE 1: We are deleting the CR, and the external resource is now gone.
+					// This is the successful final state of deletion. Exit gracefully.
+					return reconciler.ExternalObservation{}, nil
+				}
+
+				// CASE 2: We are NOT deleting, so the ID must be stale.
+				// This is the "self-healing" logic.
+				e.log.Debug("Secure file not found by ID, but CR is not being deleted. Clearing stale ID.", "id", helpers.String(cr.Status.Id))
+				cr.Status.Id = nil
+				cr.SetConditions(rtv1.Unavailable())
+				return reconciler.ExternalObservation{ResourceExists: false}, e.kube.Status().Update(ctx, cr)
+			}
+
+			// For any other type of error (not a 404), fail as usual.
 			return reconciler.ExternalObservation{}, fmt.Errorf("cannot get secure file: %w", err)
 		}
 	} else {
@@ -137,8 +152,11 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	}
 
 	if observed == nil {
+		// The resource does not exist. Set the condition and exit.
 		e.log.Debug("External secure file not found", "name", cr.Spec.Name, "project", project.Spec.Name)
-		return reconciler.ExternalObservation{ResourceExists: false}, nil
+		e.log.Debug("Secure file not found, setting CR status to unavailable")
+		cr.SetConditions(rtv1.Unavailable())
+		return reconciler.ExternalObservation{ResourceExists: false}, e.kube.Status().Update(ctx, cr)
 	}
 
 	cr.Status.Id = &observed.ID
