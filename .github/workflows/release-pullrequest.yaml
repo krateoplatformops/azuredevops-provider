@@ -31,11 +31,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check Dockerfile existence
-        run: |
-          ls -la
-          pwd
-
       - name: Build Dockerfile (multi-arch, no push)
         uses: docker/build-push-action@v5
         with:
