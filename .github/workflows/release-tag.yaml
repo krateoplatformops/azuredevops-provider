@@ -45,8 +45,9 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
-          provenance: true # Optional: disables SBOMs if not needed
+          provenance: false # Optional: disables SBOMs if not needed
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.GHCR_REPO }}:${{ steps.meta.outputs.tags }}
+          FIRST_TAG=$(echo '${{ steps.meta.outputs.json }}' | jq -r '.tags[0]')
+          docker buildx imagetools inspect "$FIRST_TAG"
