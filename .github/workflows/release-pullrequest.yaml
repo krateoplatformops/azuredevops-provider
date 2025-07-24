@@ -36,10 +36,15 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
 
+      - name: Check Dockerfile existence
+        run: |
+          ls -la
+          pwd
+
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Dockerfile
           push: false
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
