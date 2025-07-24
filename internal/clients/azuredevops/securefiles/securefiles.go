@@ -72,7 +72,15 @@ func Get(ctx context.Context, cli *azuredevops.Client, opts GetOptions) (*Secure
 		AuthMethod:      cli.AuthMethod(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
-			httplib.ErrorJSON(apiErr, http.StatusOK),
+			func(resp *http.Response) error {
+				if resp.StatusCode == http.StatusOK {
+					return nil
+				}
+				if resp.StatusCode == http.StatusNotFound { // needed as sometimes the API returns 404 and HTML error page (not JSON)
+					return &httplib.StatusError{StatusCode: http.StatusNotFound}
+				}
+				return httplib.ErrorJSON(apiErr, http.StatusOK)(resp)
+			},
 		},
 	})
 	if err != nil {
@@ -134,7 +142,15 @@ func List(ctx context.Context, cli *azuredevops.Client, opts ListOptions) (*List
 		AuthMethod:      cli.AuthMethod(),
 		ResponseHandler: httplib.FromJSON(val),
 		Validators: []httplib.HandleResponseFunc{
-			httplib.ErrorJSON(apiErr, http.StatusOK),
+			func(resp *http.Response) error {
+				if resp.StatusCode == http.StatusOK {
+					return nil
+				}
+				if resp.StatusCode == http.StatusNotFound { // needed as sometimes the API returns 404 and HTML error page (not JSON)
+					return &httplib.StatusError{StatusCode: http.StatusNotFound}
+				}
+				return httplib.ErrorJSON(apiErr, http.StatusOK)(resp)
+			},
 		},
 	})
 	if err != nil {
