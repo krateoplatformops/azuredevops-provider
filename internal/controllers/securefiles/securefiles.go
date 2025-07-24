@@ -137,7 +137,7 @@ func (e *external) Observe(ctx context.Context, mg resource.Managed) (reconciler
 	}
 
 	if observed == nil {
-		e.log.Debug("Secure file not found", "name", cr.Spec.Name, "project", project.Spec.Name)
+		e.log.Debug("External secure file not found", "name", cr.Spec.Name, "project", project.Spec.Name)
 		return reconciler.ExternalObservation{ResourceExists: false}, nil
 	}
 
