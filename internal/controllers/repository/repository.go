@@ -76,9 +76,11 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconcile
 	}
 	opts.Verbose = meta.IsVerbose(cr)
 
+	log := c.log.WithValues("name", cr.Name, "apiVersion", cr.APIVersion, "kind", cr.Kind)
+
 	return &external{
 		kube:  c.kube,
-		log:   c.log,
+		log:   log,
 		azCli: azuredevops.NewClient(opts),
 		rec:   c.recorder,
 	}, nil
@@ -171,6 +173,8 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 
 	cr.SetConditions(rtv1.Creating())
 
+	e.log.Info("Creating resource")
+
 	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 	if err != nil || prj == nil {
 		return errors.Wrapf(err, "unble to resolve TeamProject: %s", cr.Spec.ProjectRef.Name)
@@ -258,6 +262,8 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	cr.SetConditions(rtv1.Deleting())
+
+	e.log.Info("Deleting resource")
 
 	prj, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 	if err != nil {

@@ -74,9 +74,11 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconcile
 
 	opts.Verbose = meta.IsVerbose(cr)
 
+	log := c.log.WithValues("name", cr.Name, "apiVersion", cr.APIVersion, "kind", cr.Kind)
+
 	return &external{
 		kube:  c.kube,
-		log:   c.log,
+		log:   log,
 		azCli: azuredevops.NewClient(opts),
 		rec:   c.recorder,
 	}, nil
@@ -185,6 +187,8 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		return nil
 	}
 
+	e.log.Info("Updating resource")
+
 	var user *users.UserResource
 	var err error
 	if cr.Status.Descriptor == nil {
@@ -247,6 +251,8 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return nil
 	}
 
+	e.log.Info("Creating resource")
+
 	// group and team descriptors are managed by as the same object in azure devops APIs
 	groupAndTeamDescriptors, err := resolvers.ResolveGroupAndTeamDescriptors(ctx, e.kube, cr.Spec.GroupsRefs, cr.Spec.TeamsRefs)
 	if err != nil {
@@ -304,6 +310,8 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		e.log.Debug("External resource should not be deleted by provider, skip deleting.")
 		return nil
 	}
+
+	e.log.Info("Deleting resource")
 
 	err := users.Delete(ctx, e.azCli, users.DeleteOptions{
 		Organization:   cr.Spec.Organization,

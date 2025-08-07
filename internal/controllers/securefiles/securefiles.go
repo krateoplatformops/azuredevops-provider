@@ -73,9 +73,11 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconcile
 
 	opts.Verbose = meta.IsVerbose(cr)
 
+	log := c.log.WithValues("name", cr.Name, "apiVersion", cr.APIVersion, "kind", cr.Kind)
+
 	return &external{
 		kube:  c.kube,
-		log:   c.log,
+		log:   log,
 		azCli: azuredevops.NewClient(opts),
 		rec:   c.recorder,
 	}, nil
@@ -188,6 +190,8 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 		cr.SetConditions(rtv1.Deleting())
 		return e.kube.Status().Update(ctx, cr)
 	}
+
+	e.log.Info("Deleting resource")
 
 	project, err := resolvers.ResolveTeamProject(ctx, e.kube, cr.Spec.ProjectRef)
 	if err != nil {

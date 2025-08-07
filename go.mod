@@ -9,6 +9,7 @@ require (
 	github.com/lucasepe/httplib v0.2.2
 	github.com/pkg/errors v0.9.1
 	github.com/stoewer/go-strcase v1.3.0
+	go.uber.org/zap v1.27.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.30.1
 	k8s.io/apimachinery v0.30.1
@@ -57,7 +58,6 @@ require (
 	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/exp v0.0.0-20240525044651-4c93da0ed11d // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.38.0 // indirect

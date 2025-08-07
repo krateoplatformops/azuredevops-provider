@@ -75,9 +75,11 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (reconcile
 	}
 	opts.Verbose = meta.IsVerbose(cr)
 
+	log := c.log.WithValues("name", cr.Name, "apiVersion", cr.APIVersion, "kind", cr.Kind)
+
 	return &external{
 		kube:  c.kube,
-		log:   c.log,
+		log:   log,
 		azCli: azuredevops.NewClient(opts),
 		rec:   c.recorder,
 	}, nil
@@ -179,6 +181,8 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 		return nil
 	}
 
+	e.log.Info("Creating resource")
+
 	if getOperationAnnotation(cr) != "" {
 		return nil
 	}
@@ -216,6 +220,8 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		return nil
 	}
 
+	e.log.Info("Updating resource")
+
 	spec := cr.Spec.DeepCopy()
 
 	op, err := projects.Update(ctx, e.azCli, projects.UpdateOptions{
@@ -247,6 +253,8 @@ func (e *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	cr.SetConditions(rtv1.Deleting())
+
+	e.log.Info("Deleting resource")
 
 	_, err := projects.Delete(ctx, e.azCli, projects.DeleteOptions{
 		Organization: cr.Spec.Organization,

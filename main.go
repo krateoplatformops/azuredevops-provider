@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/krateoplatformops/azuredevops-provider/internal/controllers"
+	"go.uber.org/zap/zapcore"
 	"gopkg.in/alecthomas/kingpin.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -61,14 +62,31 @@ func main() {
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	zl := zap.New(zap.UseDevMode(*debug))
-	log := logging.NewLogrLogger(zl.WithName(fmt.Sprintf("%s-provider", strcase.KebabCase(providerName))))
+	//zl := zap.New(zap.UseDevMode(*debug))
+	//log := logging.NewLogrLogger(zl.WithName(fmt.Sprintf("%s-provider", strcase.KebabCase(providerName))))
+	//if *debug {
+	//	// The controller-runtime runs with a no-op logger by default. It is
+	//	// *very* verbose even at info level, so we only provide it a real
+	//	// logger when we're running in debug mode.
+	//}
+
+	var zapOptions []zap.Opts
 	if *debug {
-		// The controller-runtime runs with a no-op logger by default. It is
-		// *very* verbose even at info level, so we only provide it a real
-		// logger when we're running in debug mode.
-		ctrl.SetLogger(zl)
+		// Debug mode: mostra DEBUG, INFO, WARN, ERROR
+		zapOptions = []zap.Opts{
+			zap.UseDevMode(true),
+			zap.Level(zapcore.DebugLevel),
+		}
+	} else {
+		// Production mode: mostra solo INFO, WARN, ERROR
+		zapOptions = []zap.Opts{
+			zap.UseDevMode(false),
+			zap.Level(zapcore.InfoLevel),
+		}
 	}
+	zl := zap.New(zapOptions...)
+	log := logging.NewLogrLogger(zl.WithName(fmt.Sprintf("%s-provider", strcase.KebabCase(providerName))))
+	ctrl.SetLogger(zl)
 
 	log.Debug("Starting", "sync-period", syncPeriod.String())
 
