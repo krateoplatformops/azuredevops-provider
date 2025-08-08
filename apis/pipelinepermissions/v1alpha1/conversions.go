@@ -32,24 +32,48 @@ func (src *PipelinePermission) ConvertTo(dstRaw conversion.Hub) error {
 	if err != nil {
 		return err
 	}
+	if teamproject == nil {
+		return fmt.Errorf("TeamProject with ID %s not found", src.Spec.Project)
+	}
 	dst.Spec.ProjectRef = &rtv1.Reference{
 		Name:      teamproject.Name,
 		Namespace: teamproject.Namespace,
 	}
 	dst.Spec.Resource = &v1alpha2.Resource{}
+	if src.Spec.Resource == nil {
+		return nil
+	}
 	dst.Spec.Resource.Type = src.Spec.Resource.Type
-	id := helpers.String(src.Spec.Resource.Id)
+	if src.Spec.Resource.Id == nil {
+		return nil
+	}
+	id := ""
+	if src.Spec.Resource.Id != nil {
+		id = helpers.String(src.Spec.Resource.Id)
+	}
+	if src.Spec.Resource.Type == nil {
+		return fmt.Errorf("src resource type is nil")
+	}
 	ty := helpers.String(dst.Spec.Resource.Type)
 	finder := resolvers.GetFinderFromType(ty)
+	if finder == nil {
+		return fmt.Errorf("unsupported resource type: %s", ty)
+	}
 	if ty == string(v1alpha2.GitRepository) {
 		arr := strings.Split(id, ".")
 		if len(arr) > 1 {
 			id = arr[1]
 		}
 	}
+	if id == "" {
+		return fmt.Errorf("resource ID is empty for type %s", ty)
+	}
 	ref, err := finder(context.TODO(), cli, id)
 	if err != nil {
 		return err
+	}
+	if ref == nil {
+		return fmt.Errorf("resource reference is nil for type %s and ID %s", ty, id)
 	}
 	dst.Spec.Resource.ResourceRef = &rtv1.Reference{
 		Name:      ref.Name,
@@ -81,6 +105,11 @@ func (dst *PipelinePermission) ConvertFrom(srcRaw conversion.Hub) error {
 
 	dst.Spec.Resource = &Resource{}
 	dst.Spec.Resource.Type = src.Spec.Resource.Type
+
+	if src.Spec.Resource == nil {
+		return fmt.Errorf("source resource is nil")
+	}
+
 	ty := helpers.String(dst.Spec.Resource.Type)
 	var id, name string
 	switch ty {
@@ -107,7 +136,7 @@ func (dst *PipelinePermission) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	if strings.EqualFold(id, "") {
-		return errors.Errorf("No resource idendified of type %s", ty)
+		return errors.Errorf("No resource identified of type %s", ty)
 	}
 
 	dst.Spec.Resource.Name = helpers.StringPtr(name)

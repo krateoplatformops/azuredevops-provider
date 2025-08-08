@@ -3,12 +3,12 @@ kind: PipelinePermission
 metadata:
   name: pipelinepermission-sample
 spec:
-  organization: kiratech-bancasella
-  project: 9f19fedb-a9ce-43c0-b167-07824a29fb66
+  organization: test-org
+  project: 12345abcd
   authorize: false
   resource:
     type: repository
-    id: 9f19fedb-a9ce-43c0-b167-07824a29fb66.5fb84e52-48a9-4fa6-b78f-fd434988ff38
+    id: abcd1234
   connectorConfigRef:
     namespace: default
     name: connectorconfig-sample
