@@ -114,29 +114,63 @@ func (dst *PipelinePermission) ConvertFrom(srcRaw conversion.Hub) error {
 	var id, name string
 	switch ty {
 	case string(v1alpha2.TeamProject):
-		res, _ := resolvers.ResolveTeamProject(ctx, cli, src.Spec.Resource.ResourceRef)
+		res, err := resolvers.ResolveTeamProject(ctx, cli, src.Spec.Resource.ResourceRef)
+		if err != nil {
+			return fmt.Errorf("failed to resolve TeamProject: %w", err)
+		}
 		id = res.Status.Id
 		name = res.Spec.Name
 	case string(v1alpha2.GitRepository):
-		res, _ := resolvers.ResolveGitRepository(ctx, cli, src.Spec.Resource.ResourceRef)
+		res, err := resolvers.ResolveGitRepository(ctx, cli, src.Spec.Resource.ResourceRef)
+		if err != nil {
+			return fmt.Errorf("failed to resolve GitRepository: %w", err)
+		}
 		id = res.Status.Id
 		name = res.Spec.Name
 	case string(v1alpha2.Queue):
-		res, _ := resolvers.ResolveQueue(ctx, cli, src.Spec.Resource.ResourceRef)
+		res, err := resolvers.ResolveQueue(ctx, cli, src.Spec.Resource.ResourceRef)
+		if err != nil {
+			return fmt.Errorf("failed to resolve Queue: %w", err)
+		}
 		id = fmt.Sprintf("%v", helpers.Int(res.Status.Id))
 		name = helpers.String(res.Spec.Name)
 	case string(v1alpha2.Environment):
-		res, _ := resolvers.ResolveEnvironment(ctx, cli, src.Spec.Resource.ResourceRef)
+		res, err := resolvers.ResolveEnvironment(ctx, cli, src.Spec.Resource.ResourceRef)
+		if err != nil {
+			return fmt.Errorf("failed to resolve Environment: %w", err)
+		}
 		id = fmt.Sprintf("%v", helpers.Int(res.Status.Id))
 		name = helpers.String(res.Spec.Name)
 	case string(v1alpha2.Endpoint):
-		res, _ := resolvers.ResolveEndpoint(ctx, cli, src.Spec.Resource.ResourceRef)
+		res, err := resolvers.ResolveEndpoint(ctx, cli, src.Spec.Resource.ResourceRef)
+		if err != nil {
+			return fmt.Errorf("failed to resolve Endpoint: %w", err)
+		}
 		id = helpers.String(res.Status.Id)
 		name = helpers.String(res.Spec.Name)
+	case string(v1alpha2.VariableGroups):
+		res, err := resolvers.ResolveVariableGroups(ctx, cli, src.Spec.Resource.ResourceRef)
+		if err != nil {
+			return fmt.Errorf("failed to resolve VariableGroups: %w", err)
+		}
+		id = fmt.Sprintf("%v", res.Status.Id)
+		name = helpers.String(res.Spec.Name)
+	case string(v1alpha2.SecureFiles):
+		res, err := resolvers.ResolveSecureFiles(ctx, cli, src.Spec.Resource.ResourceRef)
+		if err != nil {
+			return fmt.Errorf("failed to resolve SecureFiles: %w", err)
+		}
+		id = helpers.String(res.Status.Id)
+		name = res.Spec.Name
+	default:
+		return fmt.Errorf("unsupported resource type: %s", ty)
 	}
 
 	if strings.EqualFold(id, "") {
-		return errors.Errorf("No resource identified of type %s", ty)
+		return errors.Errorf("id is empty for your resource type %s - name: %s", ty, src.Spec.Resource.ResourceRef.Name)
+	}
+	if strings.EqualFold(name, "") {
+		return errors.Errorf("name is empty for your resource type %s - id: %s", ty, id)
 	}
 
 	dst.Spec.Resource.Name = helpers.StringPtr(name)

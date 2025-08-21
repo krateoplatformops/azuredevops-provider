@@ -261,7 +261,9 @@ spec:
                     - namespace
                     type: object
                   type:
-                    description: Type of the resource.
+                    description: 'Type of the resource. Supported values are: "repository",
+                      "environment", "queue", "teamproject", "endpoint", "variablegroup",
+                      "securefile".'
                     type: string
                 type: object
             type: object
