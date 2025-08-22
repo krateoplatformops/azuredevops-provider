@@ -18,7 +18,7 @@ const (
 )
 
 type Resource struct {
-	// Type of the resource.
+	// Type of the resource. Supported values are: "repository", "environment", "queue", "teamproject", "endpoint", "variablegroup", "securefile".
 	Type *string `json:"type,omitempty"`
 
 	// ResourceRef - Reference to the resource to authorize.
