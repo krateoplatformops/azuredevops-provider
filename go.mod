@@ -2,8 +2,6 @@ module github.com/krateoplatformops/azuredevops-provider
 
 go 1.23.0
 
-toolchain go1.24.4
-
 require (
 	github.com/krateoplatformops/provider-runtime v0.7.0
 	github.com/lucasepe/httplib v0.2.2

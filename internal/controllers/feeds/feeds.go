@@ -189,6 +189,7 @@ func (e *external) Create(ctx context.Context, mg resource.Managed) error {
 			Name:            name,
 			IsReadOnly:      helpers.BoolOrDefault(cr.Spec.IsReadOnly, false),
 			UpstreamSources: upstreams,
+			UpstreamEnabled: helpers.BoolOrDefault(cr.Spec.UpstreamEnabled, false),
 		},
 	})
 	if err != nil {
@@ -232,7 +233,7 @@ func (e *external) Update(ctx context.Context, mg resource.Managed) error {
 		FeedUpdate: &feeds.FeedUpdate{
 			Name:                       feed.Name,
 			Description:                feed.Description,
-			UpstreamEnabled:            feed.UpstreamEnabled,
+			UpstreamEnabled:            helpers.BoolOrDefault(cr.Spec.UpstreamEnabled, feed.UpstreamEnabled),
 			UpstreamSources:            feed.UpstreamSources,
 			HideDeletedPackageVersions: feed.HideDeletedPackageVersions,
 			DefaultViewId:              feed.DefaultViewId,

@@ -105,6 +105,10 @@ spec:
                 - name
                 - namespace
                 type: object
+              upstreamEnabled:
+                description: This should always be true. Setting to false will override
+                  all sources in UpstreamSources.
+                type: boolean
               upstreamSources:
                 description: |-
                   A list of sources that this feed will fetch packages from. An empty list indicates that this feed will not search any additional sources for packages.
