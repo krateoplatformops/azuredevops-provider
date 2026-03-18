@@ -76,6 +76,10 @@ type FeedSpec struct {
 	// UpstreamSources with the same "location" field MUST have the same "name" field.
 	// +optional
 	UpstreamSources []UpstreamSource `json:"upstreamSources,omitempty"`
+
+	// This should always be true. Setting to false will override all sources in UpstreamSources.
+	// +optional
+	UpstreamEnabled *bool `json:"upstreamEnabled,omitempty"`
 }
 
 type FeedStatus struct {
